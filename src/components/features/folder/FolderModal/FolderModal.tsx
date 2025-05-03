@@ -1,8 +1,8 @@
 // src/components/features/folder/FolderModal/FolderModal.tsx
 import React from 'react';
-import { Modal } from '../../../common/Modal';
-import { FolderForm } from '../FolderForm';
-import { FolderFormData } from '../../../../types';
+import {Modal} from '../../../common/Modal';
+import {FolderForm} from '../FolderForm';
+import {FolderFormData} from '../../../../types';
 
 interface FolderModalProps {
     isOpen: boolean;
