@@ -1,11 +1,11 @@
 // src/hooks/useClickOutside.ts
 import { useEffect, useRef } from 'react';
 
-export const useClickOutside = (
+export const useClickOutside = <T extends HTMLElement = HTMLDivElement>(
     handler: () => void,
     active = true
 ) => {
-    const ref = useRef<HTMLElement>(null);
+    const ref = useRef<T>(null);
 
     useEffect(() => {
         if (!active) return;
