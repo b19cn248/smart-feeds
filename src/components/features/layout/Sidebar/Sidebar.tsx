@@ -1,5 +1,5 @@
 // src/components/features/layout/Sidebar/Sidebar.tsx
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { NAV_SECTIONS } from '../../../../constants';
 import { NavItem } from './NavItem';
@@ -17,7 +17,7 @@ const SidebarWrapper = styled.div<{ isActive: boolean }>`
     overflow-y: auto;
     transition: ${({ theme }) => theme.transitions.default};
     padding: 24px 16px;
-    z-index: ${({ theme }) => theme.zIndices.fixed};
+    z-index: ${({ theme }) => theme.zIndices.fixed + 10}; // Đảm bảo z-index cao hơn content
 
     @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
         transform: translateX(${({ isActive }) => isActive ? '0' : '-100%'});
@@ -66,19 +66,37 @@ const NavList = styled.div`
     gap: 4px;
 `;
 
-// Xóa SidebarFooter styled component
-
 interface SidebarProps {
     isActive: boolean;
     onNavItemClick?: (itemId: string) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isActive, onNavItemClick }) => {
+    // Tham chiếu đến sidebar để đảm bảo focus khi active
+    const sidebarRef = useRef<HTMLDivElement>(null);
+
+    // Focus vào sidebar khi nó được mở ra
+    useEffect(() => {
+        if (isActive && sidebarRef.current) {
+            sidebarRef.current.focus();
+        }
+    }, [isActive]);
+
+    const handleNavItemClick = (itemId: string) => {
+        if (onNavItemClick) {
+            onNavItemClick(itemId);
+        }
+    };
+
     return (
-        <SidebarWrapper isActive={isActive}>
+        <SidebarWrapper
+            isActive={isActive}
+            ref={sidebarRef}
+            tabIndex={-1} // Cho phép focus nhưng không nằm trong tab order
+        >
             <Logo>
                 <i className="fas fa-rss" />
-                NewsSync
+                Smart Feeds
             </Logo>
 
             {NAV_SECTIONS.map((section) => (
@@ -89,14 +107,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isActive, onNavItemClick }) =>
                             <NavItem
                                 key={item.id}
                                 item={item}
-                                onClick={() => onNavItemClick?.(item.id)}
+                                onClick={() => handleNavItemClick(item.id)}
                             />
                         ))}
                     </NavList>
                 </NavSection>
             ))}
-
-            {/* Xóa SidebarFooter component và UserProfile */}
         </SidebarWrapper>
     );
 };

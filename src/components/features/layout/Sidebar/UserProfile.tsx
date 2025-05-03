@@ -1,61 +1,80 @@
 // src/components/features/layout/Sidebar/UserProfile.tsx
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useAuth } from '../../../../contexts/AuthContext';
 import { useClickOutside } from '../../../../hooks';
 
 const UserProfileWrapper = styled.div`
-  position: relative;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
 `;
 
 const UserProfileButton = styled.button`
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 8px;
-  border-radius: ${({ theme }) => theme.radii.md};
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
-  background-color: ${({ theme }) => theme.colors.background.secondary};
-  cursor: pointer;
-  transition: ${({ theme }) => theme.transitions.default};
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: ${({ theme }) => theme.radii.full};
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    transition: ${({ theme }) => theme.transitions.default};
 
-  &:hover {
-    border-color: ${({ theme }) => theme.colors.gray[300]};
-  }
+    &:hover {
+        background-color: ${({ theme }) => theme.colors.gray[100]};
+    }
 
-  @media (prefers-color-scheme: dark) {
-    background-color: ${({ theme }) => theme.colors.gray[800]};
-    border-color: ${({ theme }) => theme.colors.gray[700]};
-  }
+    @media (prefers-color-scheme: dark) {
+        &:hover {
+            background-color: ${({ theme }) => theme.colors.gray[800]};
+        }
+    }
 `;
 
 const UserAvatar = styled.div`
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background-color: ${({ theme }) => theme.colors.primary.main};
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
-  margin-right: 12px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #3e8ff2;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+    font-size: 14px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
-const UserInfo = styled.div`
-  flex: 1;
-  text-align: left;
+const UserInfoContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    margin-left: 10px;
+    margin-right: 6px;
+    max-width: 150px;
+
+    @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+        display: none;
+    }
 `;
 
 const UserName = styled.div`
     font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
     font-size: ${({ theme }) => theme.typography.fontSize.sm};
     color: ${({ theme }) => theme.colors.text.primary};
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
 `;
 
 const UserEmail = styled.div`
     font-size: ${({ theme }) => theme.typography.fontSize.xs};
     color: ${({ theme }) => theme.colors.text.secondary};
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
 `;
 
 const ChevronIcon = styled.i<{ isOpen: boolean }>`
@@ -63,43 +82,73 @@ const ChevronIcon = styled.i<{ isOpen: boolean }>`
     font-size: 12px;
     transition: transform 0.2s ease;
     transform: ${({ isOpen }) => isOpen ? 'rotate(180deg)' : 'rotate(0)'};
+    flex-shrink: 0;
+
+    @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+        display: none;
+    }
 `;
 
 const DropdownMenu = styled.div<{ isOpen: boolean }>`
-  position: absolute;
-  bottom: 100%;
-  left: 0;
-  right: 0;
-  margin-bottom: 8px;
-  background-color: ${({ theme }) => theme.colors.background.secondary};
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
-  border-radius: ${({ theme }) => theme.radii.md};
-  box-shadow: ${({ theme }) => theme.shadows.lg};
-  opacity: ${({ isOpen }) => isOpen ? 1 : 0};
-  visibility: ${({ isOpen }) => isOpen ? 'visible' : 'hidden'};
-  transform: ${({ isOpen }) => isOpen ? 'translateY(0)' : 'translateY(10px)'};
-  transition: ${({ theme }) => theme.transitions.default};
-  z-index: 1000;
-  overflow: hidden;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 220px;
+    background-color: ${({ theme }) => theme.colors.background.secondary};
+    border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+    border-radius: ${({ theme }) => theme.radii.md};
+    box-shadow: ${({ theme }) => theme.shadows.lg};
+    opacity: ${({ isOpen }) => isOpen ? 1 : 0};
+    visibility: ${({ isOpen }) => isOpen ? 'visible' : 'hidden'};
+    transform: ${({ isOpen }) => isOpen ? 'translateY(0)' : 'translateY(-10px)'};
+    transition: ${({ theme }) => theme.transitions.default};
+    z-index: ${({ theme }) => theme.zIndices.dropdown};
+    overflow: hidden;
 
-  @media (prefers-color-scheme: dark) {
-    background-color: ${({ theme }) => theme.colors.gray[800]};
-    border-color: ${({ theme }) => theme.colors.gray[700]};
-  }
+    @media (prefers-color-scheme: dark) {
+        background-color: ${({ theme }) => theme.colors.gray[800]};
+        border-color: ${({ theme }) => theme.colors.gray[700]};
+    }
+`;
+
+const UserInfoHeader = styled.div`
+    padding: 16px;
+    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
+    display: none;
+
+    @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+        display: block;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        border-bottom-color: ${({ theme }) => theme.colors.gray[700]};
+    }
+`;
+
+const MobileUserName = styled.div`
+    font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+    font-size: ${({ theme }) => theme.typography.fontSize.md};
+    color: ${({ theme }) => theme.colors.text.primary};
+    margin-bottom: 4px;
+`;
+
+const MobileUserEmail = styled.div`
+  font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  color: ${({ theme }) => theme.colors.text.secondary};
 `;
 
 const MenuItem = styled.button`
   display: flex;
   align-items: center;
   width: 100%;
-  padding: 10px 16px;
+  padding: 12px 16px;
   border: none;
   background: none;
   color: ${({ theme }) => theme.colors.text.primary};
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
   text-align: left;
   cursor: pointer;
-  transition: ${({ theme }) => theme.transitions.default};
+  transition: ${({ theme }) => theme.transitions.fast};
 
   &:hover {
     background-color: ${({ theme }) => theme.colors.gray[100]};
@@ -123,27 +172,28 @@ const MenuItem = styled.button`
 `;
 
 const Divider = styled.div`
-    height: 1px;
-    background-color: ${({ theme }) => theme.colors.gray[200]};
-    margin: 4px 0;
+  height: 1px;
+  background-color: ${({ theme }) => theme.colors.gray[200]};
+  margin: 4px 0;
 
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[700]};
-    }
+  @media (prefers-color-scheme: dark) {
+    background-color: ${({ theme }) => theme.colors.gray[700]};
+  }
 `;
 
 export const UserProfile: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const { user, logout } = useAuth();
-    const dropdownRef = useClickOutside(() => setIsOpen(false));
+    const dropdownRef = useClickOutside<HTMLDivElement>(() => setIsOpen(false));
 
     // Lấy thông tin user từ Keycloak token
     const userName = user?.preferred_username || user?.name || 'User';
-    const userEmail = user?.email || '';
+    const userEmail = user?.email || 'user@example.com';
     const initials = userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
 
     const handleLogout = () => {
         logout();
+        setIsOpen(false);
     };
 
     const menuItems = [
@@ -151,7 +201,6 @@ export const UserProfile: React.FC = () => {
             icon: 'user',
             label: 'Profile',
             onClick: () => {
-                // Navigate to profile page
                 console.log('Navigate to profile');
                 setIsOpen(false);
             },
@@ -160,7 +209,6 @@ export const UserProfile: React.FC = () => {
             icon: 'cog',
             label: 'Settings',
             onClick: () => {
-                // Navigate to settings page
                 console.log('Navigate to settings');
                 setIsOpen(false);
             },
@@ -169,7 +217,6 @@ export const UserProfile: React.FC = () => {
             icon: 'bell',
             label: 'Notifications',
             onClick: () => {
-                // Navigate to notifications page
                 console.log('Navigate to notifications');
                 setIsOpen(false);
             },
@@ -180,14 +227,19 @@ export const UserProfile: React.FC = () => {
         <UserProfileWrapper ref={dropdownRef}>
             <UserProfileButton onClick={() => setIsOpen(!isOpen)}>
                 <UserAvatar>{initials}</UserAvatar>
-                <UserInfo>
+                <UserInfoContainer>
                     <UserName>{userName}</UserName>
                     <UserEmail>{userEmail}</UserEmail>
-                </UserInfo>
+                </UserInfoContainer>
                 <ChevronIcon className="fas fa-chevron-down" isOpen={isOpen} />
             </UserProfileButton>
 
             <DropdownMenu isOpen={isOpen}>
+                <UserInfoHeader>
+                    <MobileUserName>{userName}</MobileUserName>
+                    <MobileUserEmail>{userEmail}</MobileUserEmail>
+                </UserInfoHeader>
+
                 {menuItems.map((item, index) => (
                     <MenuItem key={index} onClick={item.onClick}>
                         <i className={`fas fa-${item.icon}`} />

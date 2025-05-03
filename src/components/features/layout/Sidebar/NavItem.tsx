@@ -1,14 +1,17 @@
 // src/components/features/layout/Sidebar/NavItem.tsx
 import React from 'react';
 import styled, { css } from 'styled-components';
-import { useNavigate } from 'react-router-dom'; // Thêm dòng này
+import { useNavigate } from 'react-router-dom';
 import { NavItem as NavItemType } from '../../../../types';
 
-const NavItemWrapper = styled.div<{ isActive?: boolean }>`
+const NavItemButton = styled.button<{ isActive?: boolean }>`
     display: flex;
     align-items: center;
+    width: 100%;
     padding: 10px 12px;
     border-radius: ${({ theme }) => theme.radii.md};
+    background-color: ${({ isActive, theme }) =>
+            isActive ? theme.colors.primary.light : 'transparent'};
     color: ${({ isActive, theme }) =>
             isActive ? theme.colors.primary.main : theme.colors.text.secondary};
     font-weight: ${({ isActive, theme }) =>
@@ -16,10 +19,12 @@ const NavItemWrapper = styled.div<{ isActive?: boolean }>`
     font-size: ${({ theme }) => theme.typography.fontSize.md};
     cursor: pointer;
     transition: ${({ theme }) => theme.transitions.default};
-    background-color: ${({ isActive, theme }) =>
-            isActive ? theme.colors.primary.light : 'transparent'};
+    border: none;
+    text-align: left;
+    outline: none;
+    -webkit-tap-highlight-color: transparent; // Loại bỏ highlight khi tap trên mobile
 
-    &:hover {
+    &:hover, &:active, &:focus {
         background-color: ${({ isActive, theme }) =>
                 isActive ? theme.colors.primary.light : theme.colors.gray[100]};
         color: ${({ isActive, theme }) =>
@@ -27,7 +32,7 @@ const NavItemWrapper = styled.div<{ isActive?: boolean }>`
     }
 
     @media (prefers-color-scheme: dark) {
-        &:hover {
+        &:hover, &:active, &:focus {
             background-color: ${({ isActive, theme }) =>
                     isActive ? theme.colors.primary.light : theme.colors.gray[800]};
         }
@@ -47,29 +52,34 @@ interface NavItemProps {
 }
 
 export const NavItem: React.FC<NavItemProps> = ({ item, onClick }) => {
-    const navigate = useNavigate(); // Thêm dòng này
+    const navigate = useNavigate();
 
-    const handleClick = () => {
-        // Nếu có path, điều hướng đến path đó
-        if (item.path) {
-            navigate(item.path);
-        }
+    const handleClick = (e: React.MouseEvent) => {
+        // Ngăn chặn event bubbling
+        e.stopPropagation();
 
-        // Nếu có onClick callback thì gọi
+        // Gọi callback onClick trước
         if (onClick) {
             onClick();
+        }
+
+        // Sau đó mới chuyển trang
+        if (item.path) {
+            // Sử dụng setTimeout để đảm bảo UI có thời gian phản hồi trước khi chuyển trang
+            setTimeout(() => {
+                navigate(item.path || '/');
+            }, 10);
         }
     };
 
     return (
-        <NavItemWrapper
+        <NavItemButton
             isActive={item.isActive}
-            onClick={handleClick} // Sửa thành handleClick
-            role="button"
-            tabIndex={0}
+            onClick={handleClick}
+            type="button" // Đặt type rõ ràng
         >
             <i className={`fas fa-${item.icon}`} />
             {item.label}
-        </NavItemWrapper>
+        </NavItemButton>
     );
 };

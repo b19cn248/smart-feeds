@@ -10,6 +10,7 @@ import { useLocation } from 'react-router-dom';
 const LayoutWrapper = styled.div`
     display: flex;
     min-height: 100vh;
+    position: relative;
 `;
 
 const MainContent = styled.main<{ hasPadding?: boolean }>`
@@ -17,30 +18,30 @@ const MainContent = styled.main<{ hasPadding?: boolean }>`
     margin-left: 260px;
     transition: ${({ theme }) => theme.transitions.default};
     padding: ${({ hasPadding = true, theme }) => hasPadding ? theme.spacing['3xl'] : '0'};
-    min-width: 0; // Prevents flex items from overflowing
+    min-width: 0;
+    padding-top: ${({ hasPadding, theme }) => hasPadding ? `calc(64px + ${theme.spacing['3xl']})` : '64px'};
 
     @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
         margin-left: 0;
-        padding-top: ${({ hasPadding, theme }) => hasPadding ? `calc(64px + ${theme.spacing['3xl']})` : '64px'};
-        // Add padding-top only on mobile to account for header
     }
 `;
 
+// Điều chỉnh overlay để chỉ phủ phần content, không phủ sidebar
 const Overlay = styled.div<{ isVisible: boolean }>`
     position: fixed;
     top: 0;
-    left: 0;
     right: 0;
     bottom: 0;
+    left: 260px; // Để trống bên trái để không che phủ sidebar
     background-color: rgba(0, 0, 0, 0.5);
     z-index: ${({ theme }) => theme.zIndices.overlay};
     opacity: ${({ isVisible }) => isVisible ? 1 : 0};
     visibility: ${({ isVisible }) => isVisible ? 'visible' : 'hidden'};
     transition: ${({ theme }) => theme.transitions.default};
-    display: none;
+    pointer-events: ${({ isVisible }) => isVisible ? 'auto' : 'none'};
 
     @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-        display: block;
+        left: 260px; // Vẫn giữ khoảng trống bên trái bằng đúng chiều rộng của sidebar
     }
 `;
 
@@ -61,7 +62,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.md})`);
     const location = useLocation();
 
-    // Đóng sidebar khi route thay đổi (trên mobile)
+    // Đóng sidebar khi route thay đổi
     useEffect(() => {
         if (isMobile) {
             setSidebarActive(false);
@@ -76,6 +77,19 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         setSidebarActive(false);
     };
 
+    // Chặn scroll khi sidebar active trên mobile
+    useEffect(() => {
+        if (sidebarActive && isMobile) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [sidebarActive, isMobile]);
+
     return (
         <LayoutWrapper>
             <Header
@@ -89,14 +103,15 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 onNavItemClick={closeSidebar}
             />
 
-            <MainContent hasPadding={!noPadding}>
-                {children}
-            </MainContent>
-
+            {/* Overlay chỉ che phần content, không che sidebar */}
             <Overlay
                 isVisible={sidebarActive}
                 onClick={closeSidebar}
             />
+
+            <MainContent hasPadding={!noPadding}>
+                {children}
+            </MainContent>
         </LayoutWrapper>
     );
 };
