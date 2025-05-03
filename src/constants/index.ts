@@ -18,9 +18,9 @@ export const NAV_SECTIONS = [
     {
         title: 'Main',
         items: [
-            { id: 'home', icon: 'home', label: 'Home', path: '/' },
+            { id: 'home', icon: 'home', label: 'Home', path: '/', isActive: true }, // Set isActive: true
             { id: 'discover', icon: 'compass', label: 'Discover', path: '/discover' },
-            { id: 'feeds', icon: 'folder', label: 'My Feeds', path: '/feeds', isActive: true },
+            { id: 'feeds', icon: 'folder', label: 'My Feeds', path: '/feeds', isActive: false }, // Change to isActive: false
             { id: 'saved', icon: 'bookmark', label: 'Saved', path: '/saved' },
         ],
     },

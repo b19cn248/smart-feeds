@@ -1,4 +1,4 @@
-// src/App.tsx
+// Sửa đổi App.tsx
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
@@ -7,6 +7,7 @@ import { FolderProvider } from './contexts/FolderContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { MainLayout } from './components/features/layout/MainLayout';
 import { FoldersPage } from './pages/FoldersPage';
+import { ArticlesPage } from './pages/ArticlesPage'; // Import trang Articles mới
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { ToastContainer } from './components/common/Toast';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
@@ -25,6 +26,18 @@ const App: React.FC = () => {
                                 {/* Protected Routes */}
                                 <Route
                                     path="/"
+                                    element={
+                                        <ProtectedRoute>
+                                            <MainLayout headerTitle="Home">
+                                                <ArticlesPage />
+                                            </MainLayout>
+                                        </ProtectedRoute>
+                                    }
+                                />
+
+                                {/* My Feeds Route */}
+                                <Route
+                                    path="/feeds"
                                     element={
                                         <ProtectedRoute>
                                             <MainLayout headerTitle="My Feeds">

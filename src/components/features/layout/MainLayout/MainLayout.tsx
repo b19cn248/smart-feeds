@@ -1,45 +1,47 @@
 // src/components/features/layout/MainLayout/MainLayout.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Sidebar } from '../Sidebar';
 import { Header } from '../Header';
 import { useMediaQuery } from '../../../../hooks';
 import { theme } from '../../../../styles/theme';
+import { useLocation } from 'react-router-dom';
 
 const LayoutWrapper = styled.div`
-  display: flex;
-  min-height: 100vh;
+    display: flex;
+    min-height: 100vh;
 `;
 
 const MainContent = styled.main<{ hasPadding?: boolean }>`
-  flex: 1;
-  margin-left: 260px;
-  transition: ${({ theme }) => theme.transitions.default};
-  padding: ${({ hasPadding = true, theme }) => hasPadding ? theme.spacing['3xl'] : '0'};
-  min-width: 0; // Prevents flex items from overflowing
+    flex: 1;
+    margin-left: 260px;
+    transition: ${({ theme }) => theme.transitions.default};
+    padding: ${({ hasPadding = true, theme }) => hasPadding ? theme.spacing['3xl'] : '0'};
+    min-width: 0; // Prevents flex items from overflowing
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    margin-left: 0;
-    padding-top: ${({ hasPadding, theme }) => hasPadding ? `calc(64px + ${theme.spacing['3xl']})` : '64px'};
-  }
+    @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+        margin-left: 0;
+        padding-top: ${({ hasPadding, theme }) => hasPadding ? `calc(64px + ${theme.spacing['3xl']})` : '64px'};
+        // Add padding-top only on mobile to account for header
+    }
 `;
 
 const Overlay = styled.div<{ isVisible: boolean }>`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: ${({ theme }) => theme.zIndices.overlay};
-  opacity: ${({ isVisible }) => isVisible ? 1 : 0};
-  visibility: ${({ isVisible }) => isVisible ? 'visible' : 'hidden'};
-  transition: ${({ theme }) => theme.transitions.default};
-  display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: ${({ theme }) => theme.zIndices.overlay};
+    opacity: ${({ isVisible }) => isVisible ? 1 : 0};
+    visibility: ${({ isVisible }) => isVisible ? 'visible' : 'hidden'};
+    transition: ${({ theme }) => theme.transitions.default};
+    display: none;
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-    display: block;
-  }
+    @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+        display: block;
+    }
 `;
 
 interface MainLayoutProps {
@@ -57,6 +59,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                                                       }) => {
     const [sidebarActive, setSidebarActive] = useState(false);
     const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.md})`);
+    const location = useLocation();
+
+    // Đóng sidebar khi route thay đổi (trên mobile)
+    useEffect(() => {
+        if (isMobile) {
+            setSidebarActive(false);
+        }
+    }, [location, isMobile]);
 
     const toggleSidebar = () => {
         setSidebarActive(!sidebarActive);
@@ -76,7 +86,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
             <Sidebar
                 isActive={sidebarActive}
-                onNavItemClick={isMobile ? closeSidebar : undefined}
+                onNavItemClick={closeSidebar}
             />
 
             <MainContent hasPadding={!noPadding}>
