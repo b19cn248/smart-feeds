@@ -71,7 +71,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
                                                         }) => {
     return (
         <Card onClick={onClick} padding="0">
-            <ArticleImage imageUrl={article.imageUrl || '/article-placeholder.jpg'} />
+            <ArticleImage imageUrl={article.imageUrl ?? '/article-placeholder.jpg'} />
             <ArticleContent>
                 <ArticleTitle>{article.title}</ArticleTitle>
                 <ArticleExcerpt>{article.content}</ArticleExcerpt>
