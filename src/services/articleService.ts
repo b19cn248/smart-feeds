@@ -9,7 +9,7 @@ export const articleService = {
      * @param page - Page number (optional)
      * @param size - Page size (optional)
      */
-    async getArticles(page = 0, size = 10): Promise<ArticleResponse> {
+    async getArticles(page = 0, size = 1000): Promise<ArticleResponse> {
         const response = await fetch(`${API_BASE_URL}/articles?page=${page}&size=${size}`);
 
         if (!response.ok) {
