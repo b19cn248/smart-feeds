@@ -49,7 +49,7 @@ export const mockArticles: Article[] = [
         title: 'Space Tourism Company Announces First Civilian Moon Mission',
         content: 'SpaceX has revealed plans to take private citizens on a lunar orbit by the end of 2026...',
         source: 'Space Exploration Monthly',
-        author: 'James Anderson',
+        author: 'Nguyen Minh Hieu',
         publishedAt: new Date(2025, 4, 3), // May 3, 2025
         url: 'https://spaceexploration.com/civilian-moon-mission',
         imageUrl: 'https://sdmntprnorthcentralus.oaiusercontent.com/files/00000000-a070-622f-b811-b64979a8ddde/raw?se=2025-05-04T02%3A23%3A30Z&sp=r&sv=2024-08-04&sr=b&scid=94976d89-7491-5db9-9e1b-41e39b5360b0&skoid=de76bc29-7017-43d4-8d90-7a49512bae0f&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-05-03T19%3A37%3A16Z&ske=2025-05-04T19%3A37%3A16Z&sks=b&skv=2024-08-04&sig=FZsAbJBWroFaovhNhXCYfnn9UjQSSrJq2yC%2B2x%2BrBc8%3D'
