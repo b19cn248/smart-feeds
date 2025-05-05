@@ -9,6 +9,7 @@ export interface Article {
     source: string;
     url: string;
     author: string;
+    image_url: string; // Thêm trường image_url từ response API
 }
 
 export interface ArticleResponse {

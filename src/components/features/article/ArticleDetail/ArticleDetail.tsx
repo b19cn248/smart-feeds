@@ -112,75 +112,75 @@ const ArticleDate = styled.div`
 `;
 
 const ArticleBody = styled.div`
- font-size: ${({ theme }) => theme.typography.fontSize.lg};
- line-height: 1.7;
- color: ${({ theme }) => theme.colors.text.primary};
- 
- /* Styles cho nội dung HTML */
- p {
-   margin-bottom: 16px;
- }
- 
- img {
-   max-width: 100%;
-   height: auto;
-   display: block;
-   margin: 16px 0;
-   border-radius: ${({ theme }) => theme.radii.md};
- }
- 
- a {
-   color: ${({ theme }) => theme.colors.primary.main};
-   text-decoration: none;
-   
-   &:hover {
-     text-decoration: underline;
-   }
- }
- 
- h1, h2, h3, h4, h5, h6 {
-   margin: 24px 0 16px 0;
-   font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
- }
- 
- ul, ol {
-   margin: 16px 0;
-   padding-left: 24px;
- }
- 
- li {
-   margin-bottom: 8px;
- }
- 
- blockquote {
-   border-left: 4px solid ${({ theme }) => theme.colors.gray[300]};
-   margin: 16px 0;
-   padding-left: 16px;
-   color: ${({ theme }) => theme.colors.text.secondary};
- }
- 
- pre {
-   background-color: ${({ theme }) => theme.colors.gray[100]};
-   padding: 16px;
-   border-radius: ${({ theme }) => theme.radii.md};
-   overflow-x: auto;
-   margin: 16px 0;
-   
-   @media (prefers-color-scheme: dark) {
-     background-color: ${({ theme }) => theme.colors.gray[800]};
-   }
- }
- 
- code {
-   background-color: ${({ theme }) => theme.colors.gray[100]};
-   padding: 2px 4px;
-   border-radius: ${({ theme }) => theme.radii.sm};
-   font-family: monospace;
-   
-   @media (prefers-color-scheme: dark) {
-     background-color: ${({ theme }) => theme.colors.gray[800]};
-   }
- }
+    font-size: ${({ theme }) => theme.typography.fontSize.lg};
+    line-height: 1.7;
+    color: ${({ theme }) => theme.colors.text.primary};
+
+    /* Styles cho nội dung HTML */
+    p {
+        margin-bottom: 16px;
+    }
+
+    img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 16px 0;
+        border-radius: ${({ theme }) => theme.radii.md};
+    }
+
+    a {
+        color: ${({ theme }) => theme.colors.primary.main};
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        margin: 24px 0 16px 0;
+        font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+    }
+
+    ul, ol {
+        margin: 16px 0;
+        padding-left: 24px;
+    }
+
+    li {
+        margin-bottom: 8px;
+    }
+
+    blockquote {
+        border-left: 4px solid ${({ theme }) => theme.colors.gray[300]};
+        margin: 16px 0;
+        padding-left: 16px;
+        color: ${({ theme }) => theme.colors.text.secondary};
+    }
+
+    pre {
+        background-color: ${({ theme }) => theme.colors.gray[100]};
+        padding: 16px;
+        border-radius: ${({ theme }) => theme.radii.md};
+        overflow-x: auto;
+        margin: 16px 0;
+
+        @media (prefers-color-scheme: dark) {
+            background-color: ${({ theme }) => theme.colors.gray[800]};
+        }
+    }
+
+    code {
+        background-color: ${({ theme }) => theme.colors.gray[100]};
+        padding: 2px 4px;
+        border-radius: ${({ theme }) => theme.radii.sm};
+        font-family: monospace;
+
+        @media (prefers-color-scheme: dark) {
+            background-color: ${({ theme }) => theme.colors.gray[800]};
+        }
+    }
 `;
 
 const ActionButtons = styled.div`
@@ -207,11 +207,11 @@ const ActionButton = styled.button`
 `;
 
 const ArticleImage = styled.img`
- max-width: 100%;
- height: auto;
- display: block;
- margin: 16px auto;
- border-radius: ${({ theme }) => theme.radii.md};
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 16px auto;
+    border-radius: ${({ theme }) => theme.radii.md};
 `;
 
 interface ArticleDetailProps {
@@ -250,31 +250,9 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
         });
     };
 
-    // Extract và xử lý image từ HTML content nếu có
-    const extractFirstImage = (html: string): string | null => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const img = doc.querySelector('img');
-        return img ? img.src : null;
-    };
-
-    // Xử lý content để loại bỏ img tag đầu tiên nếu đã hiển thị ở trên
-    const processContent = (html: string): string => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-
-        // Remove first image if exists
-        const firstImg = doc.querySelector('img');
-        if (firstImg) {
-            firstImg.remove();
-        }
-
-        return doc.body.innerHTML;
-    };
-
-    const featuredImage = extractFirstImage(article.content);
-    const processedContent = processContent(article.content);
-    const sanitizedContent = sanitizeHtml(processedContent);
+    // Sử dụng image_url trực tiếp thay vì extractFirstImage từ content
+    const featuredImage = article.image_url;
+    const sanitizedContent = sanitizeHtml(article.content);
 
     return (
         <>
@@ -297,7 +275,7 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
                 </DetailHeader>
 
                 <DetailContent>
-                    {/* Hiển thị featured image nếu có */}
+                    {/* Hiển thị featured image từ image_url nếu có */}
                     {featuredImage && (
                         <ArticleImage
                             src={featuredImage}

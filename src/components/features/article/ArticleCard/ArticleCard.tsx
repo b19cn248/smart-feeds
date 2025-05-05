@@ -72,20 +72,10 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
                                                             article,
                                                             onClick
                                                         }) => {
-    // Hàm extract image từ HTML content
-    const extractImageFromContent = (html: string): string | null => {
-        try {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const img = doc.querySelector('img');
-            return img ? img.src : null;
-        } catch (error) {
-            console.error('Error parsing HTML content:', error);
-            return null;
-        }
-    };
+    // Sử dụng image_url thay vì extract từ content HTML
+    const imageUrl = article.image_url || DEFAULT_ARTICLE_IMAGE;
 
-    // Hàm extract text từ HTML content
+    // Extract text từ HTML để hiển thị excerpt
     const extractTextFromHtml = (html: string): string => {
         try {
             const parser = new DOMParser();
@@ -96,10 +86,6 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
             return html;
         }
     };
-
-    // Lấy image từ content HTML nếu có
-    const contentImage = extractImageFromContent(article.content);
-    const imageUrl = contentImage || DEFAULT_ARTICLE_IMAGE;
 
     // Extract text từ HTML để hiển thị excerpt
     const excerptText = extractTextFromHtml(article.content);
