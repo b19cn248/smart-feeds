@@ -18,9 +18,10 @@ export const NAV_SECTIONS = [
     {
         title: 'Main',
         items: [
-            { id: 'home', icon: 'home', label: 'Home', path: '/', isActive: true }, // Set isActive: true
+            { id: 'home', icon: 'home', label: 'Home', path: '/', isActive: true },
             { id: 'discover', icon: 'compass', label: 'Discover', path: '/discover' },
-            { id: 'feeds', icon: 'folder', label: 'My Feeds', path: '/feeds', isActive: false }, // Change to isActive: false
+            { id: 'feeds', icon: 'folder', label: 'My Feeds', path: '/feeds', isActive: false },
+            { id: 'sources', icon: 'rss', label: 'Sources', path: '/sources' }, // Add Sources item
             { id: 'saved', icon: 'bookmark', label: 'Saved', path: '/saved' },
         ],
     },
