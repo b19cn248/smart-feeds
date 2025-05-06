@@ -252,6 +252,17 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
         });
     };
 
+    // Xác định nguồn bài viết
+    const getSourceText = () => {
+        if (!article.source) return 'Unknown source';
+        if (typeof article.source === 'object' && article.source !== null) {
+            // Sử dụng any để tránh lỗi TypeScript
+            const sourceObj = article.source as any;
+            return sourceObj.url || 'Unknown source';
+        }
+        return String(article.source);
+    };
+
     // Sử dụng image_url trực tiếp thay vì extractFirstImage từ content
     const featuredImage = article.image_url;
     const sanitizedContent = sanitizeHtml(article.content);
@@ -293,7 +304,7 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
                     <ArticleMeta>
                         <ArticleSource>
                             <i className="fas fa-newspaper" />
-                            {article.source}
+                            {getSourceText()}
                         </ArticleSource>
                         {article.author && (
                             <ArticleAuthor>

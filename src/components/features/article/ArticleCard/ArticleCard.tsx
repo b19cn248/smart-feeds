@@ -90,6 +90,17 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
     // Extract text từ HTML để hiển thị excerpt
     const excerptText = extractTextFromHtml(article.content);
 
+    // Xác định nguồn bài viết
+    const getSourceText = () => {
+        if (!article.source) return 'Unknown source';
+        if (typeof article.source === 'object' && article.source !== null) {
+            // Sử dụng any để tránh lỗi TypeScript
+            const sourceObj = article.source as any;
+            return sourceObj.url || 'Unknown source';
+        }
+        return String(article.source);
+    };
+
     return (
         <Card onClick={onClick} padding="0">
             <ArticleImage imageUrl={imageUrl} />
@@ -99,7 +110,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
                 <ArticleMeta>
                     <ArticleSource>
                         <i className="fas fa-newspaper" />
-                        {article.source}
+                        {getSourceText()}
                     </ArticleSource>
                     <ArticleDate>{formatDate(new Date(article.publish_date))}</ArticleDate>
                 </ArticleMeta>
