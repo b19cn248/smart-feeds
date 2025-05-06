@@ -1,22 +1,30 @@
 // src/types/article.types.ts
+import { Source } from './source.types';
+
 export interface Article {
-    id: number; // Đổi từ string sang number theo API
+    id: number;
     title: string;
     content: string;
-    publish_date: string; // Đổi từ publishedAt: Date
+    publish_date: string;
     summary: string | null;
     event: string | null;
     source: string;
     url: string;
     author: string;
-    image_url: string; // Thêm trường image_url từ response API
+    image_url: string;
+}
+
+// Thêm interface mới cho nhóm bài viết theo nguồn
+export interface ArticleGroup {
+    source: Source;
+    articles: Article[];
 }
 
 export interface ArticleResponse {
     status: number;
     message: string;
     data: {
-        content: Article[];
+        content: ArticleGroup[]; // Thay đổi từ Article[] sang ArticleGroup[]
         totalElements: number;
         totalPages: number;
         last: boolean;

@@ -19,12 +19,15 @@ export const articleService = {
     async getArticleById(id: number): Promise<Article> {
         // Since API doesn't provide single article endpoint, we'll fetch all and filter
         const response = await this.getArticles();
-        const article = response.data.content.find(a => a.id === id);
 
-        if (!article) {
-            throw new Error('Article not found');
+        // Tìm article trong tất cả các nhóm
+        for (const group of response.data.content) {
+            const article = group.articles.find(a => a.id === id);
+            if (article) {
+                return article;
+            }
         }
 
-        return article;
+        throw new Error('Article not found');
     }
 };

@@ -1,10 +1,11 @@
 // src/pages/ArticlesPage/ArticlesPage.tsx
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { Article } from '../../types';
+import { Article, ArticleGroup } from '../../types';
 import { articleService } from '../../services/articleService';
-import { ArticleCard } from '../../components/features/article/ArticleCard';
+import { ArticleGroupSection } from '../../components/features/article/ArticleGroupSection';
 import { ArticleDetail } from '../../components/features/article/ArticleDetail';
+import { SourceNavigator } from '../../components/features/article/SourceNavigator';
 import { Input } from '../../components/common/Input';
 import { useDebounce } from '../../hooks';
 import { Button } from '../../components/common/Button';
@@ -59,12 +60,6 @@ const SearchWrapper = styled.div`
     }
 `;
 
-const ArticlesGrid = styled.div`
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 24px;
-`;
-
 const EmptyState = styled.div`
     text-align: center;
     padding: 48px 0;
@@ -82,14 +77,25 @@ const EmptyStateText = styled.p`
     margin-bottom: 24px;
 `;
 
+// Thêm component cho tính năng "Expand All" / "Collapse All"
+const ExpandCollapseControl = styled.div`
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+`;
+
 export const ArticlesPage: React.FC = () => {
-    const [articles, setArticles] = useState<Article[]>([]);
-    const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
+    // Thay đổi state để lưu trữ nhóm articles thay vì danh sách articles phẳng
+    const [articleGroups, setArticleGroups] = useState<ArticleGroup[]>([]);
+    const [filteredArticleGroups, setFilteredArticleGroups] = useState<ArticleGroup[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+    // State mới
+    const [allExpanded, setAllExpanded] = useState(false);
 
     const debouncedSearch = useDebounce(searchQuery, 300);
 
@@ -102,8 +108,8 @@ export const ArticlesPage: React.FC = () => {
             setIsLoading(true);
             setError(null);
             const response = await articleService.getArticles();
-            setArticles(response.data.content);
-            setFilteredArticles(response.data.content);
+            setArticleGroups(response.data.content);
+            setFilteredArticleGroups(response.data.content);
         } catch (error) {
             console.error('Error fetching articles:', error);
             setError('Failed to load articles. Please try again.');
@@ -114,21 +120,30 @@ export const ArticlesPage: React.FC = () => {
 
     useEffect(() => {
         if (debouncedSearch.trim() === '') {
-            setFilteredArticles(articles);
+            setFilteredArticleGroups(articleGroups);
             return;
         }
 
         const lowerCaseQuery = debouncedSearch.toLowerCase();
-        const filtered = articles.filter(
-            article =>
-                article.title?.toLowerCase().includes(lowerCaseQuery) ||
-                article.content?.toLowerCase().includes(lowerCaseQuery) ||
-                article.source?.toLowerCase().includes(lowerCaseQuery) ||
-                article.author?.toLowerCase().includes(lowerCaseQuery)
-        );
+        // Lọc theo nhóm và articles trong nhóm
+        const filtered = articleGroups.map(group => {
+            const filteredArticles = group.articles.filter(
+                article =>
+                    article.title?.toLowerCase().includes(lowerCaseQuery) ||
+                    article.content?.toLowerCase().includes(lowerCaseQuery) ||
+                    article.source?.toLowerCase().includes(lowerCaseQuery) ||
+                    article.author?.toLowerCase().includes(lowerCaseQuery)
+            );
 
-        setFilteredArticles(filtered);
-    }, [debouncedSearch, articles]);
+            // Trả về nhóm mới với article đã lọc
+            return {
+                ...group,
+                articles: filteredArticles
+            };
+        }).filter(group => group.articles.length > 0); // Chỉ giữ các nhóm có article
+
+        setFilteredArticleGroups(filtered);
+    }, [debouncedSearch, articleGroups]);
 
     const handleArticleClick = (article: Article) => {
         setSelectedArticle(article);
@@ -141,6 +156,20 @@ export const ArticlesPage: React.FC = () => {
         setTimeout(() => {
             setSelectedArticle(null);
         }, 300);
+    };
+
+    // Hàm mới để scroll đến một nguồn cụ thể
+    const scrollToSource = (sourceId: number) => {
+        const elementId = `source-${sourceId}`;
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
+    // Hàm xử lý expand/collapse tất cả
+    const toggleAllExpanded = () => {
+        setAllExpanded(!allExpanded);
     };
 
     if (isLoading) {
@@ -158,6 +187,9 @@ export const ArticlesPage: React.FC = () => {
             </EmptyState>
         );
     }
+
+    // Kiểm tra xem có bất kỳ nhóm nào có ít nhất một bài viết không
+    const hasArticles = filteredArticleGroups.some(group => group.articles.length > 0);
 
     return (
         <>
@@ -184,16 +216,43 @@ export const ArticlesPage: React.FC = () => {
                 </Actions>
             </PageHeader>
 
-            {filteredArticles.length > 0 ? (
-                <ArticlesGrid>
-                    {filteredArticles.map((article) => (
-                        <ArticleCard
-                            key={article.id}
-                            article={article}
-                            onClick={() => handleArticleClick(article)}
-                        />
+            {/* Thêm thanh điều hướng nguồn */}
+            {hasArticles && (
+                <SourceNavigator
+                    groups={filteredArticleGroups}
+                    onSourceClick={scrollToSource}
+                />
+            )}
+
+            {/* Thêm điều khiển expand/collapse tất cả */}
+            {hasArticles && filteredArticleGroups.length > 1 && (
+                <ExpandCollapseControl>
+                    <Button
+                        variant="ghost"
+                        onClick={toggleAllExpanded}
+                        leftIcon={allExpanded ? "compress-alt" : "expand-alt"}
+                    >
+                        {allExpanded ? "Collapse All" : "Expand All"}
+                    </Button>
+                </ExpandCollapseControl>
+            )}
+
+            {hasArticles ? (
+                // Hiển thị các nhóm articles
+                <>
+                    {filteredArticleGroups.map((group) => (
+                        // Chỉ hiển thị nhóm nếu có ít nhất một bài viết
+                        group.articles.length > 0 && (
+                            <ArticleGroupSection
+                                key={`source-${group.source.id}`}
+                                id={`source-${group.source.id}`}
+                                group={group}
+                                onArticleClick={handleArticleClick}
+                                isInitiallyExpanded={allExpanded || filteredArticleGroups.length === 1}
+                            />
+                        )
                     ))}
-                </ArticlesGrid>
+                </>
             ) : (
                 <EmptyState>
                     <EmptyStateIcon>
@@ -204,6 +263,11 @@ export const ArticlesPage: React.FC = () => {
                             ? 'No articles found. Try a different search query.'
                             : 'No articles available at the moment.'}
                     </EmptyStateText>
+                    {!debouncedSearch && (
+                        <Button leftIcon="plus" onClick={() => window.location.href = '/sources'}>
+                            Add Sources
+                        </Button>
+                    )}
                 </EmptyState>
             )}
 
