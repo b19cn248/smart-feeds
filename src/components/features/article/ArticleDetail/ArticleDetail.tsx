@@ -237,14 +237,16 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
     const sanitizeHtml = (html: string) => {
         return DOMPurify.sanitize(html, {
             ALLOWED_TAGS: [
-                'p', 'br', 'b', 'i', 'em', 'strong', 'a', 'img',
+                'p', 'br', 'b', 'i', 'em', 'strong', 'a',
                 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
                 'ul', 'ol', 'li', 'blockquote', 'pre', 'code',
                 'div', 'span'
+                // Đã xóa 'img' khỏi danh sách thẻ được phép
             ],
             ALLOWED_ATTR: [
-                'href', 'src', 'alt', 'title', 'class', 'id',
+                'href', 'alt', 'title', 'class', 'id',
                 'width', 'height', 'target', 'rel'
+                // Đã xóa 'src' khỏi danh sách attributes được phép
             ],
             ALLOW_DATA_ATTR: false
         });
@@ -275,6 +277,8 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
                 </DetailHeader>
 
                 <DetailContent>
+                    <ArticleTitle>{article.title}</ArticleTitle>
+
                     {/* Hiển thị featured image từ image_url nếu có */}
                     {featuredImage && (
                         <ArticleImage
@@ -285,8 +289,6 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
                             }}
                         />
                     )}
-
-                    <ArticleTitle>{article.title}</ArticleTitle>
 
                     <ArticleMeta>
                         <ArticleSource>
