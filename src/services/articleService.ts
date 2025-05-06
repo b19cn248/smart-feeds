@@ -1,6 +1,6 @@
 // src/services/articleService.ts
 import { Article, ArticleResponse } from '../types';
-import { getApiUrl } from '../config/env';
+import { apiClient } from './apiClient';
 
 export const articleService = {
     /**
@@ -9,13 +9,7 @@ export const articleService = {
      * @param size - Page size (optional)
      */
     async getArticles(page = 0, size = 1000): Promise<ArticleResponse> {
-        const response = await fetch(getApiUrl(`/articles?page=${page}&size=${size}`));
-
-        if (!response.ok) {
-            throw new Error('Failed to fetch articles');
-        }
-
-        return response.json();
+        return apiClient.get<ArticleResponse>(`/articles?page=${page}&size=${size}`);
     },
 
     /**

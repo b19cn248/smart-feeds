@@ -1,6 +1,6 @@
 // src/services/folderService.ts
-import { FolderResponse, FolderDetailResponse, CreateFolderRequest, FolderWithSources } from '../types';
-import { getApiUrl } from '../config/env';
+import { FolderResponse, FolderDetailResponse, CreateFolderRequest } from '../types';
+import { apiClient } from './apiClient';
 
 export const folderService = {
     /**
@@ -9,13 +9,7 @@ export const folderService = {
      * @param size - Page size (optional)
      */
     async getFolders(page = 0, size = 10): Promise<FolderResponse> {
-        const response = await fetch(getApiUrl(`/folders?page=${page}&size=${size}`));
-
-        if (!response.ok) {
-            throw new Error('Failed to fetch folders');
-        }
-
-        return response.json();
+        return apiClient.get<FolderResponse>(`/folders?page=${page}&size=${size}`);
     },
 
     /**
@@ -23,13 +17,7 @@ export const folderService = {
      * @param id - Folder ID
      */
     async getFolderById(id: number): Promise<FolderDetailResponse> {
-        const response = await fetch(getApiUrl(`/folders/${id}`));
-
-        if (!response.ok) {
-            throw new Error('Failed to fetch folder details');
-        }
-
-        return response.json();
+        return apiClient.get<FolderDetailResponse>(`/folders/${id}`);
     },
 
     /**
@@ -37,19 +25,7 @@ export const folderService = {
      * @param data - Folder data
      */
     async createFolder(data: CreateFolderRequest): Promise<FolderDetailResponse> {
-        const response = await fetch(getApiUrl('/folders'), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to create folder');
-        }
-
-        return response.json();
+        return apiClient.post<FolderDetailResponse>('/folders', data);
     },
 
     /**
@@ -58,18 +34,6 @@ export const folderService = {
      * @param sourceId - Source ID
      */
     async addSourceToFolder(folderId: number, sourceId: number): Promise<FolderDetailResponse> {
-        const response = await fetch(getApiUrl(`/folders/${folderId}/sources`), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ source_id: sourceId }),
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to add source to folder');
-        }
-
-        return response.json();
+        return apiClient.post<FolderDetailResponse>(`/folders/${folderId}/sources`, { source_id: sourceId });
     }
 };
