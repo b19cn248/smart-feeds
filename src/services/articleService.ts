@@ -1,7 +1,6 @@
 // src/services/articleService.ts
 import { Article, ArticleResponse } from '../types';
-
-const API_BASE_URL = 'https://smart.feeds.api.openlearnhub.io.vn/api/v1';
+import { getApiUrl } from '../config/env';
 
 export const articleService = {
     /**
@@ -10,7 +9,7 @@ export const articleService = {
      * @param size - Page size (optional)
      */
     async getArticles(page = 0, size = 1000): Promise<ArticleResponse> {
-        const response = await fetch(`${API_BASE_URL}/articles?page=${page}&size=${size}`);
+        const response = await fetch(getApiUrl(`/articles?page=${page}&size=${size}`));
 
         if (!response.ok) {
             throw new Error('Failed to fetch articles');

@@ -10,6 +10,7 @@ interface FolderModalProps {
     onSubmit: (data: FolderFormData) => void;
     initialData?: Partial<FolderFormData>;
     mode?: 'create' | 'edit';
+    isLoading?: boolean;
 }
 
 export const FolderModal: React.FC<FolderModalProps> = ({
@@ -17,11 +18,11 @@ export const FolderModal: React.FC<FolderModalProps> = ({
                                                             onClose,
                                                             onSubmit,
                                                             initialData,
-                                                            mode = 'create'
+                                                            mode = 'create',
+                                                            isLoading = false
                                                         }) => {
     const handleSubmit = (data: FolderFormData) => {
         onSubmit(data);
-        onClose();
     };
 
     return (
@@ -36,6 +37,7 @@ export const FolderModal: React.FC<FolderModalProps> = ({
                 onSubmit={handleSubmit}
                 onCancel={onClose}
                 submitLabel={mode === 'create' ? 'Create folder' : 'Save changes'}
+                isLoading={isLoading}
             />
         </Modal>
     );

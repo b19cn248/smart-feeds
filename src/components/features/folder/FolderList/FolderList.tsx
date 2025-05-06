@@ -8,13 +8,13 @@ import { FolderFilterOptions } from '../../../../types';
 import { gridContainer } from '../../../../styles/mixins';
 
 const FolderGrid = styled.div`
-  ${gridContainer}
+    ${gridContainer}
 `;
 
 interface FolderListProps {
     filters: FolderFilterOptions;
-    onFolderClick?: (folderId: string) => void;
-    onFolderMenuClick?: (folderId: string, event: React.MouseEvent) => void;
+    onFolderClick?: (folderId: number) => void;
+    onFolderMenuClick?: (folderId: number, event: React.MouseEvent) => void;
     onCreateClick?: () => void;
 }
 

@@ -1,20 +1,10 @@
 // src/hooks/useFolders.ts
-import { useContext, useMemo } from 'react';
-import { FolderContext } from '../contexts/FolderContext';
-import { Folder, FolderFilterOptions, ViewType } from '../types';
-
-export const useFolders = () => {
-    const context = useContext(FolderContext);
-
-    if (!context) {
-        throw new Error('useFolders must be used within a FolderProvider');
-    }
-
-    return context;
-};
+import { useMemo } from 'react';
+import { FolderFilterOptions, ViewType } from '../types';
+import { useFolder } from '../contexts/FolderContext';
 
 export const useFilteredFolders = (options: FolderFilterOptions) => {
-    const { folders } = useFolders();
+    const { folders } = useFolder();
 
     const filteredFolders = useMemo(() => {
         return folders.filter(folder => {
