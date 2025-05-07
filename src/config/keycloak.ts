@@ -8,36 +8,101 @@ const keycloakConfig = {
     clientId: process.env.REACT_APP_KEYCLOAK_CLIENT_ID || 'your-client-id',
 };
 
-// Khởi tạo Keycloak instance
+// Thêm logic xử lý cookie SameSite để hỗ trợ SSO giữa các domain
+document.cookie = "KEYCLOAK_SESSION=true; SameSite=None; Secure";
+
+// Khởi tạo Keycloak instance với tùy chọn mở rộng
 const keycloak = new (Keycloak as any)(keycloakConfig);
 
-// Xử lý khi token hết hạn, chủ động làm mới token thay vì reload trang
+// Cấu hình các callback
+
+// Xử lý khi token hết hạn
 keycloak.onTokenExpired = () => {
-    if (process.env.NODE_ENV !== 'production') {
-        console.log('Token has expired, updating token silently...');
-    }
+    console.log('Token has expired, updating token silently...');
+
+    // Lưu trạng thái trước khi cập nhật
+    const wasAuthenticated = keycloak.authenticated;
 
     keycloak.updateToken(30)
-        .then((refreshed: any) => {
+        .then((refreshed: boolean) => {
             if (refreshed) {
-                if (process.env.NODE_ENV !== 'production') {
-                    console.log('Token refreshed successfully');
-                }
-                // Không cần lưu trạng thái vào localStorage ở đây
-                // Thay vào đó sẽ được xử lý ở AuthContext
+                console.log('Token refreshed successfully');
+                // Thông báo token đã được cập nhật
+                sessionStorage.setItem('kc-token-updated', Date.now().toString());
             } else {
-                if (process.env.NODE_ENV !== 'production') {
-                    console.log('Token not refreshed, still valid');
-                }
+                console.log('Token not refreshed, still valid');
             }
         })
         .catch((error: any) => {
             console.error('Failed to refresh token:', error);
-            // Chỉ login lại khi thực sự cần thiết
-            if (keycloak.authenticated) {
-                keycloak.login();
+
+            // Nếu trước đó đã xác thực nhưng không thể refresh,
+            // có thể đã có đăng xuất ở nơi khác
+            if (wasAuthenticated) {
+                console.log('Token refresh failed, session may have ended');
+
+                // Thông báo lỗi xác thực
+                window.postMessage('kc-unauthorized', window.location.origin);
+
+                // Đăng xuất sau một chút delay
+                setTimeout(() => {
+                    keycloak.login();
+                }, 500);
             }
         });
 };
+
+// Xử lý khi đăng xuất
+keycloak.onAuthLogout = () => {
+    console.log('User logged out');
+    // Đồng bộ trạng thái đăng xuất
+    localStorage.setItem('kc-logout', Date.now().toString());
+    sessionStorage.setItem('kc-logout', Date.now().toString());
+
+    // Xóa các dữ liệu session khác
+    sessionStorage.removeItem('kc-token-updated');
+    sessionStorage.removeItem('kc-authenticated');
+};
+
+// Xử lý lỗi xác thực
+keycloak.onAuthError = (error: any) => {
+    console.error('Authentication error:', error);
+    // Thông báo lỗi xác thực
+    window.postMessage('kc-unauthorized', window.location.origin);
+};
+
+// Tạo file silent-check-sso.html nếu chưa có
+// File này cần được đặt ở thư mục public để hỗ trợ kiểm tra SSO
+try {
+    // Chỉ thực hiện trong môi trường development
+    if (process.env.NODE_ENV === 'development') {
+        const fs = require('fs');
+        const path = require('path');
+        const publicPath = path.resolve(process.cwd(), 'public');
+        const ssoFilePath = path.join(publicPath, 'silent-check-sso.html');
+
+        if (!fs.existsSync(ssoFilePath)) {
+            const ssoContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Silent SSO Check</title>
+                    <script>
+                        parent.postMessage(location.href, location.origin);
+                    </script>
+                </head>
+                <body>
+                    Silent SSO Check
+                </body>
+                </html>
+            `;
+
+            fs.writeFileSync(ssoFilePath, ssoContent);
+            console.log('Created silent-check-sso.html');
+        }
+    }
+} catch (error) {
+    console.warn('Could not create silent-check-sso.html:', error);
+}
 
 export default keycloak;
