@@ -107,24 +107,46 @@ export const theme = {
 
 export type Theme = typeof theme;
 
-// Dark theme overrides
+// Dark theme overrides với UI/UX được cải thiện
 export const darkTheme: Partial<Theme> = {
     colors: {
         ...theme.colors,
+        primary: {
+            main: '#3B82F6', // Màu xanh sáng hơn cho khả năng hiển thị tốt hơn trong dark mode
+            light: 'rgba(59, 130, 246, 0.15)',
+            hover: '#2563EB',
+        },
         background: {
             primary: '#0F172A',
             secondary: '#1E293B',
         },
         text: {
             primary: '#F8FAFC',
-            secondary: '#CBD5E1',
+            secondary: '#94A3B8', // Giảm độ tương phản cho text phụ để dễ đọc hơn
         },
+        gray: {
+            50: '#0F172A',
+            100: '#1E293B',
+            200: '#334155',
+            300: '#475569',
+            400: '#64748B',
+            500: '#94A3B8',
+            600: '#CBD5E1',
+            700: '#E2E8F0',
+            800: '#F1F5F9',
+            900: '#F8FAFC',
+        },
+        // Điều chỉnh độ sáng cho các màu chức năng để hiển thị tốt hơn trong dark mode
+        success: '#10B981',
+        error: '#EF4444',
+        warning: '#F59E0B', // Hơi tối hơn để hiển thị tốt hơn trên nền tối
+        info: '#3B82F6',
     },
     shadows: {
-        sm: '0 1px 2px rgba(0, 0, 0, 0.3)',
-        md: '0 4px 6px rgba(0, 0, 0, 0.25)',
-        lg: '0 10px 15px rgba(0, 0, 0, 0.25)',
-        xl: '0 20px 25px rgba(0, 0, 0, 0.3)',
+        sm: '0 1px 2px rgba(0, 0, 0, 0.4)',
+        md: '0 4px 6px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4)',
+        lg: '0 10px 15px rgba(0, 0, 0, 0.6), 0 4px 6px rgba(0, 0, 0, 0.5)',
+        xl: '0 20px 25px rgba(0, 0, 0, 0.7), 0 10px 10px rgba(0, 0, 0, 0.6)',
     },
 };
 

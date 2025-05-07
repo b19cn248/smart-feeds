@@ -3,7 +3,8 @@ import React from 'react';
 import styled from 'styled-components';
 import { Button } from '../../../common/Button';
 import { iconButton } from '../../../../styles/mixins';
-import { UserProfile } from '../Sidebar/UserProfile'; // Import UserProfile component
+import { UserProfile } from '../Sidebar/UserProfile';
+import {ThemeToggle} from "../../../../contexts/ThemeToggle"; // Import UserProfile component
 
 const HeaderWrapper = styled.header`
     position: fixed;
@@ -79,6 +80,7 @@ export const Header: React.FC<HeaderProps> = ({
             </LeftSection>
 
             <HeaderActions>
+                <ThemeToggle /> {/* Thêm ThemeToggle vào đây */}
                 {rightActions}
                 <UserProfile />
             </HeaderActions>

@@ -1,30 +1,29 @@
 // src/App.tsx
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider } from 'styled-components';
 import { AuthProvider } from './contexts/AuthContext';
 import { FolderProvider } from './contexts/FolderContext';
 import { ToastProvider } from './contexts/ToastContext';
-import { SourceProvider } from './contexts/SourceContext'; // Add SourceProvider
+import { SourceProvider } from './contexts/SourceContext';
 import { MainLayout } from './components/features/layout/MainLayout';
 import { FoldersPage } from './pages/FoldersPage';
 import { ArticlesPage } from './pages/ArticlesPage';
-import { SourcesPage } from './pages/SourcesPage'; // Import SourcesPage
+import { SourcesPage } from './pages/SourcesPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { ToastContainer } from './components/common/Toast';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { GlobalStyles } from './styles/GlobalStyles';
-import { theme } from './styles/theme';
+import {ThemeProvider} from "./contexts/ ThemeContext";
 
 const App: React.FC = () => {
     return (
-        <ThemeProvider theme={theme}>
+        <ThemeProvider> {/* Thay đổi từ ThemeProvider của styled-components sang ThemeProvider mới */}
             <GlobalStyles />
             <BrowserRouter>
                 <AuthProvider>
                     <ToastProvider>
                         <FolderProvider>
-                            <SourceProvider> {/* Add SourceProvider */}
+                            <SourceProvider>
                                 <Routes>
                                     {/* Protected Routes */}
                                     <Route
