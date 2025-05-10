@@ -5,10 +5,13 @@ import { AuthProvider } from './contexts/AuthContext';
 import { FolderProvider } from './contexts/FolderContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { SourceProvider } from './contexts/SourceContext';
+import { BoardProvider } from './contexts/BoardContext'; // Thêm dòng này
 import { MainLayout } from './components/features/layout/MainLayout';
 import { FoldersPage } from './pages/FoldersPage';
 import { ArticlesPage } from './pages/ArticlesPage';
 import { SourcesPage } from './pages/SourcesPage';
+import { BoardsPage } from './pages/BoardsPage'; // Thêm dòng này
+import { BoardDetailPage } from './pages/BoardDetailPage'; // Thêm dòng này
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { ToastContainer } from './components/common/Toast';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
@@ -17,58 +20,82 @@ import {ThemeProvider} from "./contexts/ ThemeContext";
 
 const App: React.FC = () => {
     return (
-        <ThemeProvider> {/* Thay đổi từ ThemeProvider của styled-components sang ThemeProvider mới */}
+        <ThemeProvider>
             <GlobalStyles />
             <BrowserRouter>
                 <AuthProvider>
                     <ToastProvider>
                         <FolderProvider>
                             <SourceProvider>
-                                <Routes>
-                                    {/* Protected Routes */}
-                                    <Route
-                                        path="/"
-                                        element={
-                                            <ProtectedRoute>
-                                                <MainLayout headerTitle="Home">
-                                                    <ArticlesPage />
-                                                </MainLayout>
-                                            </ProtectedRoute>
-                                        }
-                                    />
+                                <BoardProvider> {/* Thêm BoardProvider */}
+                                    <Routes>
+                                        {/* Protected Routes */}
+                                        <Route
+                                            path="/"
+                                            element={
+                                                <ProtectedRoute>
+                                                    <MainLayout headerTitle="Home">
+                                                        <ArticlesPage />
+                                                    </MainLayout>
+                                                </ProtectedRoute>
+                                            }
+                                        />
 
-                                    {/* My Feeds Route */}
-                                    <Route
-                                        path="/feeds"
-                                        element={
-                                            <ProtectedRoute>
-                                                <MainLayout headerTitle="My Feeds">
-                                                    <FoldersPage />
-                                                </MainLayout>
-                                            </ProtectedRoute>
-                                        }
-                                    />
+                                        {/* My Feeds Route */}
+                                        <Route
+                                            path="/feeds"
+                                            element={
+                                                <ProtectedRoute>
+                                                    <MainLayout headerTitle="My Feeds">
+                                                        <FoldersPage />
+                                                    </MainLayout>
+                                                </ProtectedRoute>
+                                            }
+                                        />
 
-                                    {/* Sources Route */}
-                                    <Route
-                                        path="/sources"
-                                        element={
-                                            <ProtectedRoute>
-                                                <MainLayout headerTitle="Sources">
-                                                    <SourcesPage />
-                                                </MainLayout>
-                                            </ProtectedRoute>
-                                        }
-                                    />
+                                        {/* Sources Route */}
+                                        <Route
+                                            path="/sources"
+                                            element={
+                                                <ProtectedRoute>
+                                                    <MainLayout headerTitle="Sources">
+                                                        <SourcesPage />
+                                                    </MainLayout>
+                                                </ProtectedRoute>
+                                            }
+                                        />
 
-                                    {/* Unauthorized page */}
-                                    <Route path="/unauthorized" element={<UnauthorizedPage />} />
+                                        {/* Boards Routes */}
+                                        <Route
+                                            path="/boards"
+                                            element={
+                                                <ProtectedRoute>
+                                                    <MainLayout headerTitle="Boards">
+                                                        <BoardsPage />
+                                                    </MainLayout>
+                                                </ProtectedRoute>
+                                            }
+                                        />
+                                        <Route
+                                            path="/boards/:boardId"
+                                            element={
+                                                <ProtectedRoute>
+                                                    <MainLayout headerTitle="Board Detail">
+                                                        <BoardDetailPage />
+                                                    </MainLayout>
+                                                </ProtectedRoute>
+                                            }
+                                        />
 
-                                    {/* Catch all route */}
-                                    <Route path="*" element={<Navigate to="/" replace />} />
-                                </Routes>
+                                        {/* Unauthorized page */}
+                                        <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
-                                <ToastContainer />
+                                        {/* Catch all route */}
+                                        <Route path="*" element={<Navigate to="/" replace />} />
+                                    </Routes>
+
+                                    <ToastContainer />
+                                </BoardProvider>
                             </SourceProvider>
                         </FolderProvider>
                     </ToastProvider>

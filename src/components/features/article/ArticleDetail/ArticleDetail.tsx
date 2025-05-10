@@ -1,9 +1,11 @@
 // src/components/features/article/ArticleDetail/ArticleDetail.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import DOMPurify from 'dompurify';
 import { Article } from '../../../../types';
 import { formatDate } from '../../../../utils';
+import { useBoard } from '../../../../contexts/BoardContext';
+import { useToast } from '../../../../contexts/ToastContext';
 
 const DetailOverlay = styled.div<{ isOpen: boolean }>`
     position: fixed;
@@ -46,6 +48,10 @@ const DetailHeader = styled.div`
     justify-content: space-between;
     align-items: center;
     z-index: 1;
+
+    @media (prefers-color-scheme: dark) {
+        border-bottom-color: ${({ theme }) => theme.colors.gray[700]};
+    }
 `;
 
 const CloseButton = styled.button`
@@ -187,6 +193,7 @@ const ActionButtons = styled.div`
     display: flex;
     gap: 12px;
     margin-bottom: 24px;
+    position: relative;
 `;
 
 const ActionButton = styled.button`
@@ -204,6 +211,84 @@ const ActionButton = styled.button`
     &:hover {
         background-color: ${({ theme }) => theme.colors.gray[100]};
     }
+
+    @media (prefers-color-scheme: dark) {
+        border-color: ${({ theme }) => theme.colors.gray[700]};
+        
+        &:hover {
+            background-color: ${({ theme }) => theme.colors.gray[800]};
+        }
+    }
+`;
+
+const BoardsDropdown = styled.div`
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 240px;
+    background-color: ${({ theme }) => theme.colors.background.secondary};
+    border-radius: ${({ theme }) => theme.radii.md};
+    box-shadow: ${({ theme }) => theme.shadows.lg};
+    z-index: 1000;
+    overflow: hidden;
+    border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+
+    @media (prefers-color-scheme: dark) {
+        border-color: ${({ theme }) => theme.colors.gray[700]};
+    }
+`;
+
+const DropdownHeader = styled.div`
+    padding: 12px 16px;
+    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
+    font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+
+    @media (prefers-color-scheme: dark) {
+        border-bottom-color: ${({ theme }) => theme.colors.gray[700]};
+    }
+`;
+
+const DropdownContent = styled.div`
+    max-height: 240px;
+    overflow-y: auto;
+`;
+
+const BoardItem = styled.div`
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[100]};
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &:hover {
+        background-color: ${({ theme }) => theme.colors.gray[100]};
+    }
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        border-bottom-color: ${({ theme }) => theme.colors.gray[800]};
+        
+        &:hover {
+            background-color: ${({ theme }) => theme.colors.gray[800]};
+        }
+    }
+
+    i {
+        font-size: 14px;
+        color: ${({ theme }) => theme.colors.text.secondary};
+    }
+`;
+
+const EmptyBoardsList = styled.div`
+    padding: 16px;
+    text-align: center;
+    color: ${({ theme }) => theme.colors.text.secondary};
+    font-size: ${({ theme }) => theme.typography.fontSize.sm};
 `;
 
 const ArticleImage = styled.img`
@@ -225,11 +310,27 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
                                                                 isOpen,
                                                                 onClose,
                                                             }) => {
+    const { boards, addArticleToBoard } = useBoard();
+    const { showToast } = useToast();
+    const [showBoardsMenu, setShowBoardsMenu] = useState(false);
+
     if (!article) return null;
 
     const handleOverlayClick = (e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
             onClose();
+        }
+    };
+
+    const handleAddToBoard = async (boardId: number) => {
+        if (!article) return;
+
+        try {
+            await addArticleToBoard(boardId, { article_id: article.id });
+            showToast('success', 'Success', 'Article added to board successfully');
+            setShowBoardsMenu(false);
+        } catch (error) {
+            showToast('error', 'Error', 'Failed to add article to board');
         }
     };
 
@@ -277,10 +378,37 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
                             <i className="fas fa-external-link-alt" />
                             Open original
                         </ActionButton>
+                        <ActionButton onClick={() => setShowBoardsMenu(!showBoardsMenu)}>
+                            <i className="fas fa-clipboard" />
+                            Add to board
+                        </ActionButton>
                         <ActionButton>
                             <i className="fas fa-share" />
                             Share
                         </ActionButton>
+
+                        {showBoardsMenu && (
+                            <BoardsDropdown>
+                                <DropdownHeader>Select a board</DropdownHeader>
+                                <DropdownContent>
+                                    {boards.length > 0 ? (
+                                        boards.map(board => (
+                                            <BoardItem
+                                                key={board.id}
+                                                onClick={() => handleAddToBoard(board.id)}
+                                            >
+                                                <i className={`fas fa-${board.icon || 'clipboard'}`} />
+                                                {board.name}
+                                            </BoardItem>
+                                        ))
+                                    ) : (
+                                        <EmptyBoardsList>
+                                            No boards available. Create a board first.
+                                        </EmptyBoardsList>
+                                    )}
+                                </DropdownContent>
+                            </BoardsDropdown>
+                        )}
                     </ActionButtons>
                     <CloseButton onClick={onClose}>
                         <i className="fas fa-times" />
