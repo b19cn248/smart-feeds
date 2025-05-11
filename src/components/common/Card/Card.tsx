@@ -1,78 +1,49 @@
 // src/components/common/Card/Card.tsx
 import React from 'react';
-import styled, { css } from 'styled-components';
-import { CardProps } from '../../../types';
+import styled from 'styled-components';
 
-const StyledCard = styled.div<CardProps>`
-  background: ${({ theme }) => theme.colors.background.secondary};
-  border-radius: ${({ theme }) => theme.radii.lg};
-  box-shadow: ${({ theme }) => theme.shadows.md};
-  transition: ${({ theme }) => theme.transitions.default};
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
-  
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: ${({ theme }) => theme.shadows.lg};
-    border-color: ${({ theme }) => theme.colors.gray[300]};
-  }
+interface CardProps {
+    padding?: string;
+    onClick?: () => void;
+    className?: string;
+    children?: React.ReactNode;
+}
 
-  @media (prefers-color-scheme: dark) {
-    background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
-    border-color: ${({ theme }) => theme.colors.gray[700]};
-  }
-  
-  ${({ onClick }) => onClick && css`
-    cursor: pointer;
-    
+const CardContainer = styled.div<{ padding: string }>`
+    background-color: ${({ theme }) => theme.colors.background.secondary};
+    border-radius: ${({ theme }) => theme.radii.lg};
+    box-shadow: ${({ theme }) => theme.shadows.md};
+    padding: ${props => props.padding};
+    transition: ${({ theme }) => theme.transitions.default};
+    cursor: ${props => props.onClick ? 'pointer' : 'default'};
+    overflow: hidden;
+    display: flex; /* Sử dụng flexbox để mở rộng theo container cha */
+    flex-direction: column;
+    height: 100%; /* Điều này giúp card mở rộng theo chiều cao của container cha */
+
     &:hover {
-      transform: translateY(-4px);
-      box-shadow: ${({ theme }) => theme.shadows.lg};
+        transform: ${props => props.onClick ? 'translateY(-4px)' : 'none'};
+        box-shadow: ${props => props.onClick ? props.theme.shadows.lg : props.theme.shadows.md};
     }
 
-    &:active {
-      transform: translateY(0);
-      box-shadow: ${({ theme }) => theme.shadows.md};
-    }
-  `}
-  
-  padding: ${({ padding, theme }) => padding || theme.spacing.xl};
-  
-  ${({ variant }) => variant === 'outlined' && css`
-    box-shadow: none;
-    border: 1px solid ${({ theme }) => theme.colors.gray[200]};
-    
-    &:hover {
-      box-shadow: none;
-      border-color: ${({ theme }) => theme.colors.gray[300]};
-    }
-    
     @media (prefers-color-scheme: dark) {
-      border-color: ${({ theme }) => theme.colors.gray[700]};
-      
-      &:hover {
-        border-color: ${({ theme }) => theme.colors.gray[600]};
-      }
+        background-color: ${({ theme }) => theme.colors.gray[800]};
     }
-  `}
 `;
 
 export const Card: React.FC<CardProps> = ({
-                                              children,
-                                              variant = 'elevated',
-                                              padding,
+                                              padding = '16px',
                                               onClick,
                                               className,
+                                              children
                                           }) => {
     return (
-        <StyledCard
-            variant={variant}
+        <CardContainer
             padding={padding}
             onClick={onClick}
             className={className}
-            role={onClick ? 'button' : undefined}
-            tabIndex={onClick ? 0 : undefined}
         >
             {children}
-        </StyledCard>
+        </CardContainer>
     );
 };

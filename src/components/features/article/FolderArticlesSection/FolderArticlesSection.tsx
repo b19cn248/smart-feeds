@@ -100,6 +100,9 @@ const ArticlesGrid = styled.div`
     gap: 24px;
     padding: 20px;
 
+    /* Đảm bảo các hàng có chiều cao đồng đều */
+    grid-auto-rows: 1fr;
+
     @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
         grid-template-columns: 1fr;
     }

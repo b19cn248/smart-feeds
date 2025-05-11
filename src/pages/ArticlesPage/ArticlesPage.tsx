@@ -146,14 +146,19 @@ const EmptyStateText = styled.p`
 const ArticlesContainer = styled.div<{ view: ViewMode }>`
     flex: 1;
     background-color: ${({view, theme}) =>
-            view === 'title-only' ? theme.colors.background.secondary : 'transparent'};
+    view === 'title-only' ? theme.colors.background.secondary : 'transparent'};
     border-radius: ${({view, theme}) =>
-            view === 'title-only' ? theme.radii.lg : '0'};
+    view === 'title-only' ? theme.radii.lg : '0'};
     overflow: hidden;
+
+    /* Đảm bảo grid layout hoạt động chính xác */
+    display: ${({view}) => view === 'cards' ? 'grid' : 'block'};
+    grid-template-rows: auto;
+    grid-auto-rows: 1fr;
 
     @media (prefers-color-scheme: dark) {
         background-color: ${({view, theme}) =>
-                view === 'title-only' ? theme.colors.gray[800] : 'transparent'};
+    view === 'title-only' ? theme.colors.gray[800] : 'transparent'};
     }
 `;
 

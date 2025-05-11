@@ -9,9 +9,18 @@ import { Card } from '../../../common/Card';
 // Default article image - a simple gray placeholder with text
 const DEFAULT_ARTICLE_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzY0NzQ4YiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlIEF2YWlsYWJsZTwvdGV4dD48L3N2Zz4=';
 
-// Thêm wrapper div để gán ref
+// Thêm wrapper div để gán ref và đảm bảo chiều cao đồng đều
 const CardWrapper = styled.div`
     width: 100%;
+    height: 100%; /* Đảm bảo chiều cao 100% của container cha */
+    display: flex; /* Sử dụng flexbox để card bên trong có thể mở rộng */
+`;
+
+const StyledCard = styled(Card)`
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%; /* Card sẽ mở rộng để lấp đầy wrapper */
 `;
 
 const ArticleImage = styled.div<{ imageUrl: string, isLoaded: boolean }>`
@@ -21,6 +30,7 @@ const ArticleImage = styled.div<{ imageUrl: string, isLoaded: boolean }>`
     background-position: center;
     border-radius: ${({ theme }) => theme.radii.lg} ${({ theme }) => theme.radii.lg} 0 0;
     transition: background-image 0.3s ease;
+    flex-shrink: 0; /* Ngăn không cho ảnh co lại */
 `;
 
 const ImageSkeleton = styled.div`
@@ -29,6 +39,7 @@ const ImageSkeleton = styled.div`
     background-size: 200% 100%;
     border-radius: ${({ theme }) => theme.radii.lg} ${({ theme }) => theme.radii.lg} 0 0;
     animation: shimmer 1.5s infinite;
+    flex-shrink: 0; /* Ngăn không cho skeleton co lại */
 
     @keyframes shimmer {
         0% { background-position: -200% 0; }
@@ -43,6 +54,9 @@ const ImageSkeleton = styled.div`
 
 const ArticleContent = styled.div`
     padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* Đảm bảo content mở rộng để lấp đầy không gian còn lại */
 `;
 
 const ArticleTitle = styled.h3`
@@ -50,6 +64,12 @@ const ArticleTitle = styled.h3`
     margin: 0 0 12px 0;
     color: ${({ theme }) => theme.colors.text.primary};
     font-size: ${({ theme }) => theme.typography.fontSize.lg};
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Giới hạn tiêu đề trong 2 dòng */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+    height: 2.8em; /* Cố định chiều cao cho tiêu đề - 2 dòng */
 `;
 
 const ArticleExcerpt = styled.p`
@@ -57,9 +77,12 @@ const ArticleExcerpt = styled.p`
     color: ${({ theme }) => theme.colors.text.secondary};
     margin: 0 0 16px 0;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 3; /* Giới hạn mô tả trong 3 dòng */
     -webkit-box-orient: vertical;
     overflow: hidden;
+    line-height: 1.5;
+    height: 4.5em; /* Cố định chiều cao cho mô tả - 3 dòng */
+    flex: 1; /* Mô tả sẽ mở rộng để lấp đầy không gian giữa tiêu đề và meta */
 `;
 
 const ArticleMeta = styled.div`
@@ -70,6 +93,7 @@ const ArticleMeta = styled.div`
     color: ${({ theme }) => theme.colors.text.secondary};
     border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
     padding-top: 12px;
+    margin-top: auto; /* Đẩy phần meta xuống cuối */
 
     @media (prefers-color-scheme: dark) {
         border-top-color: ${({ theme }) => theme.colors.gray[700]};
@@ -79,14 +103,21 @@ const ArticleMeta = styled.div`
 const ArticleSource = styled.div`
     display: flex;
     align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 65%;
 
     i {
         margin-right: 6px;
         font-size: ${({ theme }) => theme.typography.fontSize.xs};
+        flex-shrink: 0;
     }
 `;
 
-const ArticleDate = styled.div``;
+const ArticleDate = styled.div`
+    white-space: nowrap;
+`;
 
 interface ArticleCardProps {
     article: Article | FolderArticle;
@@ -168,7 +199,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
 
     return (
         <CardWrapper ref={cardRef}>
-            <Card onClick={onClick} padding="0">
+            <StyledCard onClick={onClick} padding="0">
                 {isInViewport ? (
                     isImageLoaded ? (
                         <ArticleImage imageUrl={imageUrl} isLoaded={true} />
@@ -189,7 +220,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
                         <ArticleDate>{formatDate(new Date(article.publish_date))}</ArticleDate>
                     </ArticleMeta>
                 </ArticleContent>
-            </Card>
+            </StyledCard>
         </CardWrapper>
     );
 };
