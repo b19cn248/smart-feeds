@@ -276,13 +276,8 @@ export const glassEffect = css`
     }
 `;
 
-// Gradient background
 export const gradientBackground = css`
-    background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
-
-    @media (prefers-color-scheme: dark) {
-        background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%);
-    }
+    background: ${({ theme }) => theme.colors.background.sidebarGradient};
 `;
 
 // Link styles

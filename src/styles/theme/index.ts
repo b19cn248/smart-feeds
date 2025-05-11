@@ -27,12 +27,13 @@ export const theme = {
         background: {
             primary: '#F8FAFC',
             secondary: '#FFFFFF',
+            sidebarGradient: 'linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)', // Thêm gradient cho sidebar
         },
         text: {
             primary: '#0F172A',
             secondary: '#475569',
         },
-        logo: '#0F172A', // Thêm màu cho logo
+        logo: '#0F172A', // Màu cho logo
     },
     typography: {
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -108,22 +109,20 @@ export const theme = {
 
 export type Theme = typeof theme;
 
-// src/styles/theme/index.ts
-// Chỉ thay đổi phần darkTheme, giữ nguyên phần còn lại
-
+// Cập nhật dark theme với gradient mới cho sidebar
 export const darkTheme: Partial<Theme> = {
     colors: {
         primary: {
-            main: '#3B82F6', // Màu xanh sáng hơn cho khả năng hiển thị tốt hơn trong dark mode
+            main: '#3B82F6', // Màu xanh sáng hơn để hiển thị tốt hơn trong dark mode
             light: 'rgba(59, 130, 246, 0.15)',
             hover: '#2563EB',
         },
-        // Thêm thuộc tính thiếu
-        secondary: '#FF9F43', // Màu cam nhạt hơn để phù hợp với dark mode
-        tertiary: '#A29BFE', // Màu tím nhạt hơn để phù hợp với dark mode
+        secondary: '#FF9F43',
+        tertiary: '#A29BFE',
         background: {
             primary: '#0F172A',
             secondary: '#1E293B',
+            sidebarGradient: 'linear-gradient(180deg, #0F172A 0%, #1E293B 100%)', // Dark gradient cho sidebar
         },
         text: {
             primary: '#F8FAFC',
@@ -141,12 +140,11 @@ export const darkTheme: Partial<Theme> = {
             800: '#F1F5F9',
             900: '#F8FAFC',
         },
-        // Điều chỉnh các màu chức năng
         success: '#10B981',
         error: '#F87171',
         warning: '#F59E0B',
         info: '#60A5FA',
-        logo: '#F8FAFC', // Thêm màu logo trong dark mode để dễ đọc
+        logo: '#F8FAFC', // Logo màu sáng trong dark mode
     },
     shadows: {
         sm: '0 1px 2px rgba(0, 0, 0, 0.4)',

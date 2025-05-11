@@ -1,4 +1,3 @@
-// src/components/features/layout/Sidebar/NavItem.tsx
 import React from 'react';
 import styled, { css } from 'styled-components';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -22,7 +21,19 @@ const NavItemButton = styled.button<{ isActive?: boolean }>`
     border: none;
     text-align: left;
     outline: none;
-    -webkit-tap-highlight-color: transparent; // Loại bỏ highlight khi tap trên mobile
+    -webkit-tap-highlight-color: transparent;
+
+    /* Thêm indicator bên trái khi active để tăng tính nổi bật */
+    ${({ isActive, theme }) => isActive && css`
+        box-shadow: inset 3px 0 0 ${theme.colors.primary.main};
+    `}
+
+        /* Style riêng cho dark mode */
+    ${({ isActive, theme }) => theme.colors.background.primary === '#0F172A' && css`
+        &:hover {
+            background-color: ${isActive ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255, 255, 255, 0.05)'};
+        }
+    `}
 
     &:hover, &:active, &:focus {
         background-color: ${({ isActive, theme }) =>
@@ -49,7 +60,6 @@ export const NavItem: React.FC<NavItemProps> = ({ item, onClick }) => {
     const location = useLocation();
 
     // Kiểm tra xem item có đang active hay không dựa vào đường dẫn hiện tại
-    // Đảm bảo trả về giá trị boolean rõ ràng (true hoặc false)
     const isActive = item.path === '/'
         ? location.pathname === '/'
         : Boolean(item.path && location.pathname.startsWith(item.path));
