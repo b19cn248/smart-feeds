@@ -2,3 +2,5 @@
 export { TitleOnlyView } from './TitleOnlyView';
 export { MagazineView } from './MagazineView';
 export { CardsView } from './CardsView';
+export { TitleOnlyFolderView } from './TitleOnlyFolderView';
+export { MagazineFolderView } from './MagazineFolderView';

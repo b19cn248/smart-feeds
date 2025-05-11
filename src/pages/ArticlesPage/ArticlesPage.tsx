@@ -1,19 +1,20 @@
 // src/pages/ArticlesPage/ArticlesPage.tsx
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import styled from 'styled-components';
-import { FolderArticle, FolderWithArticles } from '../../types/folderArticles.types';
-import { folderArticlesService } from '../../services/folderArticlesService';
-import { Input } from '../../components/common/Input';
-import { Button } from '../../components/common/Button';
-import { LoadingScreen } from '../../components/common/LoadingScreen';
-import { useDebounce } from '../../hooks';
-import { useLocalStorage } from '../../hooks/useLocalStorage';
-import { ViewMode, ViewSelector } from '../../components/features/article/ViewSelector';
-import { TitleOnlyView, MagazineView, CardsView } from '../../components/features/article/ViewModes';
-import { EnhancedArticleDetail } from '../../components/features/article/EnhancedArticleDetail';
-import { useBoard } from '../../contexts/BoardContext';
-import { useToast } from '../../contexts/ToastContext';
-import { FolderArticlesSection } from '../../components/features/article/FolderArticlesSection';
+import {FolderArticle, FolderWithArticles} from '../../types/folderArticles.types';
+import {folderArticlesService} from '../../services/folderArticlesService';
+import {Input} from '../../components/common/Input';
+import {Button} from '../../components/common/Button';
+import {LoadingScreen} from '../../components/common/LoadingScreen';
+import {useDebounce} from '../../hooks';
+import {useLocalStorage} from '../../hooks/useLocalStorage';
+import {ViewMode, ViewSelector} from '../../components/features/article/ViewSelector';
+import {EnhancedArticleDetail} from '../../components/features/article/EnhancedArticleDetail';
+import {useBoard} from '../../contexts/BoardContext';
+import {useToast} from '../../contexts/ToastContext';
+import {FolderArticlesSection} from '../../components/features/article/FolderArticlesSection';
+import {MagazineFolderView, TitleOnlyFolderView} from '../../components/features/article/ViewModes';
+
 
 const PageContainer = styled.div`
     display: flex;
@@ -29,23 +30,23 @@ const PageHeader = styled.div`
     flex-wrap: wrap;
     gap: 16px;
 
-    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    @media (max-width: ${({theme}) => theme.breakpoints.sm}) {
         flex-direction: column;
         align-items: stretch;
     }
 `;
 
 const PageTitle = styled.h1`
-    font-size: ${({ theme }) => theme.typography.fontSize['3xl']};
-    font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
-    color: ${({ theme }) => theme.colors.text.primary};
+    font-size: ${({theme}) => theme.typography.fontSize['3xl']};
+    font-weight: ${({theme}) => theme.typography.fontWeight.bold};
+    color: ${({theme}) => theme.colors.text.primary};
     display: flex;
     align-items: center;
     gap: 12px;
     margin: 0;
 
     i {
-        color: ${({ theme }) => theme.colors.primary.main};
+        color: ${({theme}) => theme.colors.primary.main};
     }
 `;
 
@@ -55,7 +56,7 @@ const Actions = styled.div`
     align-items: center;
     flex-wrap: wrap;
 
-    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    @media (max-width: ${({theme}) => theme.breakpoints.sm}) {
         width: 100%;
         justify-content: space-between;
     }
@@ -65,7 +66,7 @@ const SearchWrapper = styled.div`
     position: relative;
     width: 240px;
 
-    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    @media (max-width: ${({theme}) => theme.breakpoints.sm}) {
         width: 100%;
     }
 `;
@@ -76,18 +77,18 @@ const FilterBar = styled.div`
     align-items: center;
     margin-bottom: 24px;
     padding: 12px 16px;
-    background-color: ${({ theme }) => theme.colors.background.secondary};
-    border-radius: ${({ theme }) => theme.radii.lg};
-    box-shadow: ${({ theme }) => theme.shadows.sm};
+    background-color: ${({theme}) => theme.colors.background.secondary};
+    border-radius: ${({theme}) => theme.radii.lg};
+    box-shadow: ${({theme}) => theme.shadows.sm};
 
-    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    @media (max-width: ${({theme}) => theme.breakpoints.sm}) {
         flex-direction: column;
         gap: 12px;
         align-items: flex-start;
     }
 
     @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
+        background-color: ${({theme}) => theme.colors.gray[800]};
     }
 `;
 
@@ -96,7 +97,7 @@ const FilterActions = styled.div`
     gap: 12px;
     align-items: center;
 
-    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    @media (max-width: ${({theme}) => theme.breakpoints.sm}) {
         width: 100%;
         justify-content: space-between;
     }
@@ -104,54 +105,54 @@ const FilterActions = styled.div`
 
 const SortSelect = styled.select`
     padding: 8px 12px;
-    border-radius: ${({ theme }) => theme.radii.md};
-    border: 1px solid ${({ theme }) => theme.colors.gray[300]};
-    background-color: ${({ theme }) => theme.colors.background.secondary};
-    color: ${({ theme }) => theme.colors.text.primary};
-    font-size: ${({ theme }) => theme.typography.fontSize.sm};
+    border-radius: ${({theme}) => theme.radii.md};
+    border: 1px solid ${({theme}) => theme.colors.gray[300]};
+    background-color: ${({theme}) => theme.colors.background.secondary};
+    color: ${({theme}) => theme.colors.text.primary};
+    font-size: ${({theme}) => theme.typography.fontSize.sm};
 
     @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-        border-color: ${({ theme }) => theme.colors.gray[600]};
+        background-color: ${({theme}) => theme.colors.gray[800]};
+        border-color: ${({theme}) => theme.colors.gray[600]};
     }
 `;
 
 const EmptyState = styled.div`
     text-align: center;
     padding: 48px 0;
-    background-color: ${({ theme }) => theme.colors.background.secondary};
-    border-radius: ${({ theme }) => theme.radii.lg};
-    border: 2px dashed ${({ theme }) => theme.colors.gray[200]};
+    background-color: ${({theme}) => theme.colors.background.secondary};
+    border-radius: ${({theme}) => theme.radii.lg};
+    border: 2px dashed ${({theme}) => theme.colors.gray[200]};
     margin-top: 24px;
 
     @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-        border-color: ${({ theme }) => theme.colors.gray[700]};
+        background-color: ${({theme}) => theme.colors.gray[800]};
+        border-color: ${({theme}) => theme.colors.gray[700]};
     }
 `;
 
 const EmptyStateIcon = styled.div`
     font-size: 48px;
-    color: ${({ theme }) => theme.colors.gray[400]};
+    color: ${({theme}) => theme.colors.gray[400]};
     margin-bottom: 16px;
 `;
 
 const EmptyStateText = styled.p`
-    font-size: ${({ theme }) => theme.typography.fontSize.lg};
-    color: ${({ theme }) => theme.colors.text.secondary};
+    font-size: ${({theme}) => theme.typography.fontSize.lg};
+    color: ${({theme}) => theme.colors.text.secondary};
     margin-bottom: 24px;
 `;
 
 const ArticlesContainer = styled.div<{ view: ViewMode }>`
     flex: 1;
-    background-color: ${({ view, theme }) =>
+    background-color: ${({view, theme}) =>
             view === 'title-only' ? theme.colors.background.secondary : 'transparent'};
-    border-radius: ${({ view, theme }) =>
+    border-radius: ${({view, theme}) =>
             view === 'title-only' ? theme.radii.lg : '0'};
     overflow: hidden;
 
     @media (prefers-color-scheme: dark) {
-        background-color: ${({ view, theme }) =>
+        background-color: ${({view, theme}) =>
                 view === 'title-only' ? theme.colors.gray[800] : 'transparent'};
     }
 `;
@@ -168,21 +169,21 @@ const Pagination = styled.div`
 const PageButton = styled.button<{ isActive?: boolean }>`
     min-width: 36px;
     height: 36px;
-    border-radius: ${({ theme }) => theme.radii.md};
-    border: 1px solid ${({ isActive, theme }) =>
+    border-radius: ${({theme}) => theme.radii.md};
+    border: 1px solid ${({isActive, theme}) =>
             isActive ? theme.colors.primary.main : theme.colors.gray[300]};
-    background-color: ${({ isActive, theme }) =>
+    background-color: ${({isActive, theme}) =>
             isActive ? theme.colors.primary.light : 'transparent'};
-    color: ${({ isActive, theme }) =>
+    color: ${({isActive, theme}) =>
             isActive ? theme.colors.primary.main : theme.colors.text.primary};
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: ${({ theme }) => theme.transitions.default};
+    transition: ${({theme}) => theme.transitions.default};
 
     &:hover:not(:disabled) {
-        background-color: ${({ theme }) => theme.colors.gray[100]};
+        background-color: ${({theme}) => theme.colors.gray[100]};
     }
 
     &:disabled {
@@ -190,10 +191,10 @@ const PageButton = styled.button<{ isActive?: boolean }>`
         cursor: not-allowed;
     }
 
-    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    @media (max-width: ${({theme}) => theme.breakpoints.sm}) {
         min-width: 32px;
         height: 32px;
-        font-size: ${({ theme }) => theme.typography.fontSize.sm};
+        font-size: ${({theme}) => theme.typography.fontSize.sm};
     }
 `;
 
@@ -214,8 +215,8 @@ export const ArticlesPage: React.FC = () => {
 
     // Hooks
     const debouncedSearch = useDebounce(searchQuery, 300);
-    const { boards, addArticleToBoard } = useBoard();
-    const { showToast } = useToast();
+    const {boards, addArticleToBoard} = useBoard();
+    const {showToast} = useToast();
 
     // Fetch folders with articles
     useEffect(() => {
@@ -327,7 +328,7 @@ export const ArticlesPage: React.FC = () => {
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
         // Scroll to top when changing page
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({top: 0, behavior: 'smooth'});
     };
 
     // Loading state
@@ -407,18 +408,18 @@ export const ArticlesPage: React.FC = () => {
                         )}
 
                         {viewMode === 'magazine' && (
-                            // Magazine View - Display all articles in a magazine-style layout
-                            <MagazineView
-                                articles={allArticles}
+                            // Magazine View - Sử dụng component mới nhóm theo folder
+                            <MagazineFolderView
+                                folders={filteredFolders}
                                 onArticleClick={handleArticleClick}
                                 onSaveArticle={handleSaveArticle}
                             />
                         )}
 
                         {viewMode === 'title-only' && (
-                            // Title-Only View - Display all articles as a list of titles
-                            <TitleOnlyView
-                                articles={allArticles}
+                            // Title-Only View - Sử dụng component mới nhóm theo folder
+                            <TitleOnlyFolderView
+                                folders={filteredFolders}
                                 onArticleClick={handleArticleClick}
                                 onSaveArticle={handleSaveArticle}
                             />

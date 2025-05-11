@@ -343,62 +343,38 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
     const [showSaveModal, setShowSaveModal] = useState(false);
     const [shouldShowFeaturedImage, setShouldShowFeaturedImage] = useState(true);
 
-    // Kiểm tra khi article hoặc isOpen thay đổi
+    // Sửa useEffect xác định shouldShowFeaturedImage
+    // Chỉ thay đổi useEffect kiểm tra shouldShowFeaturedImage
     useEffect(() => {
         if (!article || !isOpen) return;
 
-        // Kiểm tra xem nội dung HTML có chứa ảnh chính không
+        // Đơn giản hóa logic - luôn hiển thị ảnh nếu có, trừ khi có bằng chứng rõ ràng ảnh đã trong nội dung
+        let imageInContent = false;
+
+        // Chỉ kiểm tra nếu có image_url
         if (article.image_url) {
-            // Chuẩn hóa URL để so sánh
-            const normalizeUrl = (url: string) => {
-                if (!url) return '';
-                let normalized = url.replace(/^https?:\/\//, '');
-                normalized = normalized.replace(/^www\./, '');
-                normalized = normalized.split('?')[0];
-                normalized = normalized.split('#')[0];
-                normalized = normalized.replace(/\/$/, '');
-                return normalized.toLowerCase();
-            };
-
-            // So sánh URLs
-            const areUrlsSimilar = (url1: string, url2: string) => {
-                if (url1 === url2) return true;
-                if (url1.includes(url2) || url2.includes(url1)) return true;
-                const filename1 = url1.split('/').pop();
-                const filename2 = url2.split('/').pop();
-                if (filename1 && filename2 && filename1 === filename2) return true;
-                return false;
-            };
-
-            // Lấy nội dung và kiểm tra ảnh
             const content = article.content_encoded || article.content;
-            if (content) {
-                try {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(content, 'text/html');
-                    const images = Array.from(doc.querySelectorAll('img'));
+            try {
+                // Chỉ kiểm tra URL chính xác, không dùng logic phức tạp
+                const exactImageUrl = article.image_url.trim();
 
-                    const normalizedFeaturedImage = normalizeUrl(article.image_url);
-
-                    // Kiểm tra xem có ảnh nào trong nội dung giống với ảnh chính không
-                    const hasSimilarImage = images.some(img => {
-                        const imgSrc = img.getAttribute('src');
-                        if (!imgSrc) return false;
-                        return areUrlsSimilar(normalizedFeaturedImage, normalizeUrl(imgSrc));
-                    });
-
-                    // Nếu tìm thấy ảnh tương tự, không hiển thị ảnh chính
-                    setShouldShowFeaturedImage(!hasSimilarImage);
-                } catch (error) {
-                    console.error('Error processing article content:', error);
-                    setShouldShowFeaturedImage(true);
+                // Tìm kiếm URL này trong nội dung
+                if (content.includes(exactImageUrl)) {
+                    imageInContent = true;
+                } else {
+                    // Thử kiểm tra URL không có protocol
+                    const urlWithoutProtocol = exactImageUrl.replace(/^https?:\/\//, '');
+                    if (content.includes(urlWithoutProtocol)) {
+                        imageInContent = true;
+                    }
                 }
-            } else {
-                setShouldShowFeaturedImage(true);
+            } catch (error) {
+                console.error('Error checking image in content:', error);
             }
-        } else {
-            setShouldShowFeaturedImage(false);
         }
+
+        // Nếu không có ảnh trong nội dung, hiển thị featured image
+        setShouldShowFeaturedImage(!imageInContent);
     }, [article, isOpen]);
 
     if (!article) return null;
