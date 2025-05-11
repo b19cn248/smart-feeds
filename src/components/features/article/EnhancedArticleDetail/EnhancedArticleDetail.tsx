@@ -1,5 +1,5 @@
 // src/components/features/article/EnhancedArticleDetail/EnhancedArticleDetail.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import DOMPurify from 'dompurify';
 import { Article } from '../../../../types';
@@ -76,39 +76,39 @@ const HeaderTitle = styled.h2`
 `;
 
 const HeaderActions = styled.div`
-  display: flex;
-  gap: 12px;
+    display: flex;
+    gap: 12px;
 `;
 
 const ActionButton = styled.button`
-  background: none;
-  border: none;
-  color: ${({ theme }) => theme.colors.text.secondary};
-  font-size: ${({ theme }) => theme.typography.fontSize.md};
-  cursor: pointer;
-  padding: 8px;
-  border-radius: ${({ theme }) => theme.radii.md};
-  transition: ${({ theme }) => theme.transitions.default};
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.gray[100]};
-    color: ${({ theme }) => theme.colors.text.primary};
-  }
-  
-  @media (prefers-color-scheme: dark) {
+    background: none;
+    border: none;
+    color: ${({ theme }) => theme.colors.text.secondary};
+    font-size: ${({ theme }) => theme.typography.fontSize.md};
+    cursor: pointer;
+    padding: 8px;
+    border-radius: ${({ theme }) => theme.radii.md};
+    transition: ${({ theme }) => theme.transitions.default};
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
     &:hover {
-      background-color: ${({ theme }) => theme.colors.gray[700]};
+        background-color: ${({ theme }) => theme.colors.gray[100]};
+        color: ${({ theme }) => theme.colors.text.primary};
     }
-  }
-  
-  span {
-    @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-      display: none;
+
+    @media (prefers-color-scheme: dark) {
+        &:hover {
+            background-color: ${({ theme }) => theme.colors.gray[700]};
+        }
     }
-  }
+
+    span {
+        @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+            display: none;
+        }
+    }
 `;
 
 const DetailContent = styled.div`
@@ -146,101 +146,101 @@ const MetaItem = styled.div`
 `;
 
 const ArticleImage = styled.img`
-  max-width: 100%;
-  height: auto;
-  border-radius: ${({ theme }) => theme.radii.lg};
-  margin-bottom: 24px;
+    max-width: 100%;
+    height: auto;
+    border-radius: ${({ theme }) => theme.radii.lg};
+    margin-bottom: 24px;
 `;
 
 const ArticleBody = styled.div`
-  color: ${({ theme }) => theme.colors.text.primary};
-  font-size: ${({ theme }) => theme.typography.fontSize.lg};
-  line-height: 1.7;
-  
-  p {
-    margin-bottom: 16px;
-  }
-  
-  img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 16px 0;
-    border-radius: ${({ theme }) => theme.radii.md};
-  }
-  
-  a {
-    color: ${({ theme }) => theme.colors.primary.main};
-    text-decoration: none;
-    
-    &:hover {
-      text-decoration: underline;
+    color: ${({ theme }) => theme.colors.text.primary};
+    font-size: ${({ theme }) => theme.typography.fontSize.lg};
+    line-height: 1.7;
+
+    p {
+        margin-bottom: 16px;
     }
-  }
-  
-  h1, h2, h3, h4, h5, h6 {
-    margin: 24px 0 16px 0;
-    font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
-  }
-  
-  ul, ol {
-    margin: 16px 0;
-    padding-left: 24px;
-  }
-  
-  li {
-    margin-bottom: 8px;
-  }
-  
-  blockquote {
-    border-left: 4px solid ${({ theme }) => theme.colors.primary.main};
-    margin: 16px 0;
-    padding: 16px 0 16px 16px;
-    font-style: italic;
-    color: ${({ theme }) => theme.colors.text.secondary};
-  }
-  
-  pre {
-    background-color: ${({ theme }) => theme.colors.gray[100]};
-    padding: 16px;
-    border-radius: ${({ theme }) => theme.radii.md};
-    overflow-x: auto;
-    margin: 16px 0;
-    
-    @media (prefers-color-scheme: dark) {
-      background-color: ${({ theme }) => theme.colors.gray[800]};
+
+    img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 16px 0;
+        border-radius: ${({ theme }) => theme.radii.md};
     }
-  }
-  
-  code {
-    background-color: ${({ theme }) => theme.colors.gray[100]};
-    padding: 2px 4px;
-    border-radius: ${({ theme }) => theme.radii.sm};
-    font-family: monospace;
-    
-    @media (prefers-color-scheme: dark) {
-      background-color: ${({ theme }) => theme.colors.gray[800]};
+
+    a {
+        color: ${({ theme }) => theme.colors.primary.main};
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
     }
-  }
+
+    h1, h2, h3, h4, h5, h6 {
+        margin: 24px 0 16px 0;
+        font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+    }
+
+    ul, ol {
+        margin: 16px 0;
+        padding-left: 24px;
+    }
+
+    li {
+        margin-bottom: 8px;
+    }
+
+    blockquote {
+        border-left: 4px solid ${({ theme }) => theme.colors.primary.main};
+        margin: 16px 0;
+        padding: 16px 0 16px 16px;
+        font-style: italic;
+        color: ${({ theme }) => theme.colors.text.secondary};
+    }
+
+    pre {
+        background-color: ${({ theme }) => theme.colors.gray[100]};
+        padding: 16px;
+        border-radius: ${({ theme }) => theme.radii.md};
+        overflow-x: auto;
+        margin: 16px 0;
+
+        @media (prefers-color-scheme: dark) {
+            background-color: ${({ theme }) => theme.colors.gray[800]};
+        }
+    }
+
+    code {
+        background-color: ${({ theme }) => theme.colors.gray[100]};
+        padding: 2px 4px;
+        border-radius: ${({ theme }) => theme.radii.sm};
+        font-family: monospace;
+
+        @media (prefers-color-scheme: dark) {
+            background-color: ${({ theme }) => theme.colors.gray[800]};
+        }
+    }
 `;
 
 const ReadMoreLink = styled.a`
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 32px;
-  padding: 12px 24px;
-  background-color: ${({ theme }) => theme.colors.primary.main};
-  color: white;
-  border-radius: ${({ theme }) => theme.radii.md};
-  text-decoration: none;
-  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
-  transition: ${({ theme }) => theme.transitions.default};
-  
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.primary.hover};
-    transform: translateY(-2px);
-  }
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 32px;
+    padding: 12px 24px;
+    background-color: ${({ theme }) => theme.colors.primary.main};
+    color: white;
+    border-radius: ${({ theme }) => theme.radii.md};
+    text-decoration: none;
+    font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+    transition: ${({ theme }) => theme.transitions.default};
+
+    &:hover {
+        background-color: ${({ theme }) => theme.colors.primary.hover};
+        transform: translateY(-2px);
+    }
 `;
 
 const ShareOptions = styled.div`
@@ -248,10 +248,10 @@ const ShareOptions = styled.div`
 `;
 
 const ShareOptionsList = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
 `;
 
 const ShareOption = styled.button`
@@ -292,37 +292,37 @@ const ShareOption = styled.button`
 `;
 
 const ShareInput = styled.div`
-  position: relative;
-  
-  input {
-    width: 100%;
-    padding: 12px 120px 12px 16px;
-    border: 1px solid ${({ theme }) => theme.colors.gray[300]};
-    border-radius: ${({ theme }) => theme.radii.md};
-    font-size: ${({ theme }) => theme.typography.fontSize.md};
-    
-    @media (prefers-color-scheme: dark) {
-      border-color: ${({ theme }) => theme.colors.gray[600]};
-      background-color: ${({ theme }) => theme.colors.gray[800]};
-      color: ${({ theme }) => theme.colors.text.primary};
+    position: relative;
+
+    input {
+        width: 100%;
+        padding: 12px 120px 12px 16px;
+        border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+        border-radius: ${({ theme }) => theme.radii.md};
+        font-size: ${({ theme }) => theme.typography.fontSize.md};
+
+        @media (prefers-color-scheme: dark) {
+            border-color: ${({ theme }) => theme.colors.gray[600]};
+            background-color: ${({ theme }) => theme.colors.gray[800]};
+            color: ${({ theme }) => theme.colors.text.primary};
+        }
     }
-  }
-  
-  button {
-    position: absolute;
-    right: 4px;
-    top: 4px;
-    padding: 8px 16px;
-    background-color: ${({ theme }) => theme.colors.primary.main};
-    color: white;
-    border: none;
-    border-radius: ${({ theme }) => theme.radii.md};
-    cursor: pointer;
-    
-    &:hover {
-      background-color: ${({ theme }) => theme.colors.primary.hover};
+
+    button {
+        position: absolute;
+        right: 4px;
+        top: 4px;
+        padding: 8px 16px;
+        background-color: ${({ theme }) => theme.colors.primary.main};
+        color: white;
+        border: none;
+        border-radius: ${({ theme }) => theme.radii.md};
+        cursor: pointer;
+
+        &:hover {
+            background-color: ${({ theme }) => theme.colors.primary.hover};
+        }
     }
-  }
 `;
 
 // Board selection
@@ -397,6 +397,91 @@ const BoardDescription = styled.div`
     color: ${({ theme }) => theme.colors.text.secondary};
 `;
 
+// Hàm chuẩn hóa URL để so sánh
+const normalizeUrl = (url: string): string => {
+    if (!url) return '';
+
+    // Xóa protocol (http, https)
+    let normalized = url.replace(/^https?:\/\//, '');
+
+    // Xóa www. nếu có
+    normalized = normalized.replace(/^www\./, '');
+
+    // Xóa query parameters (tất cả sau dấu ?)
+    normalized = normalized.split('?')[0];
+
+    // Xóa fragment (tất cả sau dấu #)
+    normalized = normalized.split('#')[0];
+
+    // Xóa trailing slash nếu có
+    normalized = normalized.replace(/\/$/, '');
+
+    return normalized.toLowerCase();
+};
+
+// Hàm so sánh URLs với độ chính xác cao hơn
+const areUrlsSimilar = (url1: string, url2: string): boolean => {
+    // So sánh trực tiếp sau khi chuẩn hóa
+    if (url1 === url2) return true;
+
+    // Kiểm tra nếu url1 chứa url2 hoặc ngược lại (cho trường hợp URLs có thêm path)
+    if (url1.includes(url2) || url2.includes(url1)) return true;
+
+    // Kiểm tra phần tên file
+    const filename1 = url1.split('/').pop();
+    const filename2 = url2.split('/').pop();
+    if (filename1 && filename2 && filename1 === filename2) return true;
+
+    return false;
+};
+
+// Hàm xử lý HTML để loại bỏ ảnh trùng lặp
+const processHtmlContent = (htmlContent: string, featuredImage?: string): string => {
+    if (!featuredImage) return htmlContent;
+
+    try {
+        // Tạo DOM parser để xử lý HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlContent, 'text/html');
+
+        // Lấy tất cả các ảnh trong nội dung
+        const images = Array.from(doc.querySelectorAll('img'));
+
+        // Chuẩn hóa URL của featured image để so sánh
+        const normalizedFeaturedImage = normalizeUrl(featuredImage);
+
+        // Kiểm tra từng ảnh và xóa nếu trùng lặp
+        let foundDuplicate = false;
+        for (const img of images) {
+            const imgSrc = img.getAttribute('src');
+            if (!imgSrc) continue;
+
+            // Chuẩn hóa URL của ảnh trong nội dung
+            const normalizedImgSrc = normalizeUrl(imgSrc);
+
+            // So sánh với featured image
+            if (areUrlsSimilar(normalizedFeaturedImage, normalizedImgSrc)) {
+                // Xóa ảnh trùng lặp
+                if (img.parentNode) {
+                    img.parentNode.removeChild(img);
+                    foundDuplicate = true;
+                    break; // Chỉ xóa ảnh trùng lặp đầu tiên
+                }
+            }
+        }
+
+        // Nếu tìm thấy ảnh trùng lặp
+        if (foundDuplicate) {
+            return doc.body.innerHTML;
+        }
+
+        return htmlContent;
+    } catch (error) {
+        console.error('Error processing HTML content:', error);
+        return htmlContent;
+    }
+};
+
 // Props type supports both regular Article and FolderArticle
 interface EnhancedArticleDetailProps {
     article: (Article | FolderArticle | null);
@@ -413,15 +498,35 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
     const { showToast } = useToast();
     const [showShareModal, setShowShareModal] = useState(false);
     const [showSaveModal, setShowSaveModal] = useState(false);
+    const [processedContent, setProcessedContent] = useState<string>('');
+    const [shouldShowFeaturedImage, setShouldShowFeaturedImage] = useState(true);
+
+    // Xử lý khi article hoặc isOpen thay đổi
+    useEffect(() => {
+        if (!article || !isOpen) return;
+
+        // Lấy nội dung bài viết
+        const content = 'content_encoded' in article && article.content_encoded
+            ? article.content_encoded
+            : article.content;
+
+        // Xử lý nội dung để loại bỏ ảnh trùng lặp
+        if (article.image_url) {
+            const processed = processHtmlContent(content, article.image_url);
+            setProcessedContent(processed);
+
+            // Nếu nội dung thay đổi, tức là đã tìm và xóa ảnh trùng lặp
+            setShouldShowFeaturedImage(processed === content);
+        } else {
+            setProcessedContent(content);
+            setShouldShowFeaturedImage(true);
+        }
+    }, [article, isOpen]);
 
     if (!article) return null;
 
     // Sanitize HTML content to prevent XSS attacks
-    const content = 'content_encoded' in article && article.content_encoded
-        ? article.content_encoded
-        : article.content;
-
-    const sanitizedContent = DOMPurify.sanitize(content, {
+    const sanitizedContent = DOMPurify.sanitize(processedContent || article.content, {
         ALLOWED_TAGS: [
             'p', 'br', 'b', 'i', 'em', 'strong', 'a',
             'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
@@ -530,7 +635,8 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
                         </MetaItem>
                     </ArticleMeta>
 
-                    {article.image_url && (
+                    {/* Hiển thị featured image chỉ khi không tìm thấy trùng lặp trong nội dung */}
+                    {shouldShowFeaturedImage && article.image_url && (
                         <ArticleImage
                             src={article.image_url}
                             alt={article.title}

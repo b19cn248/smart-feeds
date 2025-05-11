@@ -122,7 +122,6 @@ const ArticleBody = styled.div`
     line-height: 1.7;
     color: ${({ theme }) => theme.colors.text.primary};
 
-    /* Styles cho nội dung HTML */
     p {
         margin-bottom: 16px;
     }
@@ -214,7 +213,7 @@ const ActionButton = styled.button`
 
     @media (prefers-color-scheme: dark) {
         border-color: ${({ theme }) => theme.colors.gray[700]};
-        
+
         &:hover {
             background-color: ${({ theme }) => theme.colors.gray[800]};
         }
@@ -272,7 +271,7 @@ const BoardItem = styled.div`
 
     @media (prefers-color-scheme: dark) {
         border-bottom-color: ${({ theme }) => theme.colors.gray[800]};
-        
+
         &:hover {
             background-color: ${({ theme }) => theme.colors.gray[800]};
         }
@@ -313,6 +312,7 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
     const { boards, addArticleToBoard } = useBoard();
     const { showToast } = useToast();
     const [showBoardsMenu, setShowBoardsMenu] = useState(false);
+    const [hasImageInContent, setHasImageInContent] = useState(false);
 
     if (!article) return null;
 
@@ -323,8 +323,6 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
     };
 
     const handleAddToBoard = async (boardId: number) => {
-        if (!article) return;
-
         try {
             await addArticleToBoard(boardId, { article_id: article.id });
             showToast('success', 'Success', 'Article added to board successfully');
@@ -334,38 +332,69 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
         }
     };
 
-    // Sanitize HTML content để tránh XSS attacks
+    // Normalize URLs for comparison
+    const normalizeUrl = (url: string) => {
+        try {
+            const urlObj = new URL(url, window.location.origin);
+            return urlObj.pathname + urlObj.search;
+        } catch {
+            return url;
+        }
+    };
+
+    // Sanitize HTML content and handle image deduplication
     const sanitizeHtml = (html: string) => {
-        return DOMPurify.sanitize(html, {
+        let imageFound = false;
+
+        DOMPurify.addHook('beforeSanitizeElements', (node) => {
+            if (
+                node.nodeType === Node.ELEMENT_NODE &&
+                (node as Element).tagName === 'IMG' &&
+                article?.image_url
+            ) {
+                const imgElement = node as HTMLImageElement;
+                const src = imgElement.getAttribute('src');
+                if (src && normalizeUrl(src).includes(normalizeUrl(article.image_url))) {
+                    imageFound = true;
+                    return null; // Remove the image from content
+                }
+            }
+            return node;
+        });
+
+        const sanitized = DOMPurify.sanitize(html, {
             ALLOWED_TAGS: [
                 'p', 'br', 'b', 'i', 'em', 'strong', 'a',
                 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
                 'ul', 'ol', 'li', 'blockquote', 'pre', 'code',
-                'div', 'span'
-                // Đã xóa 'img' khỏi danh sách thẻ được phép
+                'div', 'span', 'img'
             ],
             ALLOWED_ATTR: [
                 'href', 'alt', 'title', 'class', 'id',
-                'width', 'height', 'target', 'rel'
-                // Đã xóa 'src' khỏi danh sách attributes được phép
+                'width', 'height', 'target', 'rel', 'src'
             ],
             ALLOW_DATA_ATTR: false
         });
+
+        DOMPurify.removeAllHooks();
+        setHasImageInContent(imageFound);
+        return sanitized;
     };
 
     // Xác định nguồn bài viết
     const getSourceText = () => {
         if (!article.source) return 'Unknown source';
         if (typeof article.source === 'object' && article.source !== null) {
-            // Sử dụng any để tránh lỗi TypeScript
-            const sourceObj = article.source as any;
+            const sourceObj = article.source as Record<string, any>;
             return sourceObj.url || 'Unknown source';
         }
         return String(article.source);
     };
 
-    // Sử dụng image_url trực tiếp thay vì extractFirstImage từ content
+    // Sử dụng image_url trực tiếp
     const featuredImage = article.image_url;
+
+    // Process content
     const sanitizedContent = sanitizeHtml(article.content);
 
     return (
@@ -418,8 +447,8 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
                 <DetailContent>
                     <ArticleTitle>{article.title}</ArticleTitle>
 
-                    {/* Hiển thị featured image từ image_url nếu có */}
-                    {featuredImage && (
+                    {/* Chỉ hiển thị featured image nếu không có trong nội dung */}
+                    {featuredImage && !hasImageInContent && (
                         <ArticleImage
                             src={featuredImage}
                             alt={article.title}

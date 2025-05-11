@@ -104,14 +104,28 @@ const ArticlesGrid = styled.div`
     }
 `;
 
+// Cập nhật style cho ShowMoreButton
 const ShowMoreButton = styled.div`
     display: flex;
     justify-content: center;
     padding: 16px;
     border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
-    
+    width: 100%; // Đảm bảo chiều rộng đầy đủ
+
+    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+        padding: 12px 8px; // Giảm padding trên màn hình nhỏ
+    }
+
     @media (prefers-color-scheme: dark) {
         border-top-color: ${({ theme }) => theme.colors.gray[700]};
+    }
+
+    /* Đảm bảo Button cũng responsive */
+    button {
+        @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+            width: 100%; // Sử dụng chiều rộng đầy đủ trên màn hình nhỏ
+            font-size: ${({ theme }) => theme.typography.fontSize.sm}; // Font size nhỏ hơn
+        }
     }
 `;
 
