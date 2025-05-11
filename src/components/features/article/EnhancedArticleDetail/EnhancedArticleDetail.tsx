@@ -10,25 +10,25 @@ import { ArticleContentRenderer } from '../ArticleContentRenderer';
 
 const DEFAULT_ARTICLE_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzY0NzQ4YiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlIEF2YWlsYWJsZTwvdGV4dD48L3N2Zz4=';
 
-// Overlay to dim the background
+// Overlay với backdrop blur và transition cải thiện
 const Overlay = styled.div<{ isOpen: boolean }>`
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(3px);
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
     z-index: ${({ theme }) => theme.zIndices.modal};
     opacity: ${({ isOpen }) => isOpen ? 1 : 0};
     visibility: ${({ isOpen }) => isOpen ? 'visible' : 'hidden'};
-    transition: ${({ theme }) => theme.transitions.default};
+    transition: opacity 0.3s ease, visibility 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
 `;
 
-// Modal style detail view
+// Cải thiện container với animation scale và box-shadow
 const DetailContainer = styled.div<{ isOpen: boolean }>`
     background: ${({ theme }) => theme.colors.background.secondary};
     border-radius: ${({ theme }) => theme.radii.lg};
@@ -37,16 +37,35 @@ const DetailContainer = styled.div<{ isOpen: boolean }>`
     max-width: 800px;
     max-height: 90vh;
     overflow-y: auto;
-    transform: ${({ isOpen }) => isOpen ? 'translateY(0)' : 'translateY(-20px)'};
+    transform: ${({ isOpen }) => isOpen ? 'translateY(0) scale(1)' : 'translateY(-40px) scale(0.95)'};
     opacity: ${({ isOpen }) => isOpen ? 1 : 0};
-    transition: ${({ theme }) => theme.transitions.default};
+    transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1), opacity 0.3s ease;
     position: relative;
+    scrollbar-width: thin;
+    
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+        background-color: ${({ theme }) => theme.colors.gray[400]};
+        border-radius: 3px;
+    }
 
     @media (prefers-color-scheme: dark) {
         background: ${({ theme }) => theme.colors.gray[800]};
+        
+        &::-webkit-scrollbar-thumb {
+            background-color: ${({ theme }) => theme.colors.gray[600]};
+        }
     }
 `;
 
+// Sticky header với backdrop filter
 const DetailHeader = styled.header`
     position: sticky;
     top: 0;
@@ -55,11 +74,13 @@ const DetailHeader = styled.header`
     align-items: center;
     padding: 16px 24px;
     background-color: ${({ theme }) => theme.colors.background.secondary};
+    backdrop-filter: blur(8px);
     border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
-    z-index: 1;
+    z-index: 2;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 
     @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
+        background-color: rgba(30, 41, 59, 0.9);
         border-bottom-color: ${({ theme }) => theme.colors.gray[700]};
     }
 `;
@@ -75,6 +96,7 @@ const HeaderTitle = styled.h2`
     white-space: nowrap;
 `;
 
+// Cải thiện action buttons với hiệu ứng hover
 const HeaderActions = styled.div`
     display: flex;
     gap: 12px;
@@ -88,14 +110,32 @@ const ActionButton = styled.button`
     cursor: pointer;
     padding: 8px;
     border-radius: ${({ theme }) => theme.radii.md};
-    transition: ${({ theme }) => theme.transitions.default};
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     gap: 8px;
+    position: relative;
+    
+    &:before {
+        content: '';
+        position: absolute;
+        bottom: 4px;
+        left: 50%;
+        width: 0;
+        height: 2px;
+        background-color: ${({ theme }) => theme.colors.primary.main};
+        transition: all 0.3s ease;
+        transform: translateX(-50%);
+    }
 
     &:hover {
         background-color: ${({ theme }) => theme.colors.gray[100]};
-        color: ${({ theme }) => theme.colors.text.primary};
+        color: ${({ theme }) => theme.colors.primary.main};
+        transform: translateY(-2px);
+        
+        &:before {
+            width: 70%;
+        }
     }
 
     @media (prefers-color-scheme: dark) {
@@ -119,14 +159,20 @@ const DetailContent = styled.div`
     }
 `;
 
+// Cải thiện ArticleTitle với line-height và màu sắc
 const ArticleTitle = styled.h1`
     font-size: ${({ theme }) => theme.typography.fontSize['3xl']};
     font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
     color: ${({ theme }) => theme.colors.text.primary};
     margin: 0 0 16px 0;
     line-height: 1.3;
+    
+    @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
+        font-size: ${({ theme }) => theme.typography.fontSize['2xl']};
+    }
 `;
 
+// Nâng cao UI cho thông tin meta
 const ArticleMeta = styled.div`
     display: flex;
     flex-wrap: wrap;
@@ -134,24 +180,72 @@ const ArticleMeta = styled.div`
     margin-bottom: 24px;
     font-size: ${({ theme }) => theme.typography.fontSize.sm};
     color: ${({ theme }) => theme.colors.text.secondary};
+    padding-bottom: 16px;
+    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
+    
+    @media (prefers-color-scheme: dark) {
+        border-bottom-color: ${({ theme }) => theme.colors.gray[700]};
+    }
 `;
 
 const MetaItem = styled.div`
     display: flex;
     align-items: center;
+    transition: transform 0.2s ease;
+    
+    &:hover {
+        transform: translateY(-2px);
+        color: ${({ theme }) => theme.colors.primary.main};
+    }
 
     i {
         margin-right: 8px;
     }
 `;
 
+// Cải thiện ArticleImage với skeleton loading và transition
+const ImageContainer = styled.div`
+    position: relative;
+    width: 100%;
+    margin-bottom: 24px;
+    border-radius: ${({ theme }) => theme.radii.lg};
+    overflow: hidden;
+`;
+
 const ArticleImage = styled.img`
     max-width: 100%;
     height: auto;
+    display: block;
     border-radius: ${({ theme }) => theme.radii.lg};
-    margin-bottom: 24px;
+    transition: transform 0.5s ease;
+    
+    &:hover {
+        transform: scale(1.02);
+    }
 `;
 
+// Thêm ImageSkeleton cho loading state
+const ImageSkeleton = styled.div`
+    width: 100%;
+    height: 300px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    border-radius: ${({ theme }) => theme.radii.lg};
+    margin-bottom: 24px;
+    animation: shimmer 1.5s infinite;
+
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+
+    @media (prefers-color-scheme: dark) {
+        background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
+        background-size: 200% 100%;
+    }
+`;
+
+// Cải thiện nút Read More với hover effect
 const ReadMoreLink = styled.a`
     display: inline-flex;
     align-items: center;
@@ -163,18 +257,83 @@ const ReadMoreLink = styled.a`
     border-radius: ${({ theme }) => theme.radii.md};
     text-decoration: none;
     font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
-    transition: ${({ theme }) => theme.transitions.default};
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    
+    &:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
 
     &:hover {
         background-color: ${({ theme }) => theme.colors.primary.hover};
         transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        
+        &:before {
+            transform: translateX(0);
+        }
+    }
+    
+    i {
+        transition: transform 0.3s ease;
+    }
+    
+    &:hover i {
+        transform: translateX(4px);
     }
 `;
 
-const ShareOptions = styled.div`
-    padding: 16px;
+const ModalContainer = styled.div`
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
 `;
 
+const ModalContent = styled.div`
+    width: 90%;
+    max-width: 500px;
+    background-color: ${({ theme }) => theme.colors.background.secondary};
+    border-radius: 12px;
+    padding: 24px;
+    animation: slideIn 0.3s ease;
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @media (prefers-color-scheme: dark) {
+        background-color: ${({ theme }) => theme.colors.gray[800]};
+    }
+    
+    h3 {
+        margin-top: 0;
+        margin-bottom: 16px;
+        font-size: ${({ theme }) => theme.typography.fontSize.xl};
+    }
+`;
+
+// Cải thiện Share Options với animation
 const ShareOptionsList = styled.div`
     display: flex;
     flex-wrap: wrap;
@@ -187,22 +346,28 @@ const ShareOption = styled.button`
     flex-direction: column;
     align-items: center;
     gap: 8px;
-    background: none;
+    background: ${({ theme }) => theme.colors.background.primary};
     border: 1px solid ${({ theme }) => theme.colors.gray[200]};
     border-radius: ${({ theme }) => theme.radii.md};
     padding: 16px;
     width: 100px;
     cursor: pointer;
-    transition: ${({ theme }) => theme.transitions.default};
+    transition: all 0.3s ease;
 
     &:hover {
         background-color: ${({ theme }) => theme.colors.gray[100]};
-        transform: translateY(-2px);
+        transform: translateY(-4px);
+        box-shadow: ${({ theme }) => theme.shadows.md};
     }
 
     i {
         font-size: 24px;
         color: ${({ theme }) => theme.colors.primary.main};
+        transition: transform 0.3s ease;
+    }
+    
+    &:hover i {
+        transform: scale(1.2);
     }
 
     span {
@@ -211,14 +376,16 @@ const ShareOption = styled.button`
     }
 
     @media (prefers-color-scheme: dark) {
+        background: ${({ theme }) => theme.colors.gray[800]};
         border-color: ${({ theme }) => theme.colors.gray[700]};
 
         &:hover {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
+            background-color: ${({ theme }) => theme.colors.gray[700]};
         }
     }
 `;
 
+// Cải thiện URL sharing input
 const ShareInput = styled.div`
     position: relative;
 
@@ -228,10 +395,17 @@ const ShareInput = styled.div`
         border: 1px solid ${({ theme }) => theme.colors.gray[300]};
         border-radius: ${({ theme }) => theme.radii.md};
         font-size: ${({ theme }) => theme.typography.fontSize.md};
+        transition: all 0.3s ease;
+        
+        &:focus {
+            outline: none;
+            border-color: ${({ theme }) => theme.colors.primary.main};
+            box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary.light};
+        }
 
         @media (prefers-color-scheme: dark) {
             border-color: ${({ theme }) => theme.colors.gray[600]};
-            background-color: ${({ theme }) => theme.colors.gray[800]};
+            background-color: ${({ theme }) => theme.colors.gray[700]};
             color: ${({ theme }) => theme.colors.text.primary};
         }
     }
@@ -246,27 +420,43 @@ const ShareInput = styled.div`
         border: none;
         border-radius: ${({ theme }) => theme.radii.md};
         cursor: pointer;
+        transition: all 0.3s ease;
 
         &:hover {
             background-color: ${({ theme }) => theme.colors.primary.hover};
+            transform: translateY(-2px);
         }
     }
 `;
 
-// Board selection
-const SaveToBoard = styled.div`
-    padding: 16px;
-`;
-
+// Cải thiện board selection UI
 const BoardsList = styled.div`
     margin-top: 16px;
     max-height: 300px;
     overflow-y: auto;
     border: 1px solid ${({ theme }) => theme.colors.gray[200]};
     border-radius: ${({ theme }) => theme.radii.md};
+    scrollbar-width: thin;
+    
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+        background-color: ${({ theme }) => theme.colors.gray[400]};
+        border-radius: 3px;
+    }
 
     @media (prefers-color-scheme: dark) {
         border-color: ${({ theme }) => theme.colors.gray[700]};
+        
+        &::-webkit-scrollbar-thumb {
+            background-color: ${({ theme }) => theme.colors.gray[600]};
+        }
     }
 `;
 
@@ -276,7 +466,7 @@ const BoardItem = styled.div`
     align-items: center;
     gap: 12px;
     cursor: pointer;
-    transition: ${({ theme }) => theme.transitions.default};
+    transition: all 0.2s ease;
     border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
 
     &:last-child {
@@ -285,13 +475,14 @@ const BoardItem = styled.div`
 
     &:hover {
         background-color: ${({ theme }) => theme.colors.gray[100]};
+        transform: translateX(4px);
     }
 
     @media (prefers-color-scheme: dark) {
         border-bottom-color: ${({ theme }) => theme.colors.gray[700]};
 
         &:hover {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
+            background-color: ${({ theme }) => theme.colors.gray[700]};
         }
     }
 `;
@@ -304,10 +495,15 @@ const BoardIcon = styled.div<{ color: string }>`
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: transform 0.2s ease;
 
     i {
         color: ${({ color }) => color};
         font-size: 16px;
+    }
+    
+    ${BoardItem}:hover & {
+        transform: scale(1.1);
     }
 `;
 
@@ -325,7 +521,53 @@ const BoardDescription = styled.div`
     color: ${({ theme }) => theme.colors.text.secondary};
 `;
 
-// Props type supports both regular Article and FolderArticle
+// Thêm ModalFooter component với cải thiện UI cho buttons
+const ModalFooter = styled.div`
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+`;
+
+const ModalButton = styled.button`
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &.primary {
+        background-color: ${({ theme }) => theme.colors.primary.main};
+        color: white;
+        
+        &:hover {
+            background-color: ${({ theme }) => theme.colors.primary.hover};
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    }
+    
+    &.secondary {
+        background-color: ${({ theme }) => theme.colors.gray[200]};
+        color: ${({ theme }) => theme.colors.text.primary};
+        
+        &:hover {
+            background-color: ${({ theme }) => theme.colors.gray[300]};
+            transform: translateY(-2px);
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            background-color: ${({ theme }) => theme.colors.gray[700]};
+            color: ${({ theme }) => theme.colors.text.secondary};
+            
+            &:hover {
+                background-color: ${({ theme }) => theme.colors.gray[600]};
+            }
+        }
+    }
+`;
+
 interface EnhancedArticleDetailProps {
     article: (Article | FolderArticle | null);
     isOpen: boolean;
@@ -342,39 +584,32 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
     const [showShareModal, setShowShareModal] = useState(false);
     const [showSaveModal, setShowSaveModal] = useState(false);
     const [shouldShowFeaturedImage, setShouldShowFeaturedImage] = useState(true);
+    const [isImageLoading, setIsImageLoading] = useState(true);
 
-    // Sửa useEffect xác định shouldShowFeaturedImage
-    // Chỉ thay đổi useEffect kiểm tra shouldShowFeaturedImage
+    // ĐƠN GIẢN HÓA logic kiểm tra hình ảnh trong nội dung
     useEffect(() => {
         if (!article || !isOpen) return;
 
-        // Đơn giản hóa logic - luôn hiển thị ảnh nếu có, trừ khi có bằng chứng rõ ràng ảnh đã trong nội dung
-        let imageInContent = false;
+        // Mặc định là hiển thị ảnh (thay đổi cách tiếp cận)
+        setShouldShowFeaturedImage(true);
 
         // Chỉ kiểm tra nếu có image_url
         if (article.image_url) {
-            const content = article.content_encoded || article.content;
-            try {
-                // Chỉ kiểm tra URL chính xác, không dùng logic phức tạp
-                const exactImageUrl = article.image_url.trim();
+            setIsImageLoading(true);
 
-                // Tìm kiếm URL này trong nội dung
-                if (content.includes(exactImageUrl)) {
-                    imageInContent = true;
-                } else {
-                    // Thử kiểm tra URL không có protocol
-                    const urlWithoutProtocol = exactImageUrl.replace(/^https?:\/\//, '');
-                    if (content.includes(urlWithoutProtocol)) {
-                        imageInContent = true;
-                    }
-                }
-            } catch (error) {
-                console.error('Error checking image in content:', error);
-            }
+            // Tự động preload image
+            const img = new Image();
+            img.src = article.image_url;
+            img.onload = () => setIsImageLoading(false);
+            img.onerror = () => {
+                console.error('Failed to load image:', article.image_url);
+                setIsImageLoading(false);
+                setShouldShowFeaturedImage(false);
+            };
+        } else {
+            setIsImageLoading(false);
+            setShouldShowFeaturedImage(false);
         }
-
-        // Nếu không có ảnh trong nội dung, hiển thị featured image
-        setShouldShowFeaturedImage(!imageInContent);
     }, [article, isOpen]);
 
     if (!article) return null;
@@ -475,15 +710,22 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
                         </MetaItem>
                     </ArticleMeta>
 
-                    {/* Hiển thị featured image chỉ khi không có hình ảnh tương tự trong nội dung */}
+                    {/* Cải thiện hiển thị hình ảnh với loading skeleton */}
                     {shouldShowFeaturedImage && article.image_url && (
-                        <ArticleImage
-                            src={article.image_url}
-                            alt={article.title}
-                            onError={(e) => {
-                                e.currentTarget.src = DEFAULT_ARTICLE_IMAGE;
-                            }}
-                        />
+                        <ImageContainer>
+                            {isImageLoading ? (
+                                <ImageSkeleton />
+                            ) : (
+                                <ArticleImage
+                                    src={article.image_url}
+                                    alt={article.title}
+                                    onError={(e) => {
+                                        console.error('Image failed to load');
+                                        e.currentTarget.src = DEFAULT_ARTICLE_IMAGE;
+                                    }}
+                                />
+                            )}
+                        </ImageContainer>
                     )}
 
                     {/* Sử dụng ArticleContentRenderer để hiển thị nội dung */}
@@ -498,11 +740,11 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
                     </ReadMoreLink>
                 </DetailContent>
 
-                {/* Share Modal */}
+                {/* Cải thiện Modal UI cho Share */}
                 {showShareModal && (
-                    <div style={{ position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                        <div style={{ width: '90%', maxWidth: '500px', backgroundColor: 'white', borderRadius: '12px', padding: '20px' }}>
-                            <h3 style={{ marginTop: 0 }}>Share Article</h3>
+                    <ModalContainer>
+                        <ModalContent>
+                            <h3>Share Article</h3>
                             <ShareOptionsList>
                                 <ShareOption onClick={() => handleShare('twitter')}>
                                     <i className="fab fa-twitter" />
@@ -524,24 +766,26 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
 
                             <ShareInput>
                                 <input type="text" value={article.url} readOnly />
-                                <button onClick={copyToClipboard}>Copy URL</button>
+                                <button onClick={copyToClipboard}>Copy</button>
                             </ShareInput>
 
-                            <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
-                                <button
-                                    style={{ padding: '8px 16px', backgroundColor: '#f1f5f9', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                            <ModalFooter>
+                                <ModalButton
+                                    className="secondary"
                                     onClick={() => setShowShareModal(false)}
-                                >Close</button>
-                            </div>
-                        </div>
-                    </div>
+                                >
+                                    Close
+                                </ModalButton>
+                            </ModalFooter>
+                        </ModalContent>
+                    </ModalContainer>
                 )}
 
-                {/* Save to Board Modal */}
+                {/* Cải thiện Modal UI cho Save to Board */}
                 {showSaveModal && (
-                    <div style={{ position: 'fixed', inset: 0, zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-                        <div style={{ width: '90%', maxWidth: '500px', backgroundColor: 'white', borderRadius: '12px', padding: '20px' }}>
-                            <h3 style={{ marginTop: 0 }}>Save to Board</h3>
+                    <ModalContainer>
+                        <ModalContent>
+                            <h3>Save to Board</h3>
                             <p>Select a board to save this article:</p>
 
                             <BoardsList>
@@ -569,14 +813,16 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
                                 )}
                             </BoardsList>
 
-                            <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end' }}>
-                                <button
-                                    style={{ padding: '8px 16px', backgroundColor: '#f1f5f9', border: 'none', borderRadius: '6px', cursor: 'pointer' }}
+                            <ModalFooter>
+                                <ModalButton
+                                    className="secondary"
                                     onClick={() => setShowSaveModal(false)}
-                                >Close</button>
-                            </div>
-                        </div>
-                    </div>
+                                >
+                                    Close
+                                </ModalButton>
+                            </ModalFooter>s
+                        </ModalContent>
+                    </ModalContainer>
                 )}
             </DetailContainer>
         </Overlay>

@@ -20,6 +20,11 @@ const ContentContainer = styled.div`
         display: block;
         margin: 16px 0;
         border-radius: ${({ theme }) => theme.radii.md};
+        transition: transform 0.3s ease;
+        
+        &:hover {
+            transform: scale(1.01);
+        }
     }
 
     a {
@@ -128,50 +133,11 @@ const ArticleContentRenderer: React.FC<ArticleContentRendererProps> = ({
                                                                            featuredImage,
                                                                            className
                                                                        }) => {
-    // Chuẩn hóa URL để so sánh
-    const normalizeUrl = (url: string): string => {
-        if (!url) return '';
-
-        // Xóa protocol (http, https)
-        let normalized = url.replace(/^https?:\/\//, '');
-
-        // Xóa www. nếu có
-        normalized = normalized.replace(/^www\./, '');
-
-        // Xóa query parameters (tất cả sau dấu ?)
-        normalized = normalized.split('?')[0];
-
-        // Xóa fragment (tất cả sau dấu #)
-        normalized = normalized.split('#')[0];
-
-        // Xóa trailing slash nếu có
-        normalized = normalized.replace(/\/$/, '');
-
-        return normalized.toLowerCase();
-    };
-
-    // So sánh URLs với độ chính xác cao hơn
-    const areUrlsSimilar = (url1: string, url2: string): boolean => {
-        // So sánh trực tiếp sau khi chuẩn hóa
-        if (url1 === url2) return true;
-
-        // Kiểm tra nếu url1 chứa url2 hoặc ngược lại
-        if (url1.includes(url2) || url2.includes(url1)) return true;
-
-        // Kiểm tra phần tên file
-        const filename1 = url1.split('/').pop();
-        const filename2 = url2.split('/').pop();
-        if (filename1 && filename2 && filename1 === filename2) return true;
-
-        return false;
-    };
-
-    // Xử lý HTML để tối ưu hiển thị
+    // ĐƠN GIẢN HÓA logic kiểm tra ảnh trùng lặp
     const processHtmlContent = (htmlContent: string, imageUrl?: string): string => {
         if (!htmlContent) return '';
 
         try {
-            // Tạo DOM parser để xử lý HTML
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlContent, 'text/html');
 
@@ -184,14 +150,9 @@ const ArticleContentRenderer: React.FC<ArticleContentRendererProps> = ({
                 }
             });
 
-            // Xử lý các ảnh
+            // Xử lý các ảnh - CHỈ loại bỏ khi hoàn toàn giống nhau
             if (imageUrl) {
                 const images = Array.from(doc.querySelectorAll('img'));
-
-                // Chuẩn hóa URL của ảnh chính để so sánh
-                const normalizedImageUrl = normalizeUrl(imageUrl);
-
-                // Kiểm tra từng ảnh và xóa nếu trùng lặp
                 for (const img of images) {
                     // Thêm class cho tất cả ảnh
                     img.classList.add('article-image');
@@ -199,12 +160,9 @@ const ArticleContentRenderer: React.FC<ArticleContentRendererProps> = ({
                     const imgSrc = img.getAttribute('src');
                     if (!imgSrc) continue;
 
-                    // Chuẩn hóa URL của ảnh trong nội dung
-                    const normalizedImgSrc = normalizeUrl(imgSrc);
-
-                    // So sánh với ảnh chính
-                    if (areUrlsSimilar(normalizedImageUrl, normalizedImgSrc)) {
-                        // Xóa ảnh trùng lặp
+                    // CHỈ loại bỏ khi URL HOÀN TOÀN GIỐNG NHAU
+                    // Không dùng so sánh phức tạp để tránh false positive
+                    if (imgSrc === imageUrl) {
                         if (img.parentNode) {
                             img.parentNode.removeChild(img);
                         }
@@ -223,7 +181,7 @@ const ArticleContentRenderer: React.FC<ArticleContentRendererProps> = ({
     const hasContentEncoded = !!article.content_encoded && article.content_encoded.length > 0;
     const content = hasContentEncoded ? article.content_encoded! : article.content;
 
-    // Xử lý nội dung HTML (loại bỏ ảnh trùng lặp với ảnh chính, vv)
+    // Xử lý nội dung HTML (với logic đơn giản hơn)
     const processedContent = processHtmlContent(content, featuredImage || article.image_url);
 
     // Sanitize HTML để tránh XSS
