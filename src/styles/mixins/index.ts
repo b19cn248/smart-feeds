@@ -548,3 +548,7 @@ export default {
     rotate,
     shake,
 };
+
+// src/styles/mixins/index.ts
+// Thêm dòng này vào cuối file
+export * from './articleMixins';

@@ -3,13 +3,23 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Article, ArticleGroup } from '../../types';
 import { articleService } from '../../services/articleService';
-import { ArticleGroupSection } from '../../components/features/article/ArticleGroupSection';
-import { ArticleDetail } from '../../components/features/article/ArticleDetail';
 import { SourceNavigator } from '../../components/features/article/SourceNavigator';
 import { Input } from '../../components/common/Input';
-import { useDebounce } from '../../hooks';
 import { Button } from '../../components/common/Button';
 import { LoadingScreen } from '../../components/common/LoadingScreen';
+import { useDebounce } from '../../hooks';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { ViewSelector, ViewMode } from '../../components/features/article/ViewSelector';
+import { TitleOnlyView, MagazineView, CardsView, ArticleView } from '../../components/features/article/ViewModes';
+import { EnhancedArticleDetail } from '../../components/features/article/EnhancedArticleDetail';
+import { useBoard } from '../../contexts/BoardContext';
+import { useToast } from '../../contexts/ToastContext';
+
+const PageContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 64px);
+`;
 
 const PageHeader = styled.div`
     display: flex;
@@ -43,6 +53,7 @@ const Actions = styled.div`
     display: flex;
     gap: 12px;
     align-items: center;
+    flex-wrap: wrap;
 
     @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
         width: 100%;
@@ -52,40 +63,165 @@ const Actions = styled.div`
 
 const SearchWrapper = styled.div`
     position: relative;
-    max-width: 240px;
-    width: 100%;
+    width: 240px;
 
     @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
-        max-width: 100%;
+        width: 100%;
     }
 `;
 
+const FilterBar = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 12px 16px;
+  background-color: ${({ theme }) => theme.colors.background.secondary};
+  border-radius: ${({ theme }) => theme.radii.lg};
+  box-shadow: ${({ theme }) => theme.shadows.sm};
+  
+  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+   flex-direction: column;
+   gap: 12px;
+   align-items: flex-start;
+ }
+ 
+ @media (prefers-color-scheme: dark) {
+   background-color: ${({ theme }) => theme.colors.gray[800]};
+ }
+`;
+
+const FilterActions = styled.div`
+ display: flex;
+ gap: 12px;
+ align-items: center;
+ 
+ @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+   width: 100%;
+   justify-content: space-between;
+ }
+`;
+
+const SortSelect = styled.select`
+ padding: 8px 12px;
+ border-radius: ${({ theme }) => theme.radii.md};
+ border: 1px solid ${({ theme }) => theme.colors.gray[300]};
+ background-color: ${({ theme }) => theme.colors.background.secondary};
+ color: ${({ theme }) => theme.colors.text.primary};
+ font-size: ${({ theme }) => theme.typography.fontSize.sm};
+ 
+ @media (prefers-color-scheme: dark) {
+   background-color: ${({ theme }) => theme.colors.gray[800]};
+   border-color: ${({ theme }) => theme.colors.gray[600]};
+ }
+`;
+
 const EmptyState = styled.div`
-    text-align: center;
-    padding: 48px 0;
+ text-align: center;
+ padding: 48px 0;
+ background-color: ${({ theme }) => theme.colors.background.secondary};
+ border-radius: ${({ theme }) => theme.radii.lg};
+ border: 2px dashed ${({ theme }) => theme.colors.gray[200]};
+ margin-top: 24px;
+ 
+ @media (prefers-color-scheme: dark) {
+   background-color: ${({ theme }) => theme.colors.gray[800]};
+   border-color: ${({ theme }) => theme.colors.gray[700]};
+ }
 `;
 
 const EmptyStateIcon = styled.div`
-    font-size: 48px;
-    color: ${({ theme }) => theme.colors.gray[400]};
-    margin-bottom: 16px;
+ font-size: 48px;
+ color: ${({ theme }) => theme.colors.gray[400]};
+ margin-bottom: 16px;
 `;
 
 const EmptyStateText = styled.p`
-    font-size: ${({ theme }) => theme.typography.fontSize.lg};
-    color: ${({ theme }) => theme.colors.text.secondary};
-    margin-bottom: 24px;
+ font-size: ${({ theme }) => theme.typography.fontSize.lg};
+ color: ${({ theme }) => theme.colors.text.secondary};
+ margin-bottom: 24px;
 `;
 
-// Thêm component cho tính năng "Expand All" / "Collapse All"
-const ExpandCollapseControl = styled.div`
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 16px;
+const ArticlesContainer = styled.div<{ view: ViewMode }>`
+ flex: 1;
+ background-color: ${({ view, theme }) =>
+    view === 'title-only' ? theme.colors.background.secondary : 'transparent'};
+ border-radius: ${({ view, theme }) =>
+    view === 'title-only' ? theme.radii.lg : '0'};
+ overflow: hidden;
+ 
+ @media (prefers-color-scheme: dark) {
+   background-color: ${({ view, theme }) =>
+    view === 'title-only' ? theme.colors.gray[800] : 'transparent'};
+ }
 `;
+
+const GroupContainer = styled.div`
+ margin-bottom: 32px;
+`;
+
+const GroupHeader = styled.div`
+ display: flex;
+ align-items: center;
+ padding: 16px;
+ margin-bottom: ${({ theme }) => theme.spacing.md};
+ background-color: ${({ theme }) => theme.colors.background.secondary};
+ border-radius: ${({ theme }) => theme.radii.lg};
+ 
+ @media (prefers-color-scheme: dark) {
+   background-color: ${({ theme }) => theme.colors.gray[800]};
+ }
+`;
+
+const GroupIcon = styled.div`
+ width: 36px;
+ height: 36px;
+ border-radius: ${({ theme }) => theme.radii.md};
+ background-color: ${({ theme }) => theme.colors.primary.light};
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ margin-right: 12px;
+ 
+ i {
+   color: ${({ theme }) => theme.colors.primary.main};
+   font-size: 18px;
+ }
+`;
+
+const GroupTitle = styled.h2`
+ font-size: ${({ theme }) => theme.typography.fontSize.xl};
+ font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+ color: ${({ theme }) => theme.colors.text.primary};
+ margin: 0;
+ flex: 1;
+`;
+
+const ArticleCount = styled.span`
+ font-size: ${({ theme }) => theme.typography.fontSize.sm};
+ color: ${({ theme }) => theme.colors.text.secondary};
+ background-color: ${({ theme }) => theme.colors.gray[100]};
+ padding: 4px 8px;
+ border-radius: 12px;
+ margin-left: 8px;
+ 
+ @media (prefers-color-scheme: dark) {
+   background-color: ${({ theme }) => theme.colors.gray[700]};
+ }
+`;
+
+// Helper function to get domain from URL
+const getDomain = (url: string): string => {
+    try {
+        const domain = new URL(url).hostname;
+        return domain.startsWith('www.') ? domain.substring(4) : domain;
+    } catch (error) {
+        return url;
+    }
+};
 
 export const ArticlesPage: React.FC = () => {
-    // Thay đổi state để lưu trữ nhóm articles thay vì danh sách articles phẳng
+    // State
     const [articleGroups, setArticleGroups] = useState<ArticleGroup[]>([]);
     const [filteredArticleGroups, setFilteredArticleGroups] = useState<ArticleGroup[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -93,12 +229,15 @@ export const ArticlesPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
+    const [viewMode, setViewMode] = useLocalStorage<ViewMode>('article-view-mode', 'magazine');
+    const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
 
-    // State mới
-    const [allExpanded, setAllExpanded] = useState(false);
-
+    // Hooks
     const debouncedSearch = useDebounce(searchQuery, 300);
+    const { boards, addArticleToBoard } = useBoard();
+    const { showToast } = useToast();
 
+    // Fetch articles
     useEffect(() => {
         fetchArticles();
     }, []);
@@ -118,6 +257,7 @@ export const ArticlesPage: React.FC = () => {
         }
     };
 
+    // Filter articles based on search query
     useEffect(() => {
         if (debouncedSearch.trim() === '') {
             setFilteredArticleGroups(articleGroups);
@@ -125,26 +265,43 @@ export const ArticlesPage: React.FC = () => {
         }
 
         const lowerCaseQuery = debouncedSearch.toLowerCase();
-        // Lọc theo nhóm và articles trong nhóm
         const filtered = articleGroups.map(group => {
             const filteredArticles = group.articles.filter(
                 article =>
                     article.title?.toLowerCase().includes(lowerCaseQuery) ||
                     article.content?.toLowerCase().includes(lowerCaseQuery) ||
-                    article.source?.toLowerCase().includes(lowerCaseQuery) ||
+                    article.source?.toString().toLowerCase().includes(lowerCaseQuery) ||
                     article.author?.toLowerCase().includes(lowerCaseQuery)
             );
 
-            // Trả về nhóm mới với article đã lọc
             return {
                 ...group,
                 articles: filteredArticles
             };
-        }).filter(group => group.articles.length > 0); // Chỉ giữ các nhóm có article
+        }).filter(group => group.articles.length > 0);
 
         setFilteredArticleGroups(filtered);
     }, [debouncedSearch, articleGroups]);
 
+    // Sort articles
+    useEffect(() => {
+        const sortedGroups = filteredArticleGroups.map(group => {
+            const sortedArticles = [...group.articles].sort((a, b) => {
+                const dateA = new Date(a.publish_date).getTime();
+                const dateB = new Date(b.publish_date).getTime();
+                return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+            });
+
+            return {
+                ...group,
+                articles: sortedArticles
+            };
+        });
+
+        setFilteredArticleGroups(sortedGroups);
+    }, [sortOrder]);
+
+    // Handlers
     const handleArticleClick = (article: Article) => {
         setSelectedArticle(article);
         setIsDetailOpen(true);
@@ -158,7 +315,28 @@ export const ArticlesPage: React.FC = () => {
         }, 300);
     };
 
-    // Hàm mới để scroll đến một nguồn cụ thể
+    const handleSaveArticle = async (article: Article) => {
+        if (boards.length === 0) {
+            showToast('warning', 'No Boards Available', 'Create a board first to save articles');
+            return;
+        }
+
+        try {
+            if (boards.length === 1) {
+                // If there's only one board, save directly to it
+                await addArticleToBoard(boards[0].id, { article_id: article.id });
+                showToast('success', 'Article Saved', `Article saved to ${boards[0].name}`);
+            } else {
+                // Otherwise, open article detail with save dialog
+                setSelectedArticle(article);
+                setIsDetailOpen(true);
+            }
+        } catch (error) {
+            showToast('error', 'Error', 'Failed to save article');
+        }
+    };
+
+    // Scroll to source
     const scrollToSource = (sourceId: number) => {
         const elementId = `source-${sourceId}`;
         const element = document.getElementById(elementId);
@@ -167,15 +345,12 @@ export const ArticlesPage: React.FC = () => {
         }
     };
 
-    // Hàm xử lý expand/collapse tất cả
-    const toggleAllExpanded = () => {
-        setAllExpanded(!allExpanded);
-    };
-
+    // Loading state
     if (isLoading) {
         return <LoadingScreen />;
     }
 
+    // Error state
     if (error) {
         return (
             <EmptyState>
@@ -188,11 +363,15 @@ export const ArticlesPage: React.FC = () => {
         );
     }
 
-    // Kiểm tra xem có bất kỳ nhóm nào có ít nhất một bài viết không
+    // Check if we have any articles
     const hasArticles = filteredArticleGroups.some(group => group.articles.length > 0);
 
+    // Selected article for Article view mode
+    const firstArticle = hasArticles ? filteredArticleGroups[0].articles[0] : null;
+
+    // Render
     return (
-        <>
+        <PageContainer>
             <PageHeader>
                 <PageTitle>
                     <i className="fas fa-home" />
@@ -216,44 +395,84 @@ export const ArticlesPage: React.FC = () => {
                 </Actions>
             </PageHeader>
 
-            {/* Thêm thanh điều hướng nguồn */}
             {hasArticles && (
-                <SourceNavigator
-                    groups={filteredArticleGroups}
-                    onSourceClick={scrollToSource}
-                />
-            )}
-
-            {/* Thêm điều khiển expand/collapse tất cả */}
-            {hasArticles && filteredArticleGroups.length > 1 && (
-                <ExpandCollapseControl>
-                    <Button
-                        variant="ghost"
-                        onClick={toggleAllExpanded}
-                        leftIcon={allExpanded ? "compress-alt" : "expand-alt"}
-                    >
-                        {allExpanded ? "Collapse All" : "Expand All"}
-                    </Button>
-                </ExpandCollapseControl>
-            )}
-
-            {hasArticles ? (
-                // Hiển thị các nhóm articles
                 <>
-                    {filteredArticleGroups.map((group) => (
-                        // Chỉ hiển thị nhóm nếu có ít nhất một bài viết
-                        group.articles.length > 0 && (
-                            <ArticleGroupSection
-                                key={`source-${group.source.id}`}
-                                id={`source-${group.source.id}`}
-                                group={group}
-                                onArticleClick={handleArticleClick}
-                                isInitiallyExpanded={allExpanded || filteredArticleGroups.length === 1}
-                            />
-                        )
-                    ))}
+                    <FilterBar>
+                        <ViewSelector activeView={viewMode} onChange={setViewMode} />
+
+                        <FilterActions>
+                            <SortSelect
+                                value={sortOrder}
+                                onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
+                            >
+                                <option value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                            </SortSelect>
+                        </FilterActions>
+                    </FilterBar>
+
+                    {/* Source Navigator for quick navigation */}
+                    {filteredArticleGroups.length > 1 && (
+                        <SourceNavigator
+                            groups={filteredArticleGroups}
+                            onSourceClick={scrollToSource}
+                        />
+                    )}
+
+                    {/* Article View Mode */}
+                    {viewMode === 'article' && firstArticle && (
+                        <ArticleView
+                            article={firstArticle}
+                            onSaveArticle={handleSaveArticle}
+                        />
+                    )}
+
+                    {/* Other View Modes */}
+                    {viewMode !== 'article' && (
+                        <ArticlesContainer view={viewMode}>
+                            {filteredArticleGroups.map(group => (
+                                <GroupContainer key={`source-${group.source.id}`} id={`source-${group.source.id}`}>
+                                    <GroupHeader>
+                                        <GroupIcon>
+                                            <i className="fas fa-rss" />
+                                        </GroupIcon>
+                                        <GroupTitle>{getDomain(group.source.url)}</GroupTitle>
+                                        <ArticleCount>{group.articles.length}</ArticleCount>
+                                    </GroupHeader>
+
+                                    {/* Render appropriate view based on viewMode */}
+                                    {viewMode === 'title-only' && (
+                                        <TitleOnlyView
+                                            articles={group.articles}
+                                            onArticleClick={handleArticleClick}
+                                            onSaveArticle={handleSaveArticle}
+                                        />
+                                    )}
+
+                                    {viewMode === 'magazine' && (
+                                        <MagazineView
+                                            articles={group.articles}
+                                            onArticleClick={handleArticleClick}
+                                            onSaveArticle={handleSaveArticle}
+                                        />
+                                    )}
+
+                                    {viewMode === 'cards' && (
+                                        <CardsView
+                                            articles={group.articles}
+                                            onArticleClick={handleArticleClick}
+                                            onSaveArticle={handleSaveArticle}
+                                        />
+                                    )}
+                                </GroupContainer>
+                            ))}
+                        </ArticlesContainer>
+                    )}
                 </>
-            ) : (
+            )}
+
+            {/* Empty state */}
+            {!hasArticles && (
                 <EmptyState>
                     <EmptyStateIcon>
                         <i className="fas fa-newspaper" />
@@ -271,11 +490,12 @@ export const ArticlesPage: React.FC = () => {
                 </EmptyState>
             )}
 
-            <ArticleDetail
+            {/* Article Detail */}
+            <EnhancedArticleDetail
                 article={selectedArticle}
                 isOpen={isDetailOpen}
                 onClose={handleCloseDetail}
             />
-        </>
+        </PageContainer>
     );
 };
