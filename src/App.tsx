@@ -12,6 +12,7 @@ import { ArticlesPage } from './pages/ArticlesPage';
 import { SourcesPage } from './pages/SourcesPage';
 import { BoardsPage } from './pages/BoardsPage'; // Thêm dòng này
 import { BoardDetailPage } from './pages/BoardDetailPage'; // Thêm dòng này
+import { FolderDetailPage } from './pages/FolderDetailPage'; // Import FolderDetailPage
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { ToastContainer } from './components/common/Toast';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
@@ -60,6 +61,18 @@ const App: React.FC = () => {
                                                 <ProtectedRoute>
                                                     <MainLayout headerTitle="Sources">
                                                         <SourcesPage />
+                                                    </MainLayout>
+                                                </ProtectedRoute>
+                                            }
+                                        />
+
+                                        {/* Folder Detail Route */}
+                                        <Route
+                                            path="/folder/:folderId"
+                                            element={
+                                                <ProtectedRoute>
+                                                    <MainLayout headerTitle="Folder Articles">
+                                                        <FolderDetailPage />
                                                     </MainLayout>
                                                 </ProtectedRoute>
                                             }

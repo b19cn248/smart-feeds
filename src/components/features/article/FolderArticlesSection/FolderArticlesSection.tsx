@@ -1,6 +1,7 @@
 // src/components/features/article/FolderArticlesSection/FolderArticlesSection.tsx
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 import { FolderWithArticles, FolderArticle, FolderDetailWithArticles } from '../../../../types/folderArticles.types';
 import { ArticleCard } from '../ArticleCard';
 import { Button } from '../../../common/Button';
@@ -98,35 +99,22 @@ const ArticlesGrid = styled.div`
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 24px;
     padding: 20px;
-    
+
     @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
         grid-template-columns: 1fr;
     }
 `;
 
-// Cập nhật style cho ShowMoreButton
-const ShowMoreButton = styled.div`
+const HeaderActions = styled.div`
     display: flex;
-    justify-content: center;
-    padding: 16px;
-    border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
-    width: 100%; // Đảm bảo chiều rộng đầy đủ
+    align-items: center;
+    gap: 10px;
+    margin-right: 10px;
+`;
 
-    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
-        padding: 12px 8px; // Giảm padding trên màn hình nhỏ
-    }
-
-    @media (prefers-color-scheme: dark) {
-        border-top-color: ${({ theme }) => theme.colors.gray[700]};
-    }
-
-    /* Đảm bảo Button cũng responsive */
-    button {
-        @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
-            width: 100%; // Sử dụng chiều rộng đầy đủ trên màn hình nhỏ
-            font-size: ${({ theme }) => theme.typography.fontSize.sm}; // Font size nhỏ hơn
-        }
-    }
+const ViewAllButton = styled(Button)`
+    padding: 6px 12px;
+    font-size: ${({ theme }) => theme.typography.fontSize.sm};
 `;
 
 const LoadingIndicator = styled.div`
@@ -183,12 +171,10 @@ export const FolderArticlesSection: React.FC<FolderArticlesSectionProps> = ({
     const [isExpanded, setIsExpanded] = useState(isInitiallyExpanded);
     const [articles, setArticles] = useState<FolderArticle[]>(folder.articles);
     const [isLoading, setIsLoading] = useState(false);
-    const [currentPage, setCurrentPage] = useState(0);
-    const [totalArticles, setTotalArticles] = useState(folder.articles.length);
-    const [hasMore, setHasMore] = useState(true);
     const [containerHeight, setContainerHeight] = useState('1000px');
     const containerRef = React.useRef<HTMLDivElement>(null);
     const { showToast } = useToast();
+    const navigate = useNavigate();
 
     // Update height when expanded/collapsed
     useEffect(() => {
@@ -197,37 +183,26 @@ export const FolderArticlesSection: React.FC<FolderArticlesSectionProps> = ({
         }
     }, [isExpanded, articles]);
 
-    const toggleExpand = () => {
+    const toggleExpand = (e: React.MouseEvent) => {
+        if ((e.target as HTMLElement).closest('.view-all-button')) {
+            return;
+        }
         setIsExpanded(!isExpanded);
     };
 
-    // Phần loadMoreArticles cần được cập nhật như sau
-    const loadMoreArticles = async () => {
-        if (isLoading || !hasMore) return;
+    // Cập nhật hàm handleViewAllClick trong file FolderArticlesSection.tsx
+    const handleViewAllClick = (e: React.MouseEvent) => {
+        e.stopPropagation(); // Ngăn không cho sự kiện lan tỏa đến toggleExpand
 
-        setIsLoading(true);
-        try {
-            const nextPage = currentPage + 1;
-            // Cập nhật gọi API theo đúng tài liệu
-            const response = await folderArticlesService.getFolderDetailWithArticles(
-                folder.id,
-                nextPage,  // page
-                9,         // size
-                'pubDate,DESC' // sort
-            );
-            const folderDetail: FolderDetailWithArticles = response.data;
+        // Sử dụng state trong navigate để truyền chế độ xem
+        navigate(`/folder/${folder.id}`, {
+            state: { viewMode: 'cards' }
+        });
+    };
 
-            // Append new articles to existing ones
-            setArticles(prevArticles => [...prevArticles, ...folderDetail.articles.content]);
-            setCurrentPage(nextPage);
-            setTotalArticles(folderDetail.articles.total_elements);
-            setHasMore(!folderDetail.articles.last);
-        } catch (error) {
-            console.error('Error loading more articles:', error);
-            showToast('error', 'Error', 'Failed to load more articles');
-        } finally {
-            setIsLoading(false);
-        }
+    // Hàm xử lý ref để khắc phục lỗi TypeScript
+    const setContainerRef = (element: HTMLDivElement | null) => {
+        containerRef.current = element;
     };
 
     const color = getColorFromTheme(folder.theme);
@@ -240,17 +215,27 @@ export const FolderArticlesSection: React.FC<FolderArticlesSectionProps> = ({
                         <i className="fas fa-folder" />
                     </FolderIcon>
                     <SectionTitle>{folder.name}</SectionTitle>
-                    <ArticleCount>{totalArticles}</ArticleCount>
+                    <ArticleCount>{folder.articles.length}</ArticleCount>
                 </TitleContainer>
-                <ToggleIcon isExpanded={isExpanded}>
-                    <i className="fas fa-chevron-down" />
-                </ToggleIcon>
+                <HeaderActions>
+                    <ViewAllButton
+                        variant="secondary"
+                        onClick={handleViewAllClick}
+                        className="view-all-button"
+                        leftIcon="list"
+                    >
+                        Xem tất cả
+                    </ViewAllButton>
+                    <ToggleIcon isExpanded={isExpanded}>
+                        <i className="fas fa-chevron-down" />
+                    </ToggleIcon>
+                </HeaderActions>
             </SectionHeader>
 
             <ArticlesContainer
                 isExpanded={isExpanded}
                 maxHeight={containerHeight}
-                ref={containerRef}
+                ref={setContainerRef}
             >
                 <ArticlesGrid>
                     {articles.map((article) => (
@@ -268,20 +253,6 @@ export const FolderArticlesSection: React.FC<FolderArticlesSectionProps> = ({
                         <i className="fas fa-circle-notch" />
                         Loading more articles...
                     </LoadingIndicator>
-                )}
-
-                {!isLoading && hasMore && isExpanded && (
-                    <ShowMoreButton>
-                        <Button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                loadMoreArticles();
-                            }}
-                            variant="secondary"
-                        >
-                            Show More ({totalArticles - articles.length} remaining)
-                        </Button>
-                    </ShowMoreButton>
                 )}
             </ArticlesContainer>
         </SectionContainer>

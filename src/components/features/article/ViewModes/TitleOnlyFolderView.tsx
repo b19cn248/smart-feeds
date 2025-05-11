@@ -1,8 +1,10 @@
 // src/components/features/article/ViewModes/TitleOnlyFolderView.tsx
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FolderWithArticles, FolderArticle } from '../../../../types/folderArticles.types';
 import { formatDate } from '../../../../utils';
+import { Button } from '../../../common/Button';
 
 const SectionContainer = styled.div`
     margin-bottom: 32px;
@@ -75,6 +77,18 @@ const ArticleCount = styled.span`
     @media (prefers-color-scheme: dark) {
         background-color: ${({ theme }) => theme.colors.gray[800]};
     }
+`;
+
+const HeaderActions = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: 10px;
+`;
+
+const ViewAllButton = styled(Button)`
+    padding: 6px 12px;
+    font-size: ${({ theme }) => theme.typography.fontSize.sm};
 `;
 
 const ToggleIcon = styled.div<{ isExpanded: boolean }>`
@@ -232,6 +246,7 @@ export const TitleOnlyFolderView: React.FC<TitleOnlyFolderViewProps> = ({
     const [expandedState, setExpandedState] = useState<Record<number, boolean>>({});
     const containerRefs = useRef<Record<number, HTMLDivElement | null>>({});
     const [containerHeights, setContainerHeights] = useState<Record<number, string>>({});
+    const navigate = useNavigate();
 
     // Khởi tạo trạng thái mặc định - mở rộng 3 folder đầu tiên, các folder còn lại thu gọn
     useEffect(() => {
@@ -263,6 +278,18 @@ export const TitleOnlyFolderView: React.FC<TitleOnlyFolderViewProps> = ({
         }));
     };
 
+    // src/components/features/article/ViewModes/TitleOnlyFolderView.tsx
+// Sửa đổi hàm handleViewAllClick
+
+    const handleViewAllClick = (e: React.MouseEvent, folderId: number) => {
+        e.stopPropagation(); // Ngăn không cho sự kiện lan tỏa đến toggleExpand
+
+        // Sử dụng state trong navigate để truyền chế độ xem
+        navigate(`/folder/${folderId}`, {
+            state: { viewMode: 'title-only' }
+        });
+    };
+
     // Hàm xử lý ref để khắc phục lỗi TypeScript
     const setContainerRef = (element: HTMLDivElement | null, folderId: number) => {
         containerRefs.current[folderId] = element;
@@ -280,9 +307,19 @@ export const TitleOnlyFolderView: React.FC<TitleOnlyFolderViewProps> = ({
                             <SectionTitle>{folder.name}</SectionTitle>
                             <ArticleCount>{folder.articles.length}</ArticleCount>
                         </TitleContainer>
-                        <ToggleIcon isExpanded={!!expandedState[folder.id]}>
-                            <i className="fas fa-chevron-down" />
-                        </ToggleIcon>
+                        <HeaderActions>
+                            <ViewAllButton
+                                variant="secondary"
+                                onClick={(e) => handleViewAllClick(e, folder.id)}
+                                className="view-all-button"
+                                leftIcon="list"
+                            >
+                                Xem tất cả
+                            </ViewAllButton>
+                            <ToggleIcon isExpanded={!!expandedState[folder.id]}>
+                                <i className="fas fa-chevron-down" />
+                            </ToggleIcon>
+                        </HeaderActions>
                     </SectionHeader>
 
                     <ArticlesContainer
