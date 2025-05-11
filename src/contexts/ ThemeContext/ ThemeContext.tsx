@@ -21,18 +21,34 @@ export const useThemeContext = () => {
     return context;
 };
 
+// Hàm deep merge để kết hợp theme tốt hơn
+const deepMerge = (target: any, source: any) => {
+    const result = { ...target };
+
+    for (const key in source) {
+        if (source[key] instanceof Object && key in target) {
+            result[key] = deepMerge(target[key], source[key]);
+        } else {
+            result[key] = source[key];
+        }
+    }
+
+    return result;
+};
+
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     // Sử dụng hook useTheme đã có sẵn
     const { theme, resolvedTheme, setTheme } = useTheme();
 
-    // Thêm hàm toggleTheme để dễ dàng chuyển đổi theme
+    // Hàm toggleTheme để dễ dàng chuyển đổi theme
     const toggleTheme = () => {
         setTheme(resolvedTheme === 'light' ? 'dark' : 'light');
     };
 
     // Kết hợp lightTheme và darkTheme dựa vào resolvedTheme
+    // Sử dụng deepMerge thay vì spread operator đơn giản
     const mergedTheme = resolvedTheme === 'dark'
-        ? { ...lightTheme, ...darkTheme }
+        ? deepMerge(lightTheme, darkTheme)
         : lightTheme;
 
     return (

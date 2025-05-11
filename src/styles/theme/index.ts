@@ -31,7 +31,8 @@ export const theme = {
         text: {
             primary: '#0F172A',
             secondary: '#475569',
-        }
+        },
+        logo: '#0F172A', // Thêm màu cho logo
     },
     typography: {
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -107,22 +108,26 @@ export const theme = {
 
 export type Theme = typeof theme;
 
-// Dark theme overrides với UI/UX được cải thiện
+// src/styles/theme/index.ts
+// Chỉ thay đổi phần darkTheme, giữ nguyên phần còn lại
+
 export const darkTheme: Partial<Theme> = {
     colors: {
-        ...theme.colors,
         primary: {
             main: '#3B82F6', // Màu xanh sáng hơn cho khả năng hiển thị tốt hơn trong dark mode
             light: 'rgba(59, 130, 246, 0.15)',
             hover: '#2563EB',
         },
+        // Thêm thuộc tính thiếu
+        secondary: '#FF9F43', // Màu cam nhạt hơn để phù hợp với dark mode
+        tertiary: '#A29BFE', // Màu tím nhạt hơn để phù hợp với dark mode
         background: {
             primary: '#0F172A',
             secondary: '#1E293B',
         },
         text: {
             primary: '#F8FAFC',
-            secondary: '#94A3B8', // Giảm độ tương phản cho text phụ để dễ đọc hơn
+            secondary: '#94A3B8',
         },
         gray: {
             50: '#0F172A',
@@ -136,11 +141,12 @@ export const darkTheme: Partial<Theme> = {
             800: '#F1F5F9',
             900: '#F8FAFC',
         },
-        // Điều chỉnh độ sáng cho các màu chức năng để hiển thị tốt hơn trong dark mode
+        // Điều chỉnh các màu chức năng
         success: '#10B981',
-        error: '#EF4444',
-        warning: '#F59E0B', // Hơi tối hơn để hiển thị tốt hơn trên nền tối
-        info: '#3B82F6',
+        error: '#F87171',
+        warning: '#F59E0B',
+        info: '#60A5FA',
+        logo: '#F8FAFC', // Thêm màu logo trong dark mode để dễ đọc
     },
     shadows: {
         sm: '0 1px 2px rgba(0, 0, 0, 0.4)',
@@ -148,40 +154,4 @@ export const darkTheme: Partial<Theme> = {
         lg: '0 10px 15px rgba(0, 0, 0, 0.6), 0 4px 6px rgba(0, 0, 0, 0.5)',
         xl: '0 20px 25px rgba(0, 0, 0, 0.7), 0 10px 10px rgba(0, 0, 0, 0.6)',
     },
-};
-
-// CSS in JS utility for theme
-export const getThemeColor = (path: string) => (props: { theme: Theme }) => {
-    const keys = path.split('.');
-    let result: any = props.theme.colors;
-
-    for (const key of keys) {
-        result = result[key];
-    }
-
-    return result;
-};
-
-// Media query helper
-export const media = {
-    sm: (styles: string) => `
-    @media (min-width: ${theme.breakpoints.sm}) {
-      ${styles}
-    }
-  `,
-    md: (styles: string) => `
-    @media (min-width: ${theme.breakpoints.md}) {
-      ${styles}
-    }
-  `,
-    lg: (styles: string) => `
-    @media (min-width: ${theme.breakpoints.lg}) {
-      ${styles}
-    }
-  `,
-    xl: (styles: string) => `
-    @media (min-width: ${theme.breakpoints.xl}) {
-      ${styles}
-    }
-  `,
 };

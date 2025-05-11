@@ -19,10 +19,10 @@ export const NAV_SECTIONS = [
     {
         title: 'Main',
         items: [
-            {id: 'home', icon: 'home', label: 'Home', path: '/', isActive: true},
+            {id: 'home', icon: 'home', label: 'Home', path: '/'},
             {id: 'discover', icon: 'compass', label: 'Discover', path: '/discover'},
-            {id: 'feeds', icon: 'folder', label: 'My Feeds', path: '/feeds', isActive: false},
-            {id: 'boards', icon: 'clipboard', label: 'Boards', path: '/boards'}, // Thêm dòng này
+            {id: 'feeds', icon: 'folder', label: 'My Feeds', path: '/feeds'},
+            {id: 'boards', icon: 'clipboard', label: 'Boards', path: '/boards'},
             {id: 'sources', icon: 'rss', label: 'Sources', path: '/sources'},
             {id: 'saved', icon: 'bookmark', label: 'Saved', path: '/saved'},
         ],

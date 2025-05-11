@@ -23,19 +23,13 @@ const SidebarWrapper = styled.div<{ isActive: boolean }>`
         transform: translateX(${({ isActive }) => isActive ? '0' : '-100%'});
         box-shadow: ${({ theme }) => theme.shadows.xl};
     }
-
-    @media (prefers-color-scheme: dark) {
-        ${({ theme }) => css`
-            border-right-color: ${theme.colors.gray[700]};
-        `}
-    }
 `;
 
 const Logo = styled.div`
     font-size: 22px;
     font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
     margin-bottom: 32px;
-    color: ${({ theme }) => theme.colors.text.primary};
+    color: ${({ theme }) => theme.colors.logo};
     display: flex;
     align-items: center;
     gap: 12px;
