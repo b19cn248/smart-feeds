@@ -4,4 +4,5 @@ export * from './toast.types';
 export * from './common.types';
 export * from './article.types';
 export * from './source.types';
-export * from './board.types'; // Thêm dòng này
+export * from './board.types';
+export * from './folderArticles.types'; // Thêm dòng này

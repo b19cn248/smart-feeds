@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { Article } from '../../../../types';
+import { FolderArticle } from '../../../../types/folderArticles.types';
 import { formatDate } from '../../../../utils';
 import { Card } from '../../../common/Card';
 
@@ -88,7 +89,7 @@ const ArticleSource = styled.div`
 const ArticleDate = styled.div``;
 
 interface ArticleCardProps {
-    article: Article;
+    article: Article | FolderArticle;
     onClick?: () => void;
     lazyLoad?: boolean;
 }
@@ -147,8 +148,12 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
         }
     };
 
-    // Extract text từ HTML để hiển thị excerpt
-    const excerptText = extractTextFromHtml(article.content);
+    // Sử dụng content_snippet nếu có, nếu không thì extract từ content
+    const content = 'content_snippet' in article && article.content_snippet
+        ? article.content_snippet
+        : article.content;
+
+    const excerptText = extractTextFromHtml(content);
 
     // Xác định nguồn bài viết
     const getSourceText = () => {
