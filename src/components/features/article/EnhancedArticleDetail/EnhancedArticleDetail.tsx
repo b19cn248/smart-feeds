@@ -1,12 +1,12 @@
 // src/components/features/article/EnhancedArticleDetail/EnhancedArticleDetail.tsx
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import DOMPurify from 'dompurify';
 import { Article } from '../../../../types';
 import { FolderArticle } from '../../../../types/folderArticles.types';
 import { formatDate } from '../../../../utils';
 import { useBoard } from '../../../../contexts/BoardContext';
 import { useToast } from '../../../../contexts/ToastContext';
+import { ArticleContentRenderer } from '../ArticleContentRenderer';
 
 const DEFAULT_ARTICLE_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzY0NzQ4YiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlIEF2YWlsYWJsZTwvdGV4dD48L3N2Zz4=';
 
@@ -150,78 +150,6 @@ const ArticleImage = styled.img`
     height: auto;
     border-radius: ${({ theme }) => theme.radii.lg};
     margin-bottom: 24px;
-`;
-
-const ArticleBody = styled.div`
-    color: ${({ theme }) => theme.colors.text.primary};
-    font-size: ${({ theme }) => theme.typography.fontSize.lg};
-    line-height: 1.7;
-
-    p {
-        margin-bottom: 16px;
-    }
-
-    img {
-        max-width: 100%;
-        height: auto;
-        display: block;
-        margin: 16px 0;
-        border-radius: ${({ theme }) => theme.radii.md};
-    }
-
-    a {
-        color: ${({ theme }) => theme.colors.primary.main};
-        text-decoration: none;
-
-        &:hover {
-            text-decoration: underline;
-        }
-    }
-
-    h1, h2, h3, h4, h5, h6 {
-        margin: 24px 0 16px 0;
-        font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
-    }
-
-    ul, ol {
-        margin: 16px 0;
-        padding-left: 24px;
-    }
-
-    li {
-        margin-bottom: 8px;
-    }
-
-    blockquote {
-        border-left: 4px solid ${({ theme }) => theme.colors.primary.main};
-        margin: 16px 0;
-        padding: 16px 0 16px 16px;
-        font-style: italic;
-        color: ${({ theme }) => theme.colors.text.secondary};
-    }
-
-    pre {
-        background-color: ${({ theme }) => theme.colors.gray[100]};
-        padding: 16px;
-        border-radius: ${({ theme }) => theme.radii.md};
-        overflow-x: auto;
-        margin: 16px 0;
-
-        @media (prefers-color-scheme: dark) {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-        }
-    }
-
-    code {
-        background-color: ${({ theme }) => theme.colors.gray[100]};
-        padding: 2px 4px;
-        border-radius: ${({ theme }) => theme.radii.sm};
-        font-family: monospace;
-
-        @media (prefers-color-scheme: dark) {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-        }
-    }
 `;
 
 const ReadMoreLink = styled.a`
@@ -397,91 +325,6 @@ const BoardDescription = styled.div`
     color: ${({ theme }) => theme.colors.text.secondary};
 `;
 
-// Hàm chuẩn hóa URL để so sánh
-const normalizeUrl = (url: string): string => {
-    if (!url) return '';
-
-    // Xóa protocol (http, https)
-    let normalized = url.replace(/^https?:\/\//, '');
-
-    // Xóa www. nếu có
-    normalized = normalized.replace(/^www\./, '');
-
-    // Xóa query parameters (tất cả sau dấu ?)
-    normalized = normalized.split('?')[0];
-
-    // Xóa fragment (tất cả sau dấu #)
-    normalized = normalized.split('#')[0];
-
-    // Xóa trailing slash nếu có
-    normalized = normalized.replace(/\/$/, '');
-
-    return normalized.toLowerCase();
-};
-
-// Hàm so sánh URLs với độ chính xác cao hơn
-const areUrlsSimilar = (url1: string, url2: string): boolean => {
-    // So sánh trực tiếp sau khi chuẩn hóa
-    if (url1 === url2) return true;
-
-    // Kiểm tra nếu url1 chứa url2 hoặc ngược lại (cho trường hợp URLs có thêm path)
-    if (url1.includes(url2) || url2.includes(url1)) return true;
-
-    // Kiểm tra phần tên file
-    const filename1 = url1.split('/').pop();
-    const filename2 = url2.split('/').pop();
-    if (filename1 && filename2 && filename1 === filename2) return true;
-
-    return false;
-};
-
-// Hàm xử lý HTML để loại bỏ ảnh trùng lặp
-const processHtmlContent = (htmlContent: string, featuredImage?: string): string => {
-    if (!featuredImage) return htmlContent;
-
-    try {
-        // Tạo DOM parser để xử lý HTML
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlContent, 'text/html');
-
-        // Lấy tất cả các ảnh trong nội dung
-        const images = Array.from(doc.querySelectorAll('img'));
-
-        // Chuẩn hóa URL của featured image để so sánh
-        const normalizedFeaturedImage = normalizeUrl(featuredImage);
-
-        // Kiểm tra từng ảnh và xóa nếu trùng lặp
-        let foundDuplicate = false;
-        for (const img of images) {
-            const imgSrc = img.getAttribute('src');
-            if (!imgSrc) continue;
-
-            // Chuẩn hóa URL của ảnh trong nội dung
-            const normalizedImgSrc = normalizeUrl(imgSrc);
-
-            // So sánh với featured image
-            if (areUrlsSimilar(normalizedFeaturedImage, normalizedImgSrc)) {
-                // Xóa ảnh trùng lặp
-                if (img.parentNode) {
-                    img.parentNode.removeChild(img);
-                    foundDuplicate = true;
-                    break; // Chỉ xóa ảnh trùng lặp đầu tiên
-                }
-            }
-        }
-
-        // Nếu tìm thấy ảnh trùng lặp
-        if (foundDuplicate) {
-            return doc.body.innerHTML;
-        }
-
-        return htmlContent;
-    } catch (error) {
-        console.error('Error processing HTML content:', error);
-        return htmlContent;
-    }
-};
-
 // Props type supports both regular Article and FolderArticle
 interface EnhancedArticleDetailProps {
     article: (Article | FolderArticle | null);
@@ -498,46 +341,67 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
     const { showToast } = useToast();
     const [showShareModal, setShowShareModal] = useState(false);
     const [showSaveModal, setShowSaveModal] = useState(false);
-    const [processedContent, setProcessedContent] = useState<string>('');
     const [shouldShowFeaturedImage, setShouldShowFeaturedImage] = useState(true);
 
-    // Xử lý khi article hoặc isOpen thay đổi
+    // Kiểm tra khi article hoặc isOpen thay đổi
     useEffect(() => {
         if (!article || !isOpen) return;
 
-        // Lấy nội dung bài viết
-        const content = 'content_encoded' in article && article.content_encoded
-            ? article.content_encoded
-            : article.content;
-
-        // Xử lý nội dung để loại bỏ ảnh trùng lặp
+        // Kiểm tra xem nội dung HTML có chứa ảnh chính không
         if (article.image_url) {
-            const processed = processHtmlContent(content, article.image_url);
-            setProcessedContent(processed);
+            // Chuẩn hóa URL để so sánh
+            const normalizeUrl = (url: string) => {
+                if (!url) return '';
+                let normalized = url.replace(/^https?:\/\//, '');
+                normalized = normalized.replace(/^www\./, '');
+                normalized = normalized.split('?')[0];
+                normalized = normalized.split('#')[0];
+                normalized = normalized.replace(/\/$/, '');
+                return normalized.toLowerCase();
+            };
 
-            // Nếu nội dung thay đổi, tức là đã tìm và xóa ảnh trùng lặp
-            setShouldShowFeaturedImage(processed === content);
+            // So sánh URLs
+            const areUrlsSimilar = (url1: string, url2: string) => {
+                if (url1 === url2) return true;
+                if (url1.includes(url2) || url2.includes(url1)) return true;
+                const filename1 = url1.split('/').pop();
+                const filename2 = url2.split('/').pop();
+                if (filename1 && filename2 && filename1 === filename2) return true;
+                return false;
+            };
+
+            // Lấy nội dung và kiểm tra ảnh
+            const content = article.content_encoded || article.content;
+            if (content) {
+                try {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(content, 'text/html');
+                    const images = Array.from(doc.querySelectorAll('img'));
+
+                    const normalizedFeaturedImage = normalizeUrl(article.image_url);
+
+                    // Kiểm tra xem có ảnh nào trong nội dung giống với ảnh chính không
+                    const hasSimilarImage = images.some(img => {
+                        const imgSrc = img.getAttribute('src');
+                        if (!imgSrc) return false;
+                        return areUrlsSimilar(normalizedFeaturedImage, normalizeUrl(imgSrc));
+                    });
+
+                    // Nếu tìm thấy ảnh tương tự, không hiển thị ảnh chính
+                    setShouldShowFeaturedImage(!hasSimilarImage);
+                } catch (error) {
+                    console.error('Error processing article content:', error);
+                    setShouldShowFeaturedImage(true);
+                }
+            } else {
+                setShouldShowFeaturedImage(true);
+            }
         } else {
-            setProcessedContent(content);
-            setShouldShowFeaturedImage(true);
+            setShouldShowFeaturedImage(false);
         }
     }, [article, isOpen]);
 
     if (!article) return null;
-
-    // Sanitize HTML content to prevent XSS attacks
-    const sanitizedContent = DOMPurify.sanitize(processedContent || article.content, {
-        ALLOWED_TAGS: [
-            'p', 'br', 'b', 'i', 'em', 'strong', 'a',
-            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-            'ul', 'ol', 'li', 'blockquote', 'pre', 'code',
-            'div', 'span', 'img'
-        ],
-        ALLOWED_ATTR: [
-            'href', 'alt', 'title', 'class', 'id',
-            'src', 'width', 'height', 'target', 'rel'
-        ]
-    });
 
     const handleSaveToBoard = async (boardId: number) => {
         try {
@@ -635,7 +499,7 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
                         </MetaItem>
                     </ArticleMeta>
 
-                    {/* Hiển thị featured image chỉ khi không tìm thấy trùng lặp trong nội dung */}
+                    {/* Hiển thị featured image chỉ khi không có hình ảnh tương tự trong nội dung */}
                     {shouldShowFeaturedImage && article.image_url && (
                         <ArticleImage
                             src={article.image_url}
@@ -646,7 +510,11 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
                         />
                     )}
 
-                    <ArticleBody dangerouslySetInnerHTML={{ __html: sanitizedContent }} />
+                    {/* Sử dụng ArticleContentRenderer để hiển thị nội dung */}
+                    <ArticleContentRenderer
+                        article={article}
+                        className="article-content"
+                    />
 
                     <ReadMoreLink href={article.url} target="_blank" rel="noopener noreferrer">
                         Read full article on original site

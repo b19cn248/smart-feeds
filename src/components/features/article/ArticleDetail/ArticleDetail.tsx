@@ -1,11 +1,11 @@
 // src/components/features/article/ArticleDetail/ArticleDetail.tsx
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import DOMPurify from 'dompurify';
 import { Article } from '../../../../types';
 import { formatDate } from '../../../../utils';
 import { useBoard } from '../../../../contexts/BoardContext';
 import { useToast } from '../../../../contexts/ToastContext';
+import { ArticleContentRenderer } from '../ArticleContentRenderer';
 
 const DetailOverlay = styled.div<{ isOpen: boolean }>`
     position: fixed;
@@ -117,75 +117,12 @@ const ArticleDate = styled.div`
     }
 `;
 
-const ArticleBody = styled.div`
-    font-size: ${({ theme }) => theme.typography.fontSize.lg};
-    line-height: 1.7;
-    color: ${({ theme }) => theme.colors.text.primary};
-
-    p {
-        margin-bottom: 16px;
-    }
-
-    img {
-        max-width: 100%;
-        height: auto;
-        display: block;
-        margin: 16px 0;
-        border-radius: ${({ theme }) => theme.radii.md};
-    }
-
-    a {
-        color: ${({ theme }) => theme.colors.primary.main};
-        text-decoration: none;
-
-        &:hover {
-            text-decoration: underline;
-        }
-    }
-
-    h1, h2, h3, h4, h5, h6 {
-        margin: 24px 0 16px 0;
-        font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
-    }
-
-    ul, ol {
-        margin: 16px 0;
-        padding-left: 24px;
-    }
-
-    li {
-        margin-bottom: 8px;
-    }
-
-    blockquote {
-        border-left: 4px solid ${({ theme }) => theme.colors.gray[300]};
-        margin: 16px 0;
-        padding-left: 16px;
-        color: ${({ theme }) => theme.colors.text.secondary};
-    }
-
-    pre {
-        background-color: ${({ theme }) => theme.colors.gray[100]};
-        padding: 16px;
-        border-radius: ${({ theme }) => theme.radii.md};
-        overflow-x: auto;
-        margin: 16px 0;
-
-        @media (prefers-color-scheme: dark) {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-        }
-    }
-
-    code {
-        background-color: ${({ theme }) => theme.colors.gray[100]};
-        padding: 2px 4px;
-        border-radius: ${({ theme }) => theme.radii.sm};
-        font-family: monospace;
-
-        @media (prefers-color-scheme: dark) {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-        }
-    }
+const ArticleImage = styled.img`
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 16px auto;
+    border-radius: ${({ theme }) => theme.radii.md};
 `;
 
 const ActionButtons = styled.div`
@@ -290,14 +227,6 @@ const EmptyBoardsList = styled.div`
     font-size: ${({ theme }) => theme.typography.fontSize.sm};
 `;
 
-const ArticleImage = styled.img`
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 16px auto;
-    border-radius: ${({ theme }) => theme.radii.md};
-`;
-
 interface ArticleDetailProps {
     article: Article | null;
     isOpen: boolean;
@@ -332,55 +261,6 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
         }
     };
 
-    // Normalize URLs for comparison
-    const normalizeUrl = (url: string) => {
-        try {
-            const urlObj = new URL(url, window.location.origin);
-            return urlObj.pathname + urlObj.search;
-        } catch {
-            return url;
-        }
-    };
-
-    // Sanitize HTML content and handle image deduplication
-    const sanitizeHtml = (html: string) => {
-        let imageFound = false;
-
-        DOMPurify.addHook('beforeSanitizeElements', (node) => {
-            if (
-                node.nodeType === Node.ELEMENT_NODE &&
-                (node as Element).tagName === 'IMG' &&
-                article?.image_url
-            ) {
-                const imgElement = node as HTMLImageElement;
-                const src = imgElement.getAttribute('src');
-                if (src && normalizeUrl(src).includes(normalizeUrl(article.image_url))) {
-                    imageFound = true;
-                    return null; // Remove the image from content
-                }
-            }
-            return node;
-        });
-
-        const sanitized = DOMPurify.sanitize(html, {
-            ALLOWED_TAGS: [
-                'p', 'br', 'b', 'i', 'em', 'strong', 'a',
-                'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-                'ul', 'ol', 'li', 'blockquote', 'pre', 'code',
-                'div', 'span', 'img'
-            ],
-            ALLOWED_ATTR: [
-                'href', 'alt', 'title', 'class', 'id',
-                'width', 'height', 'target', 'rel', 'src'
-            ],
-            ALLOW_DATA_ATTR: false
-        });
-
-        DOMPurify.removeAllHooks();
-        setHasImageInContent(imageFound);
-        return sanitized;
-    };
-
     // Xác định nguồn bài viết
     const getSourceText = () => {
         if (!article.source) return 'Unknown source';
@@ -394,8 +274,8 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
     // Sử dụng image_url trực tiếp
     const featuredImage = article.image_url;
 
-    // Process content
-    const sanitizedContent = sanitizeHtml(article.content);
+    // Kiểm tra xem có nên hiển thị ảnh chính không
+    const shouldShowFeaturedImage = featuredImage && !hasImageInContent;
 
     return (
         <>
@@ -447,8 +327,8 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
                 <DetailContent>
                     <ArticleTitle>{article.title}</ArticleTitle>
 
-                    {/* Chỉ hiển thị featured image nếu không có trong nội dung */}
-                    {featuredImage && !hasImageInContent && (
+                    {/* Hiển thị featured image nếu có và không phát hiện trong nội dung */}
+                    {shouldShowFeaturedImage && (
                         <ArticleImage
                             src={featuredImage}
                             alt={article.title}
@@ -475,8 +355,10 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
                         </ArticleDate>
                     </ArticleMeta>
 
-                    <ArticleBody
-                        dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+                    {/* Sử dụng ArticleContentRenderer để hiển thị nội dung */}
+                    <ArticleContentRenderer
+                        article={article}
+                        featuredImage={featuredImage}
                     />
                 </DetailContent>
             </DetailPanel>
