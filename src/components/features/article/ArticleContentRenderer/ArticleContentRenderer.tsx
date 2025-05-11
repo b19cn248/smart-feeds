@@ -18,13 +18,8 @@ const ContentContainer = styled.div`
         max-width: 100%;
         height: auto;
         display: block;
-        margin: 16px 0;
+        margin: 16px auto; /* Đảm bảo ảnh được căn giữa */
         border-radius: ${({ theme }) => theme.radii.md};
-        transition: transform 0.3s ease;
-        
-        &:hover {
-            transform: scale(1.01);
-        }
     }
 
     a {
@@ -126,18 +121,22 @@ interface ArticleContentRendererProps {
     article: Article | FolderArticle;
     featuredImage?: string;
     className?: string;
+    skipImageProcessing?: boolean; // Thêm prop mới để có thể bỏ qua xử lý ảnh
 }
 
 const ArticleContentRenderer: React.FC<ArticleContentRendererProps> = ({
                                                                            article,
                                                                            featuredImage,
-                                                                           className
+                                                                           className,
+                                                                           skipImageProcessing = false
                                                                        }) => {
-    // ĐƠN GIẢN HÓA logic kiểm tra ảnh trùng lặp
+    // Xử lý HTML để tối ưu hiển thị
     const processHtmlContent = (htmlContent: string, imageUrl?: string): string => {
         if (!htmlContent) return '';
+        if (skipImageProcessing) return htmlContent; // Bỏ qua xử lý ảnh nếu được yêu cầu
 
         try {
+            // Tạo DOM parser để xử lý HTML
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlContent, 'text/html');
 
@@ -150,25 +149,15 @@ const ArticleContentRenderer: React.FC<ArticleContentRendererProps> = ({
                 }
             });
 
-            // Xử lý các ảnh - CHỈ loại bỏ khi hoàn toàn giống nhau
-            if (imageUrl) {
-                const images = Array.from(doc.querySelectorAll('img'));
-                for (const img of images) {
-                    // Thêm class cho tất cả ảnh
-                    img.classList.add('article-image');
-
-                    const imgSrc = img.getAttribute('src');
-                    if (!imgSrc) continue;
-
-                    // CHỈ loại bỏ khi URL HOÀN TOÀN GIỐNG NHAU
-                    // Không dùng so sánh phức tạp để tránh false positive
-                    if (imgSrc === imageUrl) {
-                        if (img.parentNode) {
-                            img.parentNode.removeChild(img);
-                        }
-                    }
+            // Đảm bảo các ảnh có thuộc tính alt và loading
+            const images = Array.from(doc.querySelectorAll('img'));
+            images.forEach(img => {
+                if (!img.getAttribute('alt')) {
+                    img.setAttribute('alt', 'Article image');
                 }
-            }
+                img.setAttribute('loading', 'lazy');
+                img.classList.add('article-image');
+            });
 
             return doc.body.innerHTML;
         } catch (error) {
@@ -181,7 +170,7 @@ const ArticleContentRenderer: React.FC<ArticleContentRendererProps> = ({
     const hasContentEncoded = !!article.content_encoded && article.content_encoded.length > 0;
     const content = hasContentEncoded ? article.content_encoded! : article.content;
 
-    // Xử lý nội dung HTML (với logic đơn giản hơn)
+    // Xử lý nội dung HTML
     const processedContent = processHtmlContent(content, featuredImage || article.image_url);
 
     // Sanitize HTML để tránh XSS
@@ -194,9 +183,9 @@ const ArticleContentRenderer: React.FC<ArticleContentRendererProps> = ({
         ],
         ALLOWED_ATTR: [
             'href', 'alt', 'title', 'class', 'id',
-            'src', 'width', 'height', 'target', 'rel'
+            'src', 'width', 'height', 'target', 'rel', 'loading'
         ],
-        ADD_ATTR: ['target'], // Tự động thêm target="_blank" cho links
+        ADD_ATTR: ['target', 'loading'], // Tự động thêm target="_blank" và loading="lazy"
     });
 
     return (
