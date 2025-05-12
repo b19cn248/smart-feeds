@@ -24,6 +24,7 @@ export const NAV_SECTIONS = [
             {id: 'feeds', icon: 'folder', label: 'My Feeds', path: '/feeds'},
             {id: 'boards', icon: 'clipboard', label: 'Boards', path: '/boards'},
             {id: 'sources', icon: 'rss', label: 'Sources', path: '/sources'},
+            {id: 'teams', icon: 'users', label: 'Teams', path: '/teams'}, // Thêm mục Teams
             {id: 'saved', icon: 'bookmark', label: 'Saved', path: '/saved'},
         ],
     },
