@@ -13,7 +13,8 @@ import {EnhancedArticleDetail} from '../../components/features/article/EnhancedA
 import {useBoard} from '../../contexts/BoardContext';
 import {useToast} from '../../contexts/ToastContext';
 import {FolderArticlesSection} from '../../components/features/article/FolderArticlesSection';
-import {MagazineFolderView, TitleOnlyFolderView} from '../../components/features/article/ViewModes';
+import { MagazineFolderView, TitleOnlyFolderView, CardsFolderView } from '../../components/features/article/ViewModes';
+
 
 
 const PageContainer = styled.div`
@@ -400,16 +401,12 @@ export const ArticlesPage: React.FC = () => {
 
                     <ArticlesContainer view={viewMode}>
                         {viewMode === 'cards' && (
-                            // Cards View - Display articles grouped by folders
-                            filteredFolders.map(folder => (
-                                <FolderArticlesSection
-                                    key={`folder-${folder.id}`}
-                                    id={`folder-${folder.id}`}
-                                    folder={folder}
-                                    onArticleClick={handleArticleClick}
-                                    isInitiallyExpanded={filteredFolders.length <= 3}
-                                />
-                            ))
+                            // Cards View - Sử dụng component CardsFolderView mới
+                            <CardsFolderView
+                                folders={filteredFolders}
+                                onArticleClick={handleArticleClick}
+                                onSaveArticle={handleSaveArticle}
+                            />
                         )}
 
                         {viewMode === 'magazine' && (
