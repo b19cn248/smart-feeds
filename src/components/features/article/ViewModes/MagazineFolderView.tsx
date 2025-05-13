@@ -356,7 +356,6 @@ export const MagazineFolderView: React.FC<MagazineFolderViewProps> = ({
                                 <i className="fas fa-folder" />
                             </FolderIcon>
                             <SectionTitle>{folder.name}</SectionTitle>
-                            <ArticleCount>{folder.articles.length}</ArticleCount>
                         </TitleContainer>
                         <HeaderActions>
                             <ViewAllButton
