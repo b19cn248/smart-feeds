@@ -25,10 +25,6 @@ const CardContainer = styled.div<{ padding: string }>`
         transform: ${props => props.onClick ? 'translateY(-4px)' : 'none'};
         box-shadow: ${props => props.onClick ? props.theme.shadows.lg : props.theme.shadows.md};
     }
-
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-    }
 `;
 
 export const Card: React.FC<CardProps> = ({

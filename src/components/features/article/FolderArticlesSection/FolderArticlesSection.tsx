@@ -218,7 +218,6 @@ export const FolderArticlesSection: React.FC<FolderArticlesSectionProps> = ({
                         <i className="fas fa-folder" />
                     </FolderIcon>
                     <SectionTitle>{folder.name}</SectionTitle>
-                    <ArticleCount>{folder.articles.length}</ArticleCount>
                 </TitleContainer>
                 <HeaderActions>
                     <ViewAllButton
