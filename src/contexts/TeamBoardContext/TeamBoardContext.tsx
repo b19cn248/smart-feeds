@@ -150,7 +150,7 @@ export const TeamBoardProvider: React.FC<{ children: ReactNode }> = ({ children 
 
         try {
             const response = await teamBoardService.getTeamBoardById(id);
-            dispatch({ type: 'SET_TEAM_BOARD_DETAIL', payload: response.data.data });
+            dispatch({ type: 'SET_TEAM_BOARD_DETAIL', payload: response.data });
         } catch (error) {
             console.error('Error fetching team board detail:', error);
             dispatch({ type: 'SET_ERROR', payload: 'Failed to fetch team board detail' });
@@ -171,7 +171,7 @@ export const TeamBoardProvider: React.FC<{ children: ReactNode }> = ({ children 
                 team_id: teamId
             });
 
-            const newTeamBoard = response.data.data;
+            const newTeamBoard = response.data;
             dispatch({ type: 'ADD_TEAM_BOARD', payload: newTeamBoard });
             showToast('success', 'Success', 'Team board created successfully');
             return newTeamBoard;
@@ -196,7 +196,7 @@ export const TeamBoardProvider: React.FC<{ children: ReactNode }> = ({ children 
                 team_id: teamId
             });
 
-            const updatedTeamBoard = response.data.data;
+            const updatedTeamBoard = response.data;
             dispatch({ type: 'UPDATE_TEAM_BOARD', payload: updatedTeamBoard });
             showToast('success', 'Success', 'Team board updated successfully');
             return updatedTeamBoard;
