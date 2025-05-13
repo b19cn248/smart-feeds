@@ -11,10 +11,6 @@ const SectionContainer = styled.div`
     border: 1px solid ${({ theme }) => theme.colors.gray[200]};
     border-radius: ${({ theme }) => theme.radii.lg};
     overflow: hidden;
-
-    @media (prefers-color-scheme: dark) {
-        border-color: ${({ theme }) => theme.colors.gray[700]};
-    }
 `;
 
 const SectionHeader = styled.div`
@@ -29,12 +25,6 @@ const SectionHeader = styled.div`
 
     &:hover {
         background-color: ${({ theme }) => theme.colors.gray[100]};
-    }
-
-    @media (prefers-color-scheme: dark) {
-        &:hover {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-        }
     }
 `;
 
@@ -73,10 +63,6 @@ const ArticleCount = styled.span`
     padding: 2px 8px;
     border-radius: 12px;
     margin-left: 8px;
-
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-    }
 `;
 
 const HeaderActions = styled.div`
@@ -123,10 +109,6 @@ const ShowMoreButton = styled.div`
 
     @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
         padding: 12px 8px;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        border-top-color: ${({ theme }) => theme.colors.gray[700]};
     }
 
     button {

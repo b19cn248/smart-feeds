@@ -60,10 +60,6 @@ const Actions = styled.div`
 const TabsContainer = styled.div`
     margin-bottom: 24px;
     border-bottom: 1px solid ${({theme}) => theme.colors.gray[200]};
-
-    @media (prefers-color-scheme: dark) {
-        border-bottom-color: ${({theme}) => theme.colors.gray[700]};
-    }
 `;
 
 const TabButton = styled.button<{ active: boolean }>`

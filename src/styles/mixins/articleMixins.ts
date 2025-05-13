@@ -12,10 +12,7 @@ export const articleCardStyle = css`
     transform: translateY(-4px);
     box-shadow: ${({ theme }) => theme.shadows.md};
   }
-  
-  @media (prefers-color-scheme: dark) {
-    background-color: ${({ theme }) => theme.colors.gray[800]};
-  }
+    
 `;
 
 export const articleTitleStyle = css`
@@ -37,10 +34,6 @@ export const articleImageStyle = css`
   object-fit: cover;
   border-radius: ${({ theme }) => theme.radii.md};
   background-color: ${({ theme }) => theme.colors.gray[100]};
-  
-  @media (prefers-color-scheme: dark) {
-    background-color: ${({ theme }) => theme.colors.gray[800]};
-  }
 `;
 
 export const articleMetaStyle = css`

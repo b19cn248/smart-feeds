@@ -69,10 +69,6 @@ const SourcesList = styled.div`
   border-radius: ${({ theme }) => theme.radii.md};
   max-height: 300px;
   overflow-y: auto;
-
-  @media (prefers-color-scheme: dark) {
-    border-color: ${({ theme }) => theme.colors.gray[700]};
-  }
 `;
 
 const SourceItem = styled.div`
@@ -84,10 +80,6 @@ const SourceItem = styled.div`
 
   &:last-child {
     border-bottom: none;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    border-bottom-color: ${({ theme }) => theme.colors.gray[700]};
   }
 `;
 

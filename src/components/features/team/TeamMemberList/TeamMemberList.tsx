@@ -18,10 +18,6 @@ const MemberItem = styled.div`
     &:last-child {
         border-bottom: none;
     }
-
-    @media (prefers-color-scheme: dark) {
-        border-bottom-color: ${({ theme }) => theme.colors.gray[700]};
-    }
 `;
 
 const MemberAvatar = styled.div`

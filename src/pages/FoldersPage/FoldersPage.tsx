@@ -78,10 +78,7 @@ const ViewTabs = styled.div`
     background-color: ${({ theme }) => theme.colors.gray[100]};
     border-radius: 20px;
     padding: 4px;
-
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-    }
+    
 `;
 
 const ViewTab = styled.button<{ isActive?: boolean }>`
@@ -102,11 +99,7 @@ const ViewTab = styled.button<{ isActive?: boolean }>`
     &:hover {
         color: ${({ theme }) => theme.colors.text.primary};
     }
-
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ isActive, theme }) =>
-                isActive ? theme.colors.gray[700] : 'transparent'};
-    }
+    
 `;
 
 const ErrorMessage = styled.div`

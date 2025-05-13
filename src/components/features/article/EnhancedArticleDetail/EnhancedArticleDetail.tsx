@@ -42,10 +42,6 @@ const DetailContainer = styled.div<{ isOpen: boolean }>`
     opacity: ${({ isOpen }) => (isOpen ? 1 : 0)};
     transition: ${({ theme }) => theme.transitions.default};
     position: relative;
-
-    @media (prefers-color-scheme: dark) {
-        background: ${({ theme }) => theme.colors.gray[800]};
-    }
 `;
 
 const DetailHeader = styled.header`
@@ -58,11 +54,6 @@ const DetailHeader = styled.header`
     background-color: ${({ theme }) => theme.colors.background.secondary};
     border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
     z-index: 1;
-
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-        border-bottom-color: ${({ theme }) => theme.colors.gray[700]};
-    }
 `;
 
 const HeaderTitle = styled.h2`
@@ -98,13 +89,7 @@ const ActionButton = styled.button`
         background-color: ${({ theme }) => theme.colors.gray[100]};
         color: ${({ theme }) => theme.colors.text.primary};
     }
-
-    @media (prefers-color-scheme: dark) {
-        &:hover {
-            background-color: ${({ theme }) => theme.colors.gray[700]};
-        }
-    }
-
+    
     span {
         @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
             display: none;

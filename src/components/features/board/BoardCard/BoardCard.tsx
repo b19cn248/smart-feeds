@@ -65,10 +65,6 @@ const BoardMeta = styled.div`
   color: ${({ theme }) => theme.colors.text.secondary};
   border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
   padding-top: 12px;
-
-  @media (prefers-color-scheme: dark) {
-    border-top-color: ${({ theme }) => theme.colors.gray[700]};
-  }
 `;
 
 const BoardArticleCount = styled.div`
