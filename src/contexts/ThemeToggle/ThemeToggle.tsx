@@ -1,7 +1,7 @@
 // src/contexts/ThemeToggle/ThemeToggle.tsx
 import React from 'react';
 import styled from 'styled-components';
-import {useThemeContext} from "../ ThemeContext";
+import {useThemeContext} from "../ThemeContext";
 
 const ToggleButton = styled.button`
     display: flex;

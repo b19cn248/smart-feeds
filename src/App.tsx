@@ -15,14 +15,14 @@ import { SourcesPage } from './pages/SourcesPage';
 import { BoardsPage } from './pages/BoardsPage';
 import { BoardDetailPage } from './pages/BoardDetailPage';
 import { TeamsPage } from './pages/TeamsPage';
-import { TeamBoardsPage } from './pages/TeamBoardsPage';
-import { TeamBoardDetailPage } from './pages/TeamBoardDetailPage';
 import { FolderDetailPage } from './pages/FolderDetailPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { ToastContainer } from './components/common/Toast';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { GlobalStyles } from './styles/GlobalStyles';
-import { ThemeProvider } from "./contexts/ ThemeContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import {TeamBoardsPage} from "./pages/TeamBoardsPage";
+import {TeamBoardDetailPage} from "./pages/TeamBoardDetailPage";
 
 const App: React.FC = () => {
     return (
