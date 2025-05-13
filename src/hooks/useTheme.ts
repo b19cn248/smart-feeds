@@ -1,32 +1,45 @@
 // src/hooks/useTheme.ts
-import { useEffect, useState } from 'react';
-import { useLocalStorage } from './useLocalStorage';
+import { useState, useEffect } from 'react';
 
 type Theme = 'light' | 'dark' | 'system';
 
 export const useTheme = () => {
-    const [theme, setTheme] = useLocalStorage<Theme>('theme', 'system');
+    // Lấy giá trị theme từ localStorage hoặc mặc định là 'system'
+    const [theme, setTheme] = useState<Theme>(() => {
+        const savedTheme = localStorage.getItem('theme') as Theme;
+        return savedTheme || 'system';
+    });
+
     const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
 
+    // Cập nhật theme khi có thay đổi và lưu vào localStorage
     useEffect(() => {
-        if (theme === 'system') {
-            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            setResolvedTheme(mediaQuery.matches ? 'dark' : 'light');
+        const updateResolvedTheme = () => {
+            if (theme === 'system') {
+                // Chỉ kiểm tra preference của hệ thống khi người dùng chọn 'system'
+                const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches
+                    ? 'dark'
+                    : 'light';
+                setResolvedTheme(systemPreference);
+            } else {
+                setResolvedTheme(theme);
+            }
+        };
 
-            const handleChange = (e: MediaQueryListEvent) => {
-                setResolvedTheme(e.matches ? 'dark' : 'light');
-            };
+        updateResolvedTheme();
+        localStorage.setItem('theme', theme);
 
-            mediaQuery.addEventListener('change', handleChange);
-            return () => mediaQuery.removeEventListener('change', handleChange);
-        } else {
-            setResolvedTheme(theme);
-        }
+        // Theo dõi thay đổi từ hệ thống nếu theme là 'system'
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleChange = () => {
+            if (theme === 'system') {
+                updateResolvedTheme();
+            }
+        };
+
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
     }, [theme]);
 
-    return {
-        theme,
-        setTheme,
-        resolvedTheme,
-    };
+    return { theme, resolvedTheme, setTheme };
 };
