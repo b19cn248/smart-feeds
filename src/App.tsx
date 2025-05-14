@@ -13,6 +13,7 @@ import { FoldersPage } from './pages/FoldersPage';
 import { ArticlesPage } from './pages/ArticlesPage';
 import { SourcesPage } from './pages/SourcesPage';
 import { BoardsPage } from './pages/BoardsPage';
+import DiscoverPage from './pages/Discover';
 import { BoardDetailPage } from './pages/BoardDetailPage';
 import { TeamsPage } from './pages/TeamsPage';
 import { TeamBoardsPage } from './pages/TeamBoardsPage';
@@ -138,6 +139,14 @@ const App: React.FC = () => {
                                                                 <TeamBoardDetailPage />
                                                             </MainLayout>
                                                         </ProtectedRoute>
+                                                    }
+                                                />
+                                                <Route
+                                                    path="/discover"
+                                                    element={
+                                                        <MainLayout headerTitle="Discover">
+                                                            <DiscoverPage />
+                                                        </MainLayout>
                                                     }
                                                 />
 
