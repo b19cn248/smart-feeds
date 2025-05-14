@@ -33,11 +33,6 @@ export const cardStyle = css<{ theme: Theme }>`
         box-shadow: ${({ theme }) => theme.shadows.lg};
         border-color: ${({ theme }) => theme.colors.gray[300]};
     }
-
-    @media (prefers-color-scheme: dark) {
-        background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
-        border-color: ${({ theme }) => theme.colors.gray[700]};
-    }
 `;
 
 // Button styles
@@ -86,12 +81,7 @@ export const inputStyle = (hasError: boolean = false) => css`
     opacity: 0.5;
     cursor: not-allowed;
   }
-
-  @media (prefers-color-scheme: dark) {
-    background-color: ${({ theme }) => theme.colors.gray[800]};
-    border-color: ${({ theme }) =>
-    hasError ? theme.colors.error : theme.colors.gray[600]};
-  }
+    
 `;
 
 // Typography mixins
@@ -249,19 +239,6 @@ export const iconButton = css`
     &:active {
         background-color: ${({ theme }) => theme.colors.gray[200]};
     }
-
-    @media (prefers-color-scheme: dark) {
-        color: ${({ theme }) => theme.colors.gray[400]};
-
-        &:hover {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-            color: ${({ theme }) => theme.colors.gray[100]};
-        }
-
-        &:active {
-            background-color: ${({ theme }) => theme.colors.gray[700]};
-        }
-    }
 `;
 
 // Glass effect
@@ -269,11 +246,6 @@ export const glassEffect = css`
     background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
-
-    @media (prefers-color-scheme: dark) {
-        background: rgba(15, 23, 42, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-    }
 `;
 
 export const gradientBackground = css`
@@ -400,15 +372,6 @@ export const skeleton = css`
         100% {
             background-position: -200% 0;
         }
-    }
-
-    @media (prefers-color-scheme: dark) {
-        background: linear-gradient(
-                90deg,
-                ${({ theme }) => theme.colors.gray[800]} 0px,
-                ${({ theme }) => theme.colors.gray[700]} 40px,
-                ${({ theme }) => theme.colors.gray[800]} 80px
-        );
     }
 `;
 

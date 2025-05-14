@@ -25,10 +25,6 @@ const EmptyStateIcon = styled.div`
     font-size: 32px;
     color: ${({ theme }) => theme.colors.primary.main};
   }
-
-  @media (prefers-color-scheme: dark) {
-    background-color: ${({ theme }) => theme.colors.gray[800]};
-  }
 `;
 
 const EmptyStateTitle = styled.h3`

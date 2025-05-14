@@ -45,11 +45,6 @@ const ImageSkeleton = styled.div`
         0% { background-position: -200% 0; }
         100% { background-position: 200% 0; }
     }
-
-    @media (prefers-color-scheme: dark) {
-        background: linear-gradient(90deg, #2a2a2a 25%, #3a3a3a 50%, #2a2a2a 75%);
-        background-size: 200% 100%;
-    }
 `;
 
 const ArticleContent = styled.div`
@@ -94,10 +89,7 @@ const ArticleMeta = styled.div`
     border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
     padding-top: 12px;
     margin-top: auto; /* Đẩy phần meta xuống cuối */
-
-    @media (prefers-color-scheme: dark) {
-        border-top-color: ${({ theme }) => theme.colors.gray[700]};
-    }
+    
 `;
 
 const ArticleSource = styled.div`

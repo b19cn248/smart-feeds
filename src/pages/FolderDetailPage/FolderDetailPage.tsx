@@ -92,10 +92,6 @@ const FilterBar = styled.div`
         gap: 12px;
         align-items: flex-start;
     }
-
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-    }
 `;
 
 const FilterActions = styled.div`
@@ -116,11 +112,6 @@ const SortSelect = styled.select`
     background-color: ${({ theme }) => theme.colors.background.secondary};
     color: ${({ theme }) => theme.colors.text.primary};
     font-size: ${({ theme }) => theme.typography.fontSize.sm};
-
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-        border-color: ${({ theme }) => theme.colors.gray[600]};
-    }
 `;
 
 const EmptyState = styled.div`
@@ -130,11 +121,6 @@ const EmptyState = styled.div`
     border-radius: ${({ theme }) => theme.radii.lg};
     border: 2px dashed ${({ theme }) => theme.colors.gray[200]};
     margin-top: 24px;
-
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-        border-color: ${({ theme }) => theme.colors.gray[700]};
-    }
 `;
 
 const EmptyStateIcon = styled.div`
@@ -156,11 +142,6 @@ const ArticlesContainer = styled.div<{ view: ViewMode }>`
     border-radius: ${({ view, theme }) =>
     view === 'title-only' ? theme.radii.lg : '0'};
     overflow: hidden;
-
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ view, theme }) =>
-    view === 'title-only' ? theme.colors.gray[800] : 'transparent'};
-    }
 `;
 
 const ArticlesGrid = styled.div`

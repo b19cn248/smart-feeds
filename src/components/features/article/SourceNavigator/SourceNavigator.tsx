@@ -14,11 +14,6 @@ const NavigatorContainer = styled.div`
     box-shadow: ${({ theme }) => theme.shadows.md};
     z-index: 10;
     
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-        border-color: ${({ theme }) => theme.colors.gray[700]};
-    }
-    
     @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
         padding: 12px;
     }
@@ -56,16 +51,6 @@ const SourceList = styled.div`
         background: ${({ theme }) => theme.colors.gray[400]};
         border-radius: 4px;
     }
-    
-    @media (prefers-color-scheme: dark) {
-        &::-webkit-scrollbar-track {
-            background: ${({ theme }) => theme.colors.gray[700]};
-        }
-        
-        &::-webkit-scrollbar-thumb {
-            background: ${({ theme }) => theme.colors.gray[500]};
-        }
-    }
 `;
 
 const SourceButton = styled.button<{ isActive: boolean }>`
@@ -85,18 +70,6 @@ const SourceButton = styled.button<{ isActive: boolean }>`
     &:hover {
         background-color: ${({ isActive, theme }) =>
     isActive ? theme.colors.primary.hover : theme.colors.gray[200]};
-    }
-    
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ isActive, theme }) =>
-    isActive ? theme.colors.primary.main : theme.colors.gray[700]};
-        color: ${({ isActive, theme }) =>
-    isActive ? 'white' : theme.colors.text.secondary};
-            
-        &:hover {
-            background-color: ${({ isActive, theme }) =>
-    isActive ? theme.colors.primary.hover : theme.colors.gray[600]};
-        }
     }
 `;
 

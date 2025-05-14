@@ -13,10 +13,6 @@ const SourceList = styled.div`
   margin: 16px 0;
   border: 1px solid ${({ theme }) => theme.colors.gray[200]};
   border-radius: ${({ theme }) => theme.radii.md};
-
-  @media (prefers-color-scheme: dark) {
-    border-color: ${({ theme }) => theme.colors.gray[700]};
-  }
 `;
 
 const SourceItem = styled.div<{ isSelected: boolean }>`
@@ -37,15 +33,6 @@ const SourceItem = styled.div<{ isSelected: boolean }>`
   &:hover {
     background-color: ${({ isSelected, theme }) =>
     isSelected ? `${theme.colors.primary.main}20` : theme.colors.gray[100]};
-  }
-
-  @media (prefers-color-scheme: dark) {
-    border-bottom-color: ${({ theme }) => theme.colors.gray[700]};
-
-    &:hover {
-      background-color: ${({ isSelected, theme }) =>
-    isSelected ? `${theme.colors.primary.main}20` : theme.colors.gray[800]};
-    }
   }
 `;
 

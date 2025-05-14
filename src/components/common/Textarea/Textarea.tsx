@@ -35,17 +35,6 @@ const StyledTextarea = styled.textarea<{ hasError?: boolean }>`
         box-shadow: 0 0 0 3px ${({ theme, hasError }) =>
     hasError ? `${theme.colors.error}40` : `${theme.colors.primary.light}40`};
     }
-
-    @media (prefers-color-scheme: dark) {
-        border-color: ${({ theme, hasError }) =>
-    hasError ? theme.colors.error : theme.colors.gray[600]};
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-
-        &:focus {
-            border-color: ${({ theme, hasError }) =>
-    hasError ? theme.colors.error : theme.colors.primary.main};
-        }
-    }
 `;
 
 const HelperText = styled.div<{ isError?: boolean }>`

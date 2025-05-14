@@ -24,10 +24,6 @@ const ModalContainer = styled.div`
   border-radius: ${({ theme }) => theme.radii.lg};
   padding: 24px;
   box-shadow: ${({ theme }) => theme.shadows.xl};
-  
-  @media (prefers-color-scheme: dark) {
-    background-color: ${({ theme }) => theme.colors.gray[800]};
-  }
 `;
 
 const ModalTitle = styled.h3`
@@ -51,10 +47,6 @@ const BoardsList = styled.div`
   overflow-y: auto;
   border: 1px solid ${({ theme }) => theme.colors.gray[200]};
   border-radius: ${({ theme }) => theme.radii.md};
-
-  @media (prefers-color-scheme: dark) {
-    border-color: ${({ theme }) => theme.colors.gray[700]};
-  }
 `;
 
 const EmptyBoardsList = styled.div`
@@ -79,14 +71,6 @@ const BoardItem = styled.div`
 
   &:hover {
     background-color: ${({ theme }) => theme.colors.gray[100]};
-  }
-
-  @media (prefers-color-scheme: dark) {
-    border-bottom-color: ${({ theme }) => theme.colors.gray[700]};
-
-    &:hover {
-      background-color: ${({ theme }) => theme.colors.gray[800]};
-    }
   }
 `;
 
@@ -137,14 +121,6 @@ const CloseButton = styled.button`
   
   &:hover {
     background-color: ${({ theme }) => theme.colors.gray[200]};
-  }
-  
-  @media (prefers-color-scheme: dark) {
-    background-color: ${({ theme }) => theme.colors.gray[700]};
-    
-    &:hover {
-      background-color: ${({ theme }) => theme.colors.gray[600]};
-    }
   }
 `;
 

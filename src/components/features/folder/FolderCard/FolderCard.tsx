@@ -75,11 +75,6 @@ const FolderThemeBadge = styled.span`
     ${({ theme }) => css`
         background-color: ${theme.colors.gray[100]};
         color: ${theme.colors.gray[600]};
-
-        @media (prefers-color-scheme: dark) {
-            background-color: ${theme.colors.gray[800]};
-            color: ${theme.colors.gray[400]};
-        }
     `}
 `;
 
@@ -90,10 +85,6 @@ const FolderActions = styled.div`
     padding-top: 16px;
     border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
     margin-top: 16px;
-
-    @media (prefers-color-scheme: dark) {
-        border-top-color: ${({ theme }) => theme.colors.gray[700]};
-    }
 `;
 
 const FolderSources = styled.div`

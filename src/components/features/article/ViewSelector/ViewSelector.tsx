@@ -8,10 +8,7 @@ const ViewSelectorContainer = styled.div`
     display: inline-flex;
     padding: 4px;
     box-shadow: ${({ theme }) => theme.shadows.sm};
-
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-    }
+    
 `;
 
 const ViewOption = styled.button<{ isActive: boolean }>`
@@ -34,13 +31,6 @@ const ViewOption = styled.button<{ isActive: boolean }>`
                 isActive ? theme.colors.primary.main : theme.colors.gray[100]};
         color: ${({ isActive, theme }) =>
                 isActive ? 'white' : theme.colors.text.primary};
-    }
-
-    @media (prefers-color-scheme: dark) {
-        &:hover {
-            background-color: ${({ isActive, theme }) =>
-                    isActive ? theme.colors.primary.main : theme.colors.gray[700]};
-        }
     }
 `;
 

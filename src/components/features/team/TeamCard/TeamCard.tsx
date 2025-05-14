@@ -65,10 +65,6 @@ const TeamMeta = styled.div`
     border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
     padding-top: 12px;
     margin-top: 10px;
-
-    @media (prefers-color-scheme: dark) {
-        border-top-color: ${({ theme }) => theme.colors.gray[700]};
-    }
 `;
 
 const TeamDate = styled.div``;
@@ -90,12 +86,6 @@ const ActionButton = styled.button`
     &:hover {
         background-color: ${({ theme }) => theme.colors.gray[100]};
         color: ${({ theme }) => theme.colors.text.primary};
-    }
-
-    @media (prefers-color-scheme: dark) {
-        &:hover {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-        }
     }
 `;
 

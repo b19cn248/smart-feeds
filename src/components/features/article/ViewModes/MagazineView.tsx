@@ -30,10 +30,6 @@ const MagazineItem = styled.div`
     @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
         flex-direction: column;
     }
-
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-    }
 `;
 
 const ArticleImage = styled.div<{ imageUrl: string }>`
@@ -141,12 +137,6 @@ const ActionButton = styled.button`
     &:hover {
         color: ${({ theme }) => theme.colors.primary.main};
         background-color: ${({ theme }) => theme.colors.gray[100]};
-    }
-
-    @media (prefers-color-scheme: dark) {
-        &:hover {
-            background-color: ${({ theme }) => theme.colors.gray[700]};
-        }
     }
 `;
 

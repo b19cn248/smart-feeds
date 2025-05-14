@@ -48,10 +48,6 @@ const DetailHeader = styled.div`
     justify-content: space-between;
     align-items: center;
     z-index: 1;
-
-    @media (prefers-color-scheme: dark) {
-        border-bottom-color: ${({ theme }) => theme.colors.gray[700]};
-    }
 `;
 
 const CloseButton = styled.button`
@@ -147,14 +143,6 @@ const ActionButton = styled.button`
     &:hover {
         background-color: ${({ theme }) => theme.colors.gray[100]};
     }
-
-    @media (prefers-color-scheme: dark) {
-        border-color: ${({ theme }) => theme.colors.gray[700]};
-
-        &:hover {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-        }
-    }
 `;
 
 const BoardsDropdown = styled.div`
@@ -168,20 +156,14 @@ const BoardsDropdown = styled.div`
     z-index: 1000;
     overflow: hidden;
     border: 1px solid ${({ theme }) => theme.colors.gray[200]};
-
-    @media (prefers-color-scheme: dark) {
-        border-color: ${({ theme }) => theme.colors.gray[700]};
-    }
+    
 `;
 
 const DropdownHeader = styled.div`
     padding: 12px 16px;
     border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
     font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
-
-    @media (prefers-color-scheme: dark) {
-        border-bottom-color: ${({ theme }) => theme.colors.gray[700]};
-    }
+    
 `;
 
 const DropdownContent = styled.div`
@@ -204,14 +186,6 @@ const BoardItem = styled.div`
 
     &:last-child {
         border-bottom: none;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        border-bottom-color: ${({ theme }) => theme.colors.gray[800]};
-
-        &:hover {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-        }
     }
 
     i {

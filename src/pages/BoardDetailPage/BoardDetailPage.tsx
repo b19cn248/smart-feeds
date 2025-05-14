@@ -85,10 +85,6 @@ const BoardMeta = styled.div`
     flex-direction: column;
     gap: 12px;
   }
-
-  @media (prefers-color-scheme: dark) {
-    border-bottom-color: ${({ theme }) => theme.colors.gray[700]};
-  }
 `;
 
 const MetaItem = styled.div`
@@ -134,14 +130,6 @@ const ArticleCard = styled.div`
     border-color: ${({ theme }) => theme.colors.gray[300]};
     box-shadow: ${({ theme }) => theme.shadows.md};
   }
-
-  @media (prefers-color-scheme: dark) {
-    border-color: ${({ theme }) => theme.colors.gray[700]};
-
-    &:hover {
-      border-color: ${({ theme }) => theme.colors.gray[600]};
-    }
-  }
 `;
 
 const ArticleCardContent = styled.div`
@@ -178,12 +166,6 @@ const ActionButton = styled.button`
   &:hover {
     color: ${({ theme }) => theme.colors.text.primary};
     background-color: ${({ theme }) => theme.colors.gray[100]};
-  }
-
-  @media (prefers-color-scheme: dark) {
-    &:hover {
-      background-color: ${({ theme }) => theme.colors.gray[800]};
-    }
   }
 `;
 
@@ -249,10 +231,6 @@ const EmptyState = styled.div`
  background-color: ${({ theme }) => theme.colors.background.secondary};
  border-radius: ${({ theme }) => theme.radii.lg};
  border: 2px dashed ${({ theme }) => theme.colors.gray[200]};
-
- @media (prefers-color-scheme: dark) {
-   border-color: ${({ theme }) => theme.colors.gray[700]};
- }
 `;
 
 const EmptyStateIcon = styled.div`

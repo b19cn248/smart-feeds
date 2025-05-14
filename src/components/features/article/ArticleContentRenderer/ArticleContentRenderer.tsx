@@ -61,10 +61,6 @@ const ContentContainer = styled.div`
         border-radius: ${({ theme }) => theme.radii.md};
         overflow-x: auto;
         margin: 16px 0;
-
-        @media (prefers-color-scheme: dark) {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-        }
     }
 
     code {
@@ -72,10 +68,6 @@ const ContentContainer = styled.div`
         padding: 2px 4px;
         border-radius: ${({ theme }) => theme.radii.sm};
         font-family: monospace;
-
-        @media (prefers-color-scheme: dark) {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-        }
     }
 
     hr {
@@ -83,10 +75,6 @@ const ContentContainer = styled.div`
         border: 0;
         height: 1px;
         background-color: ${({ theme }) => theme.colors.gray[200]};
-
-        @media (prefers-color-scheme: dark) {
-            background-color: ${({ theme }) => theme.colors.gray[700]};
-        }
     }
 
     /* Cải thiện hiển thị khi có button trong content */

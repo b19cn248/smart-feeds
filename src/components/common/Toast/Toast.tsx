@@ -90,11 +90,6 @@ const ToastWrapper = styled.div<{ isVisible: boolean; type: ToastVariant }>`
   @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
     min-width: 100%;
   }
-  
-  @media (prefers-color-scheme: dark) {
-    background-color: ${({ theme }) => theme.colors.gray[800]};
-    border-color: ${({ theme }) => theme.colors.gray[700]};
-  }
 `;
 
 const ToastIcon = styled.div<{ type: ToastVariant }>`
@@ -148,12 +143,7 @@ const ToastClose = styled.button`
   &:focus {
     outline: none;
   }
-  
-  @media (prefers-color-scheme: dark) {
-    &:hover {
-      background-color: ${({ theme }) => theme.colors.gray[700]};
-    }
-  }
+    
 `;
 
 const ToastProgress = styled.div<{ duration: number; type: ToastVariant }>`
