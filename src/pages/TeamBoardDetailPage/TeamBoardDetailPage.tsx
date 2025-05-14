@@ -8,7 +8,13 @@ import {useAuth} from '../../contexts/AuthContext';
 import {Button} from '../../components/common/Button';
 import {Modal} from '../../components/common/Modal';
 import {LoadingScreen} from '../../components/common/LoadingScreen';
-import {ShareBoardForm, TeamBoardForm, TeamMemberList} from '../../components/features/teamBoard';
+import {
+    ShareBoardForm,
+    TeamBoardForm,
+    TeamMemberList,
+    UpdatePermissionForm // Thêm import UpdatePermissionForm
+} from '../../components/features/teamBoard';
+import { TeamBoardUser } from '../../types'; // Thêm import TeamBoardUser
 
 const PageHeader = styled.div`
     display: flex;
@@ -146,7 +152,10 @@ export const TeamBoardDetailPage: React.FC = () => {
         updateTeamBoard,
         deleteTeamBoard,
         shareTeamBoard,
-        removeArticleFromTeamBoard
+        removeArticleFromTeamBoard,
+        // Thêm hai phương thức mới từ context
+        updateMemberPermission,
+        removeMember
     } = useTeamBoard();
     const {teams} = useTeam();
 
@@ -155,6 +164,10 @@ export const TeamBoardDetailPage: React.FC = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
+    // Thêm state cho quản lý quyền và xóa thành viên
+    const [showUpdatePermissionModal, setShowUpdatePermissionModal] = useState(false);
+    const [showRemoveMemberModal, setShowRemoveMemberModal] = useState(false);
+    const [selectedMember, setSelectedMember] = useState<TeamBoardUser | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Fetch board details on mount and when ID changes
@@ -208,6 +221,56 @@ export const TeamBoardDetailPage: React.FC = () => {
     const handleRemoveArticle = async (articleId: number) => {
         if (!boardId) return;
         await removeArticleFromTeamBoard(parseInt(boardId), articleId);
+    };
+
+    // Thêm handler cập nhật quyền
+    const handleEditPermission = (userId: number) => {
+        if (!teamBoardDetail) return;
+
+        const member = teamBoardDetail.members.find(m => m.user_id === userId);
+        if (member) {
+            setSelectedMember(member);
+            setShowUpdatePermissionModal(true);
+        }
+    };
+
+    // Thêm handler xóa thành viên
+    const handleRemoveMember = (userId: number) => {
+        if (!teamBoardDetail) return;
+
+        const member = teamBoardDetail.members.find(m => m.user_id === userId);
+        if (member) {
+            setSelectedMember(member);
+            setShowRemoveMemberModal(true);
+        }
+    };
+
+    // Thêm handler cập nhật quyền
+    const handleUpdatePermission = async (userId: number, email: string, permission: string) => {
+        if (!boardId) return;
+
+        setIsSubmitting(true);
+        const success = await updateMemberPermission(parseInt(boardId), userId, email, permission);
+        setIsSubmitting(false);
+
+        if (success) {
+            setShowUpdatePermissionModal(false);
+            setSelectedMember(null);
+        }
+    };
+
+    // Thêm handler xác nhận xóa thành viên
+    const handleConfirmRemoveMember = async () => {
+        if (!boardId || !selectedMember) return;
+
+        setIsSubmitting(true);
+        const success = await removeMember(parseInt(boardId), selectedMember.user_id);
+        setIsSubmitting(false);
+
+        if (success) {
+            setShowRemoveMemberModal(false);
+            setSelectedMember(null);
+        }
     };
 
     // Check if user has edit permission
@@ -296,7 +359,6 @@ export const TeamBoardDetailPage: React.FC = () => {
                         </EmptyState>
                     ) : (
                         <ArticlesGrid>
-                            // Continuing TeamBoardDetailPage.tsx
                             {teamBoardDetail.articles.content.map(article => (
                                 <div key={article.id}>
                                     <h3>{article.title}</h3>
@@ -325,7 +387,9 @@ export const TeamBoardDetailPage: React.FC = () => {
                     <TeamMemberList
                         members={teamBoardDetail.members}
                         currentUserId={user?.id}
-                        // Additional handlers for permission changes and removal would go here
+                        // Thêm handlers cho cập nhật quyền và xóa thành viên
+                        onEditPermission={hasEditPermission ? handleEditPermission : undefined}
+                        onRemoveMember={hasEditPermission ? handleRemoveMember : undefined}
                     />
                 </>
             )}
@@ -387,6 +451,57 @@ export const TeamBoardDetailPage: React.FC = () => {
                     onCancel={() => setShowShareModal(false)}
                     isLoading={isSubmitting}
                 />
+            </Modal>
+
+            {/* Thêm Update Permission Modal */}
+            <Modal
+                isOpen={showUpdatePermissionModal}
+                onClose={() => setShowUpdatePermissionModal(false)}
+                title="Update Member Permission"
+                size="sm"
+            >
+                {selectedMember && (
+                    <UpdatePermissionForm
+                        member={selectedMember}
+                        onSubmit={handleUpdatePermission}
+                        onCancel={() => setShowUpdatePermissionModal(false)}
+                        isLoading={isSubmitting}
+                    />
+                )}
+            </Modal>
+
+            {/* Thêm Remove Member Confirmation Modal */}
+            <Modal
+                isOpen={showRemoveMemberModal}
+                onClose={() => setShowRemoveMemberModal(false)}
+                title="Remove Member"
+                size="sm"
+            >
+                {selectedMember && (
+                    <>
+                        <p>Are you sure you want to remove {selectedMember.name} from this team board?</p>
+                        <p>This action cannot be undone.</p>
+
+                        <ButtonGroup>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                onClick={() => setShowRemoveMemberModal(false)}
+                                disabled={isSubmitting}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={handleConfirmRemoveMember}
+                                isLoading={isSubmitting}
+                            >
+                                Remove
+                            </Button>
+                        </ButtonGroup>
+                    </>
+                )}
             </Modal>
         </>
     );

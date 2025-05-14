@@ -29,6 +29,9 @@ interface TeamBoardContextValue {
     shareTeamBoard: (id: number, email: string, permission: string) => Promise<boolean>;
     addArticleToTeamBoard: (boardId: number, articleId: number) => Promise<boolean>;
     removeArticleFromTeamBoard: (boardId: number, articleId: number) => Promise<boolean>;
+    // Thêm hai phương thức mới
+    updateMemberPermission: (boardId: number, userId: number, email: string, permission: string) => Promise<boolean>;
+    removeMember: (boardId: number, userId: number) => Promise<boolean>;
 }
 
 // Initial state
@@ -256,6 +259,59 @@ export const TeamBoardProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     }, [fetchTeamBoardDetail, showToast, state.teamBoardDetail]);
 
+    // Thêm phương thức updateMemberPermission
+    const updateMemberPermission = useCallback(async (boardId: number, userId: number, email: string, permission: string) => {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        dispatch({ type: 'SET_ERROR', payload: null });
+
+        try {
+            await teamBoardService.updateMemberPermission(boardId, userId, {
+                email,
+                permission: permission as any
+            });
+
+            // Refresh board detail to get updated members
+            if (state.teamBoardDetail && state.teamBoardDetail.id === boardId) {
+                fetchTeamBoardDetail(boardId);
+            }
+
+            showToast('success', 'Success', 'Member permission updated successfully');
+            return true;
+        } catch (error) {
+            console.error('Error updating member permission:', error);
+            dispatch({ type: 'SET_ERROR', payload: 'Failed to update member permission' });
+            showToast('error', 'Error', 'Failed to update member permission');
+            return false;
+        } finally {
+            dispatch({ type: 'SET_LOADING', payload: false });
+        }
+    }, [fetchTeamBoardDetail, showToast, state.teamBoardDetail]);
+
+    // Thêm phương thức removeMember
+    const removeMember = useCallback(async (boardId: number, userId: number) => {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        dispatch({ type: 'SET_ERROR', payload: null });
+
+        try {
+            await teamBoardService.removeMember(boardId, userId);
+
+            // Refresh board detail to get updated members
+            if (state.teamBoardDetail && state.teamBoardDetail.id === boardId) {
+                fetchTeamBoardDetail(boardId);
+            }
+
+            showToast('success', 'Success', 'Member removed successfully');
+            return true;
+        } catch (error) {
+            console.error('Error removing member:', error);
+            dispatch({ type: 'SET_ERROR', payload: 'Failed to remove member' });
+            showToast('error', 'Error', 'Failed to remove member');
+            return false;
+        } finally {
+            dispatch({ type: 'SET_LOADING', payload: false });
+        }
+    }, [fetchTeamBoardDetail, showToast, state.teamBoardDetail]);
+
     const addArticleToTeamBoard = useCallback(async (boardId: number, articleId: number) => {
         dispatch({ type: 'SET_LOADING', payload: true });
         dispatch({ type: 'SET_ERROR', payload: null });
@@ -322,7 +378,10 @@ export const TeamBoardProvider: React.FC<{ children: ReactNode }> = ({ children 
         deleteTeamBoard,
         shareTeamBoard,
         addArticleToTeamBoard,
-        removeArticleFromTeamBoard
+        removeArticleFromTeamBoard,
+        // Thêm hai phương thức mới vào value
+        updateMemberPermission,
+        removeMember
     };
 
     return (
