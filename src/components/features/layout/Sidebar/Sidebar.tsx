@@ -3,31 +3,22 @@ import React, { useRef, useEffect } from 'react';
 import styled from 'styled-components';
 import { NAV_SECTIONS } from '../../../../constants';
 import { NavItem } from './NavItem';
-import { gradientBackground } from '../../../../styles/mixins';
 import { css } from 'styled-components';
 
 const SidebarWrapper = styled.div<{ isActive: boolean }>`
     width: 260px;
-    ${gradientBackground}
-    ${({ theme }) => css`
-        border-right: 1px solid ${theme.colors.gray[200]};
-    `}
+    background: ${({ theme }) => theme.colors.background.sidebarGradient}; /* Sử dụng giá trị từ theme */
+    border-right: 1px solid ${({ theme }) => theme.colors.gray[200]};
     height: 100vh;
     position: fixed;
     overflow-y: auto;
     transition: ${({ theme }) => theme.transitions.default};
     padding: 24px 16px;
-    z-index: ${({ theme }) => theme.zIndices.fixed + 10}; // Đảm bảo z-index cao hơn content
+    z-index: ${({ theme }) => theme.zIndices.fixed + 10};
 
     @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
         transform: translateX(${({ isActive }) => isActive ? '0' : '-100%'});
         box-shadow: ${({ theme }) => theme.shadows.xl};
-    }
-
-    @media (prefers-color-scheme: dark) {
-        ${({ theme }) => css`
-            border-right-color: ${theme.colors.gray[700]};
-        `}
     }
 `;
 
@@ -35,7 +26,7 @@ const Logo = styled.div`
     font-size: 22px;
     font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
     margin-bottom: 32px;
-    color: ${({ theme }) => theme.colors.text.primary};
+    color: ${({ theme }) => theme.colors.logo};
     display: flex;
     align-items: center;
     gap: 12px;

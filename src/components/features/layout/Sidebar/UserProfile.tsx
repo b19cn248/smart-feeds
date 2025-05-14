@@ -24,12 +24,6 @@ const UserProfileButton = styled.button`
     &:hover {
         background-color: ${({ theme }) => theme.colors.gray[100]};
     }
-
-    @media (prefers-color-scheme: dark) {
-        &:hover {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-        }
-    }
 `;
 
 const UserAvatar = styled.div`
@@ -104,11 +98,6 @@ const DropdownMenu = styled.div<{ isOpen: boolean }>`
     transition: ${({ theme }) => theme.transitions.default};
     z-index: ${({ theme }) => theme.zIndices.dropdown};
     overflow: hidden;
-
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-        border-color: ${({ theme }) => theme.colors.gray[700]};
-    }
 `;
 
 const UserInfoHeader = styled.div`
@@ -118,10 +107,6 @@ const UserInfoHeader = styled.div`
 
     @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
         display: block;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        border-bottom-color: ${({ theme }) => theme.colors.gray[700]};
     }
 `;
 
@@ -133,52 +118,38 @@ const MobileUserName = styled.div`
 `;
 
 const MobileUserEmail = styled.div`
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  color: ${({ theme }) => theme.colors.text.secondary};
+    font-size: ${({ theme }) => theme.typography.fontSize.sm};
+    color: ${({ theme }) => theme.colors.text.secondary};
 `;
 
 const MenuItem = styled.button`
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 12px 16px;
-  border: none;
-  background: none;
-  color: ${({ theme }) => theme.colors.text.primary};
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  text-align: left;
-  cursor: pointer;
-  transition: ${({ theme }) => theme.transitions.fast};
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    background: none;
+    color: ${({ theme }) => theme.colors.text.primary};
+    font-size: ${({ theme }) => theme.typography.fontSize.sm};
+    text-align: left;
+    cursor: pointer;
+    transition: ${({ theme }) => theme.transitions.fast};
 
-  &:hover {
-    background-color: ${({ theme }) => theme.colors.gray[100]};
-  }
-
-  i {
-    width: 20px;
-    margin-right: 12px;
-    color: ${({ theme }) => theme.colors.gray[600]};
-  }
-
-  @media (prefers-color-scheme: dark) {
     &:hover {
-      background-color: ${({ theme }) => theme.colors.gray[700]};
+        background-color: ${({ theme }) => theme.colors.gray[100]};
     }
 
     i {
-      color: ${({ theme }) => theme.colors.gray[400]};
+        width: 20px;
+        margin-right: 12px;
+        color: ${({ theme }) => theme.colors.gray[600]};
     }
-  }
 `;
 
 const Divider = styled.div`
-  height: 1px;
-  background-color: ${({ theme }) => theme.colors.gray[200]};
-  margin: 4px 0;
-
-  @media (prefers-color-scheme: dark) {
-    background-color: ${({ theme }) => theme.colors.gray[700]};
-  }
+    height: 1px;
+    background-color: ${({ theme }) => theme.colors.gray[200]};
+    margin: 4px 0;
 `;
 
 export const UserProfile: React.FC = () => {

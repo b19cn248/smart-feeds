@@ -1,7 +1,6 @@
-// src/components/features/layout/Sidebar/NavItem.tsx
 import React from 'react';
 import styled, { css } from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { NavItem as NavItemType } from '../../../../types';
 
 const NavItemButton = styled.button<{ isActive?: boolean }>`
@@ -22,20 +21,25 @@ const NavItemButton = styled.button<{ isActive?: boolean }>`
     border: none;
     text-align: left;
     outline: none;
-    -webkit-tap-highlight-color: transparent; // Loại bỏ highlight khi tap trên mobile
+    -webkit-tap-highlight-color: transparent;
+
+    /* Thêm indicator bên trái khi active để tăng tính nổi bật */
+    ${({ isActive, theme }) => isActive && css`
+        box-shadow: inset 3px 0 0 ${theme.colors.primary.main};
+    `}
+
+        /* Style riêng cho dark mode */
+    ${({ isActive, theme }) => theme.colors.background.primary === '#0F172A' && css`
+        &:hover {
+            background-color: ${isActive ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255, 255, 255, 0.05)'};
+        }
+    `}
 
     &:hover, &:active, &:focus {
         background-color: ${({ isActive, theme }) =>
                 isActive ? theme.colors.primary.light : theme.colors.gray[100]};
         color: ${({ isActive, theme }) =>
                 isActive ? theme.colors.primary.main : theme.colors.text.primary};
-    }
-
-    @media (prefers-color-scheme: dark) {
-        &:hover, &:active, &:focus {
-            background-color: ${({ isActive, theme }) =>
-                    isActive ? theme.colors.primary.light : theme.colors.gray[800]};
-        }
     }
 
     i {
@@ -53,6 +57,12 @@ interface NavItemProps {
 
 export const NavItem: React.FC<NavItemProps> = ({ item, onClick }) => {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Kiểm tra xem item có đang active hay không dựa vào đường dẫn hiện tại
+    const isActive = item.path === '/'
+        ? location.pathname === '/'
+        : Boolean(item.path && location.pathname.startsWith(item.path));
 
     const handleClick = (e: React.MouseEvent) => {
         // Ngăn chặn event bubbling
@@ -74,9 +84,9 @@ export const NavItem: React.FC<NavItemProps> = ({ item, onClick }) => {
 
     return (
         <NavItemButton
-            isActive={item.isActive}
+            isActive={isActive}
             onClick={handleClick}
-            type="button" // Đặt type rõ ràng
+            type="button"
         >
             <i className={`fas fa-${item.icon}`} />
             {item.label}

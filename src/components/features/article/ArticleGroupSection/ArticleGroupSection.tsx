@@ -10,10 +10,6 @@ const GroupSection = styled.div`
     border: 1px solid ${({ theme }) => theme.colors.gray[200]};
     border-radius: ${({ theme }) => theme.radii.lg};
     overflow: hidden;
-
-    @media (prefers-color-scheme: dark) {
-        border-color: ${({ theme }) => theme.colors.gray[700]};
-    }
 `;
 
 const GroupHeader = styled.div`
@@ -28,12 +24,6 @@ const GroupHeader = styled.div`
 
     &:hover {
         background-color: ${({ theme }) => theme.colors.gray[100]};
-    }
-
-    @media (prefers-color-scheme: dark) {
-        &:hover {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-        }
     }
 `;
 
@@ -72,10 +62,6 @@ const ArticleCount = styled.span`
     padding: 2px 8px;
     border-radius: 12px;
     margin-left: 8px;
-
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-    }
 `;
 
 const ToggleIcon = styled.div<{ isExpanded: boolean }>`
@@ -101,14 +87,24 @@ const ArticlesGrid = styled.div`
     }
 `;
 
+// Cập nhật style cho ShowMoreButton
 const ShowMoreButton = styled.div`
     display: flex;
     justify-content: center;
     padding: 16px;
     border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
-    
-    @media (prefers-color-scheme: dark) {
-        border-top-color: ${({ theme }) => theme.colors.gray[700]};
+    width: 100%; // Đảm bảo chiều rộng đầy đủ
+
+    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+        padding: 12px 8px; // Giảm padding trên màn hình nhỏ
+    }
+
+    /* Đảm bảo Button cũng responsive */
+    button {
+        @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+            width: 100%; // Sử dụng chiều rộng đầy đủ trên màn hình nhỏ
+            font-size: ${({ theme }) => theme.typography.fontSize.sm}; // Font size nhỏ hơn
+        }
     }
 `;
 

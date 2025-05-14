@@ -23,42 +23,37 @@ const InputContainer = styled.div`
 `;
 
 const StyledInput = styled.input<{ hasError?: boolean; hasLeftIcon?: boolean; hasRightIcon?: boolean }>`
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid ${props => props.hasError ? props.theme.colors.error : props.theme.colors.gray[300]};
-  border-radius: 8px;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  color: ${props => props.theme.colors.text.primary};
-  background-color: ${props => props.theme.colors.background.secondary};
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid ${props => props.hasError ? props.theme.colors.error : props.theme.colors.gray[300]};
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    color: ${props => props.theme.colors.text.primary};
+    background-color: ${props => props.theme.colors.background.secondary};
 
-  &:focus {
-    border-color: ${props => props.hasError ? props.theme.colors.error : props.theme.colors.primary.main};
-    outline: none;
-    box-shadow: 0 0 0 3px ${props => props.hasError ? props.theme.colors.error + '20' : props.theme.colors.primary.main + '20'};
-  }
+    &:focus {
+        border-color: ${props => props.hasError ? props.theme.colors.error : props.theme.colors.primary.main};
+        outline: none;
+        box-shadow: 0 0 0 3px ${props => props.hasError ? props.theme.colors.error + '20' : props.theme.colors.primary.main + '20'};
+    }
 
-  &::placeholder {
-    color: ${props => props.theme.colors.gray[500]};
-  }
+    &::placeholder {
+        color: ${props => props.theme.colors.gray[500]};
+    }
 
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 
-  @media (prefers-color-scheme: dark) {
-    background-color: ${props => props.theme.colors.gray[800]};
-    border-color: ${props => props.hasError ? props.theme.colors.error : props.theme.colors.gray[600]};
-  }
-  
-  ${props => props.hasLeftIcon && css`
-    padding-left: 40px;
-  `}
-  
-  ${props => props.hasRightIcon && css`
-    padding-right: 40px;
-  `}
+    ${props => props.hasLeftIcon && css`
+        padding-left: 40px;
+    `}
+
+    ${props => props.hasRightIcon && css`
+        padding-right: 40px;
+    `}
 `;
 
 const IconWrapper = styled.div<{ position: 'left' | 'right' }>`

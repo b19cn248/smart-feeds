@@ -1,9 +1,11 @@
 // src/components/features/article/ArticleDetail/ArticleDetail.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import DOMPurify from 'dompurify';
 import { Article } from '../../../../types';
 import { formatDate } from '../../../../utils';
+import { useBoard } from '../../../../contexts/BoardContext';
+import { useToast } from '../../../../contexts/ToastContext';
+import { ArticleContentRenderer } from '../ArticleContentRenderer';
 
 const DetailOverlay = styled.div<{ isOpen: boolean }>`
     position: fixed;
@@ -111,82 +113,19 @@ const ArticleDate = styled.div`
     }
 `;
 
-const ArticleBody = styled.div`
-    font-size: ${({ theme }) => theme.typography.fontSize.lg};
-    line-height: 1.7;
-    color: ${({ theme }) => theme.colors.text.primary};
-
-    /* Styles cho nội dung HTML */
-    p {
-        margin-bottom: 16px;
-    }
-
-    img {
-        max-width: 100%;
-        height: auto;
-        display: block;
-        margin: 16px 0;
-        border-radius: ${({ theme }) => theme.radii.md};
-    }
-
-    a {
-        color: ${({ theme }) => theme.colors.primary.main};
-        text-decoration: none;
-
-        &:hover {
-            text-decoration: underline;
-        }
-    }
-
-    h1, h2, h3, h4, h5, h6 {
-        margin: 24px 0 16px 0;
-        font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
-    }
-
-    ul, ol {
-        margin: 16px 0;
-        padding-left: 24px;
-    }
-
-    li {
-        margin-bottom: 8px;
-    }
-
-    blockquote {
-        border-left: 4px solid ${({ theme }) => theme.colors.gray[300]};
-        margin: 16px 0;
-        padding-left: 16px;
-        color: ${({ theme }) => theme.colors.text.secondary};
-    }
-
-    pre {
-        background-color: ${({ theme }) => theme.colors.gray[100]};
-        padding: 16px;
-        border-radius: ${({ theme }) => theme.radii.md};
-        overflow-x: auto;
-        margin: 16px 0;
-
-        @media (prefers-color-scheme: dark) {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-        }
-    }
-
-    code {
-        background-color: ${({ theme }) => theme.colors.gray[100]};
-        padding: 2px 4px;
-        border-radius: ${({ theme }) => theme.radii.sm};
-        font-family: monospace;
-
-        @media (prefers-color-scheme: dark) {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-        }
-    }
+const ArticleImage = styled.img`
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 16px auto;
+    border-radius: ${({ theme }) => theme.radii.md};
 `;
 
 const ActionButtons = styled.div`
     display: flex;
     gap: 12px;
     margin-bottom: 24px;
+    position: relative;
 `;
 
 const ActionButton = styled.button`
@@ -206,12 +145,60 @@ const ActionButton = styled.button`
     }
 `;
 
-const ArticleImage = styled.img`
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 16px auto;
+const BoardsDropdown = styled.div`
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 240px;
+    background-color: ${({ theme }) => theme.colors.background.secondary};
     border-radius: ${({ theme }) => theme.radii.md};
+    box-shadow: ${({ theme }) => theme.shadows.lg};
+    z-index: 1000;
+    overflow: hidden;
+    border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+    
+`;
+
+const DropdownHeader = styled.div`
+    padding: 12px 16px;
+    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
+    font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+    
+`;
+
+const DropdownContent = styled.div`
+    max-height: 240px;
+    overflow-y: auto;
+`;
+
+const BoardItem = styled.div`
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[100]};
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &:hover {
+        background-color: ${({ theme }) => theme.colors.gray[100]};
+    }
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    i {
+        font-size: 14px;
+        color: ${({ theme }) => theme.colors.text.secondary};
+    }
+`;
+
+const EmptyBoardsList = styled.div`
+    padding: 16px;
+    text-align: center;
+    color: ${({ theme }) => theme.colors.text.secondary};
+    font-size: ${({ theme }) => theme.typography.fontSize.sm};
 `;
 
 interface ArticleDetailProps {
@@ -225,6 +212,11 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
                                                                 isOpen,
                                                                 onClose,
                                                             }) => {
+    const { boards, addArticleToBoard } = useBoard();
+    const { showToast } = useToast();
+    const [showBoardsMenu, setShowBoardsMenu] = useState(false);
+    const [hasImageInContent, setHasImageInContent] = useState(false);
+
     if (!article) return null;
 
     const handleOverlayClick = (e: React.MouseEvent) => {
@@ -233,39 +225,31 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
         }
     };
 
-    // Sanitize HTML content để tránh XSS attacks
-    const sanitizeHtml = (html: string) => {
-        return DOMPurify.sanitize(html, {
-            ALLOWED_TAGS: [
-                'p', 'br', 'b', 'i', 'em', 'strong', 'a',
-                'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-                'ul', 'ol', 'li', 'blockquote', 'pre', 'code',
-                'div', 'span'
-                // Đã xóa 'img' khỏi danh sách thẻ được phép
-            ],
-            ALLOWED_ATTR: [
-                'href', 'alt', 'title', 'class', 'id',
-                'width', 'height', 'target', 'rel'
-                // Đã xóa 'src' khỏi danh sách attributes được phép
-            ],
-            ALLOW_DATA_ATTR: false
-        });
+    const handleAddToBoard = async (boardId: number) => {
+        try {
+            await addArticleToBoard(boardId, { article_id: article.id });
+            showToast('success', 'Success', 'Article added to board successfully');
+            setShowBoardsMenu(false);
+        } catch (error) {
+            showToast('error', 'Error', 'Failed to add article to board');
+        }
     };
 
     // Xác định nguồn bài viết
     const getSourceText = () => {
         if (!article.source) return 'Unknown source';
         if (typeof article.source === 'object' && article.source !== null) {
-            // Sử dụng any để tránh lỗi TypeScript
-            const sourceObj = article.source as any;
+            const sourceObj = article.source as Record<string, any>;
             return sourceObj.url || 'Unknown source';
         }
         return String(article.source);
     };
 
-    // Sử dụng image_url trực tiếp thay vì extractFirstImage từ content
+    // Sử dụng image_url trực tiếp
     const featuredImage = article.image_url;
-    const sanitizedContent = sanitizeHtml(article.content);
+
+    // Kiểm tra xem có nên hiển thị ảnh chính không
+    const shouldShowFeaturedImage = featuredImage && !hasImageInContent;
 
     return (
         <>
@@ -277,10 +261,37 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
                             <i className="fas fa-external-link-alt" />
                             Open original
                         </ActionButton>
+                        <ActionButton onClick={() => setShowBoardsMenu(!showBoardsMenu)}>
+                            <i className="fas fa-clipboard" />
+                            Add to board
+                        </ActionButton>
                         <ActionButton>
                             <i className="fas fa-share" />
                             Share
                         </ActionButton>
+
+                        {showBoardsMenu && (
+                            <BoardsDropdown>
+                                <DropdownHeader>Select a board</DropdownHeader>
+                                <DropdownContent>
+                                    {boards.length > 0 ? (
+                                        boards.map(board => (
+                                            <BoardItem
+                                                key={board.id}
+                                                onClick={() => handleAddToBoard(board.id)}
+                                            >
+                                                <i className={`fas fa-${board.icon || 'clipboard'}`} />
+                                                {board.name}
+                                            </BoardItem>
+                                        ))
+                                    ) : (
+                                        <EmptyBoardsList>
+                                            No boards available. Create a board first.
+                                        </EmptyBoardsList>
+                                    )}
+                                </DropdownContent>
+                            </BoardsDropdown>
+                        )}
                     </ActionButtons>
                     <CloseButton onClick={onClose}>
                         <i className="fas fa-times" />
@@ -290,8 +301,8 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
                 <DetailContent>
                     <ArticleTitle>{article.title}</ArticleTitle>
 
-                    {/* Hiển thị featured image từ image_url nếu có */}
-                    {featuredImage && (
+                    {/* Hiển thị featured image nếu có và không phát hiện trong nội dung */}
+                    {shouldShowFeaturedImage && (
                         <ArticleImage
                             src={featuredImage}
                             alt={article.title}
@@ -318,8 +329,10 @@ export const ArticleDetail: React.FC<ArticleDetailProps> = ({
                         </ArticleDate>
                     </ArticleMeta>
 
-                    <ArticleBody
-                        dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+                    {/* Sử dụng ArticleContentRenderer để hiển thị nội dung */}
+                    <ArticleContentRenderer
+                        article={article}
+                        featuredImage={featuredImage}
                     />
                 </DetailContent>
             </DetailPanel>

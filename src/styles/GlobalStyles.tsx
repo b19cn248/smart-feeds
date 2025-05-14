@@ -22,8 +22,7 @@ export const GlobalStyles = createGlobalStyle`
         background-color: ${({ theme }) => theme.colors.background.primary};
         color: ${({ theme }) => theme.colors.text.primary};
         line-height: ${({ theme }) => theme.typography.lineHeight.normal};
-        ${customScrollbar}
-            /* Thêm transition để chuyển đổi theme mượt mà */
+        ${customScrollbar};
         transition: background-color 0.3s ease, color 0.3s ease;
     }
 

@@ -1,15 +1,27 @@
 // src/pages/ArticlesPage/ArticlesPage.tsx
-import React, { useState, useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import styled from 'styled-components';
-import { Article, ArticleGroup } from '../../types';
-import { articleService } from '../../services/articleService';
-import { ArticleGroupSection } from '../../components/features/article/ArticleGroupSection';
-import { ArticleDetail } from '../../components/features/article/ArticleDetail';
-import { SourceNavigator } from '../../components/features/article/SourceNavigator';
-import { Input } from '../../components/common/Input';
-import { useDebounce } from '../../hooks';
-import { Button } from '../../components/common/Button';
-import { LoadingScreen } from '../../components/common/LoadingScreen';
+import {FolderArticle, FolderWithArticles} from '../../types/folderArticles.types';
+import {folderArticlesService} from '../../services/folderArticlesService';
+import {Input} from '../../components/common/Input';
+import {Button} from '../../components/common/Button';
+import {LoadingScreen} from '../../components/common/LoadingScreen';
+import {useDebounce} from '../../hooks';
+import {useLocalStorage} from '../../hooks/useLocalStorage';
+import {ViewMode, ViewSelector} from '../../components/features/article/ViewSelector';
+import {EnhancedArticleDetail} from '../../components/features/article/EnhancedArticleDetail';
+import {useBoard} from '../../contexts/BoardContext';
+import {useToast} from '../../contexts/ToastContext';
+import {FolderArticlesSection} from '../../components/features/article/FolderArticlesSection';
+import { MagazineFolderView, TitleOnlyFolderView, CardsFolderView } from '../../components/features/article/ViewModes';
+
+
+
+const PageContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 64px);
+`;
 
 const PageHeader = styled.div`
     display: flex;
@@ -19,23 +31,23 @@ const PageHeader = styled.div`
     flex-wrap: wrap;
     gap: 16px;
 
-    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    @media (max-width: ${({theme}) => theme.breakpoints.sm}) {
         flex-direction: column;
         align-items: stretch;
     }
 `;
 
 const PageTitle = styled.h1`
-    font-size: ${({ theme }) => theme.typography.fontSize['3xl']};
-    font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
-    color: ${({ theme }) => theme.colors.text.primary};
+    font-size: ${({theme}) => theme.typography.fontSize['3xl']};
+    font-weight: ${({theme}) => theme.typography.fontWeight.bold};
+    color: ${({theme}) => theme.colors.text.primary};
     display: flex;
     align-items: center;
     gap: 12px;
     margin: 0;
 
     i {
-        color: ${({ theme }) => theme.colors.primary.main};
+        color: ${({theme}) => theme.colors.primary.main};
     }
 `;
 
@@ -43,8 +55,9 @@ const Actions = styled.div`
     display: flex;
     gap: 12px;
     align-items: center;
+    flex-wrap: wrap;
 
-    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    @media (max-width: ${({theme}) => theme.breakpoints.sm}) {
         width: 100%;
         justify-content: space-between;
     }
@@ -52,100 +65,220 @@ const Actions = styled.div`
 
 const SearchWrapper = styled.div`
     position: relative;
-    max-width: 240px;
-    width: 100%;
+    width: 240px;
 
-    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
-        max-width: 100%;
+    @media (max-width: ${({theme}) => theme.breakpoints.sm}) {
+        width: 100%;
     }
+`;
+
+const FilterBar = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 12px 16px;
+    background-color: ${({theme}) => theme.colors.background.secondary};
+    border-radius: ${({theme}) => theme.radii.lg};
+    box-shadow: ${({theme}) => theme.shadows.sm};
+
+    @media (max-width: ${({theme}) => theme.breakpoints.sm}) {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+`;
+
+const FilterActions = styled.div`
+    display: flex;
+    gap: 12px;
+    align-items: center;
+
+    @media (max-width: ${({theme}) => theme.breakpoints.sm}) {
+        width: 100%;
+        justify-content: space-between;
+    }
+`;
+
+const SortSelect = styled.select`
+    padding: 8px 12px;
+    border-radius: ${({theme}) => theme.radii.md};
+    border: 1px solid ${({theme}) => theme.colors.gray[300]};
+    background-color: ${({theme}) => theme.colors.background.secondary};
+    color: ${({theme}) => theme.colors.text.primary};
+    font-size: ${({theme}) => theme.typography.fontSize.sm};
 `;
 
 const EmptyState = styled.div`
     text-align: center;
     padding: 48px 0;
+    background-color: ${({theme}) => theme.colors.background.secondary};
+    border-radius: ${({theme}) => theme.radii.lg};
+    border: 2px dashed ${({theme}) => theme.colors.gray[200]};
+    margin-top: 24px;
 `;
 
 const EmptyStateIcon = styled.div`
     font-size: 48px;
-    color: ${({ theme }) => theme.colors.gray[400]};
+    color: ${({theme}) => theme.colors.gray[400]};
     margin-bottom: 16px;
 `;
 
 const EmptyStateText = styled.p`
-    font-size: ${({ theme }) => theme.typography.fontSize.lg};
-    color: ${({ theme }) => theme.colors.text.secondary};
+    font-size: ${({theme}) => theme.typography.fontSize.lg};
+    color: ${({theme}) => theme.colors.text.secondary};
     margin-bottom: 24px;
 `;
 
-// Thêm component cho tính năng "Expand All" / "Collapse All"
-const ExpandCollapseControl = styled.div`
+const ArticlesContainer = styled.div<{ view: ViewMode }>`
+    flex: 1;
+    background-color: ${({view, theme}) =>
+    view === 'title-only' ? theme.colors.background.secondary : 'transparent'};
+    border-radius: ${({view, theme}) =>
+    view === 'title-only' ? theme.radii.lg : '0'};
+    overflow: hidden;
+
+    /* Đảm bảo grid layout hoạt động chính xác */
+    display: ${({view}) => view === 'cards' ? 'grid' : 'block'};
+    grid-template-rows: auto;
+    grid-auto-rows: 1fr;
+`;
+
+const Pagination = styled.div`
     display: flex;
-    justify-content: flex-end;
-    margin-bottom: 16px;
+    justify-content: center;
+    margin-top: 32px;
+    gap: 8px;
+    flex-wrap: wrap; /* Ensure buttons wrap on small screens */
+    padding: 0 16px; /* Add padding for small screens */
+`;
+
+const PageButton = styled.button<{ isActive?: boolean }>`
+    min-width: 36px;
+    height: 36px;
+    border-radius: ${({theme}) => theme.radii.md};
+    border: 1px solid ${({isActive, theme}) =>
+            isActive ? theme.colors.primary.main : theme.colors.gray[300]};
+    background-color: ${({isActive, theme}) =>
+            isActive ? theme.colors.primary.light : 'transparent'};
+    color: ${({isActive, theme}) =>
+            isActive ? theme.colors.primary.main : theme.colors.text.primary};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: ${({theme}) => theme.transitions.default};
+
+    &:hover:not(:disabled) {
+        background-color: ${({theme}) => theme.colors.gray[100]};
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    @media (max-width: ${({theme}) => theme.breakpoints.sm}) {
+        min-width: 32px;
+        height: 32px;
+        font-size: ${({theme}) => theme.typography.fontSize.sm};
+    }
 `;
 
 export const ArticlesPage: React.FC = () => {
-    // Thay đổi state để lưu trữ nhóm articles thay vì danh sách articles phẳng
-    const [articleGroups, setArticleGroups] = useState<ArticleGroup[]>([]);
-    const [filteredArticleGroups, setFilteredArticleGroups] = useState<ArticleGroup[]>([]);
+    // State
+    const [folders, setFolders] = useState<FolderWithArticles[]>([]);
+    const [filteredFolders, setFilteredFolders] = useState<FolderWithArticles[]>([]);
+    const [allArticles, setAllArticles] = useState<FolderArticle[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+    const [selectedArticle, setSelectedArticle] = useState<FolderArticle | null>(null);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
+    const [viewMode, setViewMode] = useLocalStorage<ViewMode>('article-view-mode', 'cards');
+    const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+    const [currentPage, setCurrentPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
 
-    // State mới
-    const [allExpanded, setAllExpanded] = useState(false);
-
+    // Hooks
     const debouncedSearch = useDebounce(searchQuery, 300);
+    const {boards, addArticleToBoard} = useBoard();
+    const {showToast} = useToast();
 
+    // Fetch folders with articles
     useEffect(() => {
-        fetchArticles();
-    }, []);
+        fetchFoldersWithArticles();
+    }, [currentPage]);
 
-    const fetchArticles = async () => {
+    const fetchFoldersWithArticles = async () => {
         try {
             setIsLoading(true);
             setError(null);
-            const response = await articleService.getArticles();
-            setArticleGroups(response.data.content);
-            setFilteredArticleGroups(response.data.content);
+            // Sử dụng các thông số API đúng theo tài liệu
+            const response = await folderArticlesService.getFoldersWithArticles(
+                currentPage,     // page
+                10,              // size
+                'createdAt,DESC', // sort
+                6             // article_size
+            );
+            setFolders(response.data.content);
+            setFilteredFolders(response.data.content);
+            setTotalPages(response.data.total_pages);
         } catch (error) {
-            console.error('Error fetching articles:', error);
+            console.error('Error fetching folders with articles:', error);
             setError('Failed to load articles. Please try again.');
         } finally {
             setIsLoading(false);
         }
     };
 
+    // Filter folders based on search query
     useEffect(() => {
         if (debouncedSearch.trim() === '') {
-            setFilteredArticleGroups(articleGroups);
+            setFilteredFolders(folders);
             return;
         }
 
         const lowerCaseQuery = debouncedSearch.toLowerCase();
-        // Lọc theo nhóm và articles trong nhóm
-        const filtered = articleGroups.map(group => {
-            const filteredArticles = group.articles.filter(
+        const filtered = folders.filter(folder => {
+            // Search in folder name
+            if (folder.name.toLowerCase().includes(lowerCaseQuery)) {
+                return true;
+            }
+
+            // Search in articles
+            return folder.articles.some(
                 article =>
                     article.title?.toLowerCase().includes(lowerCaseQuery) ||
                     article.content?.toLowerCase().includes(lowerCaseQuery) ||
-                    article.source?.toLowerCase().includes(lowerCaseQuery) ||
+                    article.source?.toString().toLowerCase().includes(lowerCaseQuery) ||
                     article.author?.toLowerCase().includes(lowerCaseQuery)
             );
+        });
 
-            // Trả về nhóm mới với article đã lọc
-            return {
-                ...group,
-                articles: filteredArticles
-            };
-        }).filter(group => group.articles.length > 0); // Chỉ giữ các nhóm có article
+        setFilteredFolders(filtered);
+    }, [debouncedSearch, folders]);
 
-        setFilteredArticleGroups(filtered);
-    }, [debouncedSearch, articleGroups]);
+    // Flatten articles from all folders and sort them
+    useEffect(() => {
+        // Collect all articles from all folders
+        const articles: FolderArticle[] = [];
+        filteredFolders.forEach(folder => {
+            articles.push(...folder.articles);
+        });
 
-    const handleArticleClick = (article: Article) => {
+        // Sort articles by date
+        const sortedArticles = [...articles].sort((a, b) => {
+            const dateA = new Date(a.publish_date).getTime();
+            const dateB = new Date(b.publish_date).getTime();
+            return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+        });
+
+        setAllArticles(sortedArticles);
+    }, [filteredFolders, sortOrder]);
+
+    // Handlers
+    const handleArticleClick = (article: FolderArticle) => {
         setSelectedArticle(article);
         setIsDetailOpen(true);
     };
@@ -158,44 +291,60 @@ export const ArticlesPage: React.FC = () => {
         }, 300);
     };
 
-    // Hàm mới để scroll đến một nguồn cụ thể
-    const scrollToSource = (sourceId: number) => {
-        const elementId = `source-${sourceId}`;
-        const element = document.getElementById(elementId);
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const handleSaveArticle = async (article: FolderArticle) => {
+        if (boards.length === 0) {
+            showToast('warning', 'No Boards Available', 'Create a board first to save articles');
+            return;
+        }
+
+        try {
+            if (boards.length === 1) {
+                // If there's only one board, save directly to it
+                await addArticleToBoard(boards[0].id, {article_id: article.id});
+                showToast('success', 'Article Saved', `Article saved to ${boards[0].name}`);
+            } else {
+                // Otherwise, open article detail with save dialog
+                setSelectedArticle(article);
+                setIsDetailOpen(true);
+            }
+        } catch (error) {
+            showToast('error', 'Error', 'Failed to save article');
         }
     };
 
-    // Hàm xử lý expand/collapse tất cả
-    const toggleAllExpanded = () => {
-        setAllExpanded(!allExpanded);
+    const handlePageChange = (page: number) => {
+        setCurrentPage(page);
+        // Scroll to top when changing page
+        window.scrollTo({top: 0, behavior: 'smooth'});
     };
 
-    if (isLoading) {
-        return <LoadingScreen />;
+    // Loading state
+    if (isLoading && folders.length === 0) {
+        return <LoadingScreen/>;
     }
 
+    // Error state
     if (error) {
         return (
             <EmptyState>
                 <EmptyStateIcon>
-                    <i className="fas fa-exclamation-triangle" />
+                    <i className="fas fa-exclamation-triangle"/>
                 </EmptyStateIcon>
                 <EmptyStateText>{error}</EmptyStateText>
-                <Button onClick={fetchArticles}>Retry</Button>
+                <Button onClick={fetchFoldersWithArticles}>Retry</Button>
             </EmptyState>
         );
     }
 
-    // Kiểm tra xem có bất kỳ nhóm nào có ít nhất một bài viết không
-    const hasArticles = filteredArticleGroups.some(group => group.articles.length > 0);
+    // Check if we have any folders
+    const hasFolders = filteredFolders.length > 0;
 
+    // Render
     return (
-        <>
+        <PageContainer>
             <PageHeader>
                 <PageTitle>
-                    <i className="fas fa-home" />
+                    <i className="fas fa-home"/>
                     Home
                 </PageTitle>
 
@@ -209,54 +358,96 @@ export const ArticlesPage: React.FC = () => {
                             leftIcon="search"
                         />
                     </SearchWrapper>
-
-                    <Button leftIcon="sync" onClick={fetchArticles}>
+                    <Button leftIcon="sync" onClick={fetchFoldersWithArticles}>
                         Refresh
                     </Button>
                 </Actions>
             </PageHeader>
 
-            {/* Thêm thanh điều hướng nguồn */}
-            {hasArticles && (
-                <SourceNavigator
-                    groups={filteredArticleGroups}
-                    onSourceClick={scrollToSource}
-                />
-            )}
-
-            {/* Thêm điều khiển expand/collapse tất cả */}
-            {hasArticles && filteredArticleGroups.length > 1 && (
-                <ExpandCollapseControl>
-                    <Button
-                        variant="ghost"
-                        onClick={toggleAllExpanded}
-                        leftIcon={allExpanded ? "compress-alt" : "expand-alt"}
-                    >
-                        {allExpanded ? "Collapse All" : "Expand All"}
-                    </Button>
-                </ExpandCollapseControl>
-            )}
-
-            {hasArticles ? (
-                // Hiển thị các nhóm articles
+            {hasFolders && (
                 <>
-                    {filteredArticleGroups.map((group) => (
-                        // Chỉ hiển thị nhóm nếu có ít nhất một bài viết
-                        group.articles.length > 0 && (
-                            <ArticleGroupSection
-                                key={`source-${group.source.id}`}
-                                id={`source-${group.source.id}`}
-                                group={group}
+                    <FilterBar>
+                        <ViewSelector activeView={viewMode} onChange={setViewMode}/>
+
+                        <FilterActions>
+                            <SortSelect
+                                value={sortOrder}
+                                onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
+                            >
+                                <option value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                            </SortSelect>
+                        </FilterActions>
+                    </FilterBar>
+
+                    <ArticlesContainer view={viewMode}>
+                        {viewMode === 'cards' && (
+                            // Cards View - Sử dụng component CardsFolderView mới
+                            <CardsFolderView
+                                folders={filteredFolders}
                                 onArticleClick={handleArticleClick}
-                                isInitiallyExpanded={allExpanded || filteredArticleGroups.length === 1}
+                                onSaveArticle={handleSaveArticle}
                             />
-                        )
-                    ))}
+                        )}
+
+                        {viewMode === 'magazine' && (
+                            // Magazine View - Sử dụng component mới nhóm theo folder
+                            <MagazineFolderView
+                                folders={filteredFolders}
+                                onArticleClick={handleArticleClick}
+                                onSaveArticle={handleSaveArticle}
+                            />
+                        )}
+
+                        {viewMode === 'title-only' && (
+                            // Title-Only View - Sử dụng component mới nhóm theo folder
+                            <TitleOnlyFolderView
+                                folders={filteredFolders}
+                                onArticleClick={handleArticleClick}
+                                onSaveArticle={handleSaveArticle}
+                            />
+                        )}
+                    </ArticlesContainer>
+
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <Pagination>
+                            <PageButton
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                disabled={currentPage === 0}
+                                aria-label="Previous page"
+                            >
+                                <i className="fas fa-chevron-left"/>
+                            </PageButton>
+
+                            {Array.from({length: totalPages}, (_, i) => (
+                                <PageButton
+                                    key={i}
+                                    isActive={i === currentPage}
+                                    onClick={() => handlePageChange(i)}
+                                    aria-label={`Page ${i + 1}`}
+                                >
+                                    {i + 1}
+                                </PageButton>
+                            ))}
+
+                            <PageButton
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                disabled={currentPage === totalPages - 1}
+                                aria-label="Next page"
+                            >
+                                <i className="fas fa-chevron-right"/>
+                            </PageButton>
+                        </Pagination>
+                    )}
                 </>
-            ) : (
+            )}
+
+            {/* Empty state */}
+            {!hasFolders && (
                 <EmptyState>
                     <EmptyStateIcon>
-                        <i className="fas fa-newspaper" />
+                        <i className="fas fa-newspaper"/>
                     </EmptyStateIcon>
                     <EmptyStateText>
                         {debouncedSearch
@@ -271,11 +462,12 @@ export const ArticlesPage: React.FC = () => {
                 </EmptyState>
             )}
 
-            <ArticleDetail
+            {/* Article Detail */}
+            <EnhancedArticleDetail
                 article={selectedArticle}
                 isOpen={isDetailOpen}
                 onClose={handleCloseDetail}
             />
-        </>
+        </PageContainer>
     );
 };

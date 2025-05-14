@@ -1,10 +1,12 @@
 // src/types/article.types.ts
 import { Source } from './source.types';
 
+// src/types/article.types.ts
 export interface Article {
     id: number;
     title: string;
     content: string;
+    content_encoded?: string; // Thêm trường này
     publish_date: string;
     summary: string | null;
     event: string | null;
@@ -12,6 +14,8 @@ export interface Article {
     url: string;
     author: string;
     image_url: string;
+    content_snippet?: string; // Thêm trường này
+    content_encoded_snippet?: string; // Thêm trường này
 }
 
 // Thêm interface mới cho nhóm bài viết theo nguồn
