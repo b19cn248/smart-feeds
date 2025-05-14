@@ -1,20 +1,24 @@
 // src/pages/TeamBoardDetailPage/TeamBoardDetailPage.tsx
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import {useNavigate, useParams} from 'react-router-dom';
-import {useTeamBoard} from '../../contexts/TeamBoardContext';
-import {useTeam} from '../../contexts/TeamContext';
-import {useAuth} from '../../contexts/AuthContext';
-import {Button} from '../../components/common/Button';
-import {Modal} from '../../components/common/Modal';
-import {LoadingScreen} from '../../components/common/LoadingScreen';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useTeamBoard } from '../../contexts/TeamBoardContext';
+import { useTeam } from '../../contexts/TeamContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { Button } from '../../components/common/Button';
+import { Modal } from '../../components/common/Modal';
+import { LoadingScreen } from '../../components/common/LoadingScreen';
+import { Article } from '../../types';
 import {
     ShareBoardForm,
     TeamBoardForm,
     TeamMemberList,
-    UpdatePermissionForm // Thêm import UpdatePermissionForm
+    UpdatePermissionForm
 } from '../../components/features/teamBoard';
-import { TeamBoardUser } from '../../types'; // Thêm import TeamBoardUser
+import { TeamBoardUser } from '../../types';
+import { TeamBoardArticleCard } from '../../components/features/teamBoard/ArticleCard';
+import { AddArticleModal } from '../../components/features/teamBoard/AddArticleModal';
+import { EnhancedArticleDetail } from '../../components/features/article/EnhancedArticleDetail';
 
 const PageHeader = styled.div`
     display: flex;
@@ -74,9 +78,9 @@ const TabButton = styled.button<{ active: boolean }>`
     border: none;
     font-size: ${({theme}) => theme.typography.fontSize.md};
     font-weight: ${({
-                        active,
-                        theme
-                    }) => active ? theme.typography.fontWeight.semibold : theme.typography.fontWeight.medium};
+                                                                                                                                        active,
+                                                                                                                                        theme
+                                                                                                                                    }) => active ? theme.typography.fontWeight.semibold : theme.typography.fontWeight.medium};
     color: ${({active, theme}) => active ? theme.colors.primary.main : theme.colors.text.secondary};
     cursor: pointer;
     position: relative;
@@ -98,6 +102,13 @@ const TabButton = styled.button<{ active: boolean }>`
     }
 `;
 
+const ArticlesHeader = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+`;
+
 const SectionTitle = styled.h2`
     font-size: ${({theme}) => theme.typography.fontSize.xl};
     font-weight: ${({theme}) => theme.typography.fontWeight.semibold};
@@ -108,7 +119,7 @@ const SectionTitle = styled.h2`
 const ArticlesGrid = styled.div`
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
+    gap: 24px;
     margin-top: 24px;
 `;
 
@@ -153,7 +164,7 @@ export const TeamBoardDetailPage: React.FC = () => {
         deleteTeamBoard,
         shareTeamBoard,
         removeArticleFromTeamBoard,
-        // Thêm hai phương thức mới từ context
+        addArticleToTeamBoard,
         updateMemberPermission,
         removeMember
     } = useTeamBoard();
@@ -164,11 +175,13 @@ export const TeamBoardDetailPage: React.FC = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
-    // Thêm state cho quản lý quyền và xóa thành viên
     const [showUpdatePermissionModal, setShowUpdatePermissionModal] = useState(false);
     const [showRemoveMemberModal, setShowRemoveMemberModal] = useState(false);
+    const [showAddArticleModal, setShowAddArticleModal] = useState(false);
     const [selectedMember, setSelectedMember] = useState<TeamBoardUser | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+    const [showArticleDetailModal, setShowArticleDetailModal] = useState(false);
 
     // Fetch board details on mount and when ID changes
     useEffect(() => {
@@ -220,10 +233,29 @@ export const TeamBoardDetailPage: React.FC = () => {
     // Handle article removal
     const handleRemoveArticle = async (articleId: number) => {
         if (!boardId) return;
+        setIsSubmitting(true);
         await removeArticleFromTeamBoard(parseInt(boardId), articleId);
+        setIsSubmitting(false);
     };
 
-    // Thêm handler cập nhật quyền
+    // Handle add article
+    const handleAddArticle = async (articleId: number) => {
+        if (!boardId) return false;
+
+        setIsSubmitting(true);
+        const success = await addArticleToTeamBoard(parseInt(boardId), articleId);
+        setIsSubmitting(false);
+
+        return success;
+    };
+
+    // Handle view article
+    const handleViewArticle = (article: Article) => {
+        setSelectedArticle(article);
+        setShowArticleDetailModal(true);
+    };
+
+    // Handle edit permission
     const handleEditPermission = (userId: number) => {
         if (!teamBoardDetail) return;
 
@@ -234,7 +266,7 @@ export const TeamBoardDetailPage: React.FC = () => {
         }
     };
 
-    // Thêm handler xóa thành viên
+    // Handle remove member
     const handleRemoveMember = (userId: number) => {
         if (!teamBoardDetail) return;
 
@@ -245,7 +277,7 @@ export const TeamBoardDetailPage: React.FC = () => {
         }
     };
 
-    // Thêm handler cập nhật quyền
+    // Handle update permission
     const handleUpdatePermission = async (userId: number, email: string, permission: string) => {
         if (!boardId) return;
 
@@ -259,7 +291,7 @@ export const TeamBoardDetailPage: React.FC = () => {
         }
     };
 
-    // Thêm handler xác nhận xóa thành viên
+    // Handle confirm remove member
     const handleConfirmRemoveMember = async () => {
         if (!boardId || !selectedMember) return;
 
@@ -329,7 +361,7 @@ export const TeamBoardDetailPage: React.FC = () => {
                     active={activeTab === 'articles'}
                     onClick={() => setActiveTab('articles')}
                 >
-                    Articles
+                    Articles ({teamBoardDetail.articles.content.length})
                 </TabButton>
                 <TabButton
                     active={activeTab === 'members'}
@@ -341,7 +373,18 @@ export const TeamBoardDetailPage: React.FC = () => {
 
             {activeTab === 'articles' && (
                 <>
-                    <SectionTitle>Articles</SectionTitle>
+                    <ArticlesHeader>
+                        <SectionTitle>Articles</SectionTitle>
+                        {hasEditPermission && (
+                            <Button
+                                onClick={() => setShowAddArticleModal(true)}
+                                leftIcon="plus"
+                                size="sm"
+                            >
+                                Add Article
+                            </Button>
+                        )}
+                    </ArticlesHeader>
 
                     {teamBoardDetail.articles.content.length === 0 ? (
                         <EmptyState>
@@ -352,7 +395,10 @@ export const TeamBoardDetailPage: React.FC = () => {
                                 No articles yet. Start adding articles to this board.
                             </EmptyStateText>
                             {hasEditPermission && (
-                                <Button leftIcon="plus">
+                                <Button
+                                    leftIcon="plus"
+                                    onClick={() => setShowAddArticleModal(true)}
+                                >
                                     Add Article
                                 </Button>
                             )}
@@ -360,20 +406,12 @@ export const TeamBoardDetailPage: React.FC = () => {
                     ) : (
                         <ArticlesGrid>
                             {teamBoardDetail.articles.content.map(article => (
-                                <div key={article.id}>
-                                    <h3>{article.title}</h3>
-                                    <p>{article.summary}</p>
-                                    {hasEditPermission && (
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            leftIcon="times"
-                                            onClick={() => handleRemoveArticle(article.id)}
-                                        >
-                                            Remove
-                                        </Button>
-                                    )}
-                                </div>
+                                <TeamBoardArticleCard
+                                    key={article.id}
+                                    article={article}
+                                    onRemove={handleRemoveArticle}
+                                    onView={handleViewArticle}
+                                />
                             ))}
                         </ArticlesGrid>
                     )}
@@ -387,7 +425,6 @@ export const TeamBoardDetailPage: React.FC = () => {
                     <TeamMemberList
                         members={teamBoardDetail.members}
                         currentUserId={user?.id}
-                        // Thêm handlers cho cập nhật quyền và xóa thành viên
                         onEditPermission={hasEditPermission ? handleEditPermission : undefined}
                         onRemoveMember={hasEditPermission ? handleRemoveMember : undefined}
                     />
@@ -453,7 +490,21 @@ export const TeamBoardDetailPage: React.FC = () => {
                 />
             </Modal>
 
-            {/* Thêm Update Permission Modal */}
+            {/* Add Article Modal */}
+            <Modal
+                isOpen={showAddArticleModal}
+                onClose={() => setShowAddArticleModal(false)}
+                title="Add Article to Team Board"
+                size="sm"
+            >
+                <AddArticleModal
+                    onSubmit={handleAddArticle}
+                    onCancel={() => setShowAddArticleModal(false)}
+                    isLoading={isSubmitting}
+                />
+            </Modal>
+
+            {/* Update Permission Modal */}
             <Modal
                 isOpen={showUpdatePermissionModal}
                 onClose={() => setShowUpdatePermissionModal(false)}
@@ -470,7 +521,7 @@ export const TeamBoardDetailPage: React.FC = () => {
                 )}
             </Modal>
 
-            {/* Thêm Remove Member Confirmation Modal */}
+            {/* Remove Member Confirmation Modal */}
             <Modal
                 isOpen={showRemoveMemberModal}
                 onClose={() => setShowRemoveMemberModal(false)}
@@ -503,6 +554,18 @@ export const TeamBoardDetailPage: React.FC = () => {
                     </>
                 )}
             </Modal>
+
+            {/* Article Detail Modal */}
+            {selectedArticle && (
+                <EnhancedArticleDetail
+                    article={selectedArticle}
+                    isOpen={showArticleDetailModal}
+                    onClose={() => {
+                        setShowArticleDetailModal(false);
+                        setSelectedArticle(null);
+                    }}
+                />
+            )}
         </>
     );
 };
