@@ -1,6 +1,6 @@
 // src/contexts/TeamBoardContext/TeamBoardContext.tsx
 import React, { createContext, useReducer, useCallback, ReactNode, useEffect } from 'react';
-import { TeamBoard, TeamBoardDetail } from '../../types';
+import { TeamBoard, TeamBoardDetail, TeamBoardNewsletterCreateRequest } from '../../types';
 import { teamBoardService } from '../../services';
 import { useToast } from '../ToastContext';
 import { getArticleActionMessage } from '../../utils/notification.utils';
@@ -33,6 +33,14 @@ interface TeamBoardContextValue {
     // Thêm hai phương thức mới
     updateMemberPermission: (boardId: number, userId: number, email: string, permission: string) => Promise<boolean>;
     removeMember: (boardId: number, userId: number) => Promise<boolean>;
+    // Thêm phương thức tạo newsletter
+    createNewsletter: (
+        boardId: number,
+        title: string,
+        recipients: string[],
+        articleIds: number[],
+        scheduleType: 'DAILY' | 'WEEKLY' | 'MONTHLY' |  'IMMEDIATE'
+    ) => Promise<boolean>;
 }
 
 // Initial state
@@ -361,6 +369,35 @@ export const TeamBoardProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     }, [fetchTeamBoardDetail, showToast, state.teamBoardDetail]);
 
+    // Thêm hàm createNewsletter
+    const createNewsletter = useCallback(async (
+        boardId: number,
+        title: string,
+        recipients: string[],
+        articleIds: number[],
+        scheduleType: 'DAILY' | 'WEEKLY' | 'MONTHLY' |  'IMMEDIATE'
+    ) => {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        dispatch({ type: 'SET_ERROR', payload: null });
+        try {
+            await teamBoardService.createNewsletter(boardId, {
+                title,
+                recipients,
+                article_ids: articleIds,
+                schedule_type: scheduleType
+            });
+            showToast('success', 'Success', 'Newsletter created successfully');
+            return true;
+        } catch (error) {
+            console.error('Error creating newsletter:', error);
+            dispatch({ type: 'SET_ERROR', payload: 'Failed to create newsletter' });
+            showToast('error', 'Error', 'Failed to create newsletter');
+            return false;
+        } finally {
+            dispatch({ type: 'SET_LOADING', payload: false });
+        }
+    }, [showToast]);
+
     // Fetch team boards when component mounts
     useEffect(() => {
         fetchTeamBoards();
@@ -380,9 +417,9 @@ export const TeamBoardProvider: React.FC<{ children: ReactNode }> = ({ children 
         shareTeamBoard,
         addArticleToTeamBoard,
         removeArticleFromTeamBoard,
-        // Thêm hai phương thức mới vào value
         updateMemberPermission,
-        removeMember
+        removeMember,
+        createNewsletter
     };
 
     return (

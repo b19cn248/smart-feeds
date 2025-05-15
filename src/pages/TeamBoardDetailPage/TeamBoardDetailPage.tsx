@@ -19,6 +19,7 @@ import { TeamBoardUser } from '../../types';
 import { TeamBoardArticleCard } from '../../components/features/teamBoard/ArticleCard';
 import { AddArticleModal } from '../../components/features/teamBoard/AddArticleModal';
 import { EnhancedArticleDetail } from '../../components/features/article/EnhancedArticleDetail';
+import { CreateNewsletterModal, ScheduleType } from '../../components/features/teamBoard/CreateNewsletterModal';
 
 const PageHeader = styled.div`
     display: flex;
@@ -166,7 +167,8 @@ export const TeamBoardDetailPage: React.FC = () => {
         removeArticleFromTeamBoard,
         addArticleToTeamBoard,
         updateMemberPermission,
-        removeMember
+        removeMember,
+        createNewsletter
     } = useTeamBoard();
     const {teams} = useTeam();
 
@@ -182,6 +184,7 @@ export const TeamBoardDetailPage: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
     const [showArticleDetailModal, setShowArticleDetailModal] = useState(false);
+    const [showCreateNewsletterModal, setShowCreateNewsletterModal] = useState(false);
 
     // Fetch board details on mount and when ID changes
     useEffect(() => {
@@ -305,6 +308,37 @@ export const TeamBoardDetailPage: React.FC = () => {
         }
     };
 
+    // Thêm hàm xử lý tạo newsletter
+    const handleCreateNewsletter = async ({
+                                              title,
+                                              recipients,
+                                              articleIds,
+                                              scheduleType
+                                          }: {
+        title: string;
+        recipients: string[];
+        articleIds: number[];
+        scheduleType: ScheduleType;
+    }) => {
+        if (!boardId) return false;
+
+        setIsSubmitting(true);
+        const success = await createNewsletter(
+            parseInt(boardId),
+            title,
+            recipients,
+            articleIds,
+            scheduleType
+        );
+        setIsSubmitting(false);
+
+        if (success) {
+            setShowCreateNewsletterModal(false);
+        }
+
+        return success;
+    };
+
     // Check if user has edit permission
     const hasEditPermission = teamBoardDetail?.user_permission === 'EDIT' ||
         teamBoardDetail?.user_permission === 'ADMIN';
@@ -350,6 +384,13 @@ export const TeamBoardDetailPage: React.FC = () => {
                             </Button>
                             <Button variant="secondary" onClick={() => setShowDeleteModal(true)} leftIcon="trash">
                                 Delete
+                            </Button>
+                            <Button
+                                onClick={() => setShowCreateNewsletterModal(true)}
+                                leftIcon="newspaper"
+                                variant="ghost"
+                            >
+                                Create Newsletter
                             </Button>
                         </>
                     )}
@@ -566,6 +607,24 @@ export const TeamBoardDetailPage: React.FC = () => {
                     }}
                 />
             )}
+
+            {/* Newsletter Modal */}
+            <Modal
+                isOpen={showCreateNewsletterModal}
+                onClose={() => setShowCreateNewsletterModal(false)}
+                title="Create Newsletter"
+                size="lg"
+            >
+                {teamBoardDetail && boardId && (
+                    <CreateNewsletterModal
+                        teamBoardId={parseInt(boardId)}
+                        articles={teamBoardDetail.articles.content}
+                        onSubmit={handleCreateNewsletter}
+                        onCancel={() => setShowCreateNewsletterModal(false)}
+                        isLoading={isSubmitting}
+                    />
+                )}
+            </Modal>
         </>
     );
 };
