@@ -6,8 +6,10 @@ export interface FolderArticle extends Article {
     content_encoded?: string;
     content_snippet?: string;
     content_encoded_snippet?: string;
+    hashtag?: string[]; // Đảm bảo có field hashtag
 }
 
+// Phần còn lại giữ nguyên
 export interface FolderWithArticles {
     id: number;
     name: string;

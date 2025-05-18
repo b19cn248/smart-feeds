@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { FolderArticle, FolderDetailWithArticles } from '../../types/folderArticles.types';
+import { FolderArticle, FolderDetailWithArticles, FolderWithArticles } from '../../types/folderArticles.types';
 import { folderArticlesService } from '../../services/folderArticlesService';
 import { useToast } from '../../contexts/ToastContext';
 import { useBoard } from '../../contexts/BoardContext';
@@ -12,7 +12,7 @@ import { Input } from '../../components/common/Input';
 import { ArticleCard } from '../../components/features/article/ArticleCard';
 import { EnhancedArticleDetail } from '../../components/features/article/EnhancedArticleDetail';
 import { ViewSelector, ViewMode } from '../../components/features/article/ViewSelector';
-import { MagazineView, TitleOnlyView } from '../../components/features/article/ViewModes';
+import { TitleOnlyView, MagazineFolderView, CardsFolderView } from '../../components/features/article/ViewModes';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { useDebounce } from '../../hooks';
 
@@ -138,9 +138,9 @@ const EmptyStateText = styled.p`
 const ArticlesContainer = styled.div<{ view: ViewMode }>`
     flex: 1;
     background-color: ${({ view, theme }) =>
-    view === 'title-only' ? theme.colors.background.secondary : 'transparent'};
+            view === 'title-only' ? theme.colors.background.secondary : 'transparent'};
     border-radius: ${({ view, theme }) =>
-    view === 'title-only' ? theme.radii.lg : '0'};
+            view === 'title-only' ? theme.radii.lg : '0'};
     overflow: hidden;
 `;
 
@@ -149,7 +149,7 @@ const ArticlesGrid = styled.div`
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 24px;
     padding: 20px 0;
-    
+
     @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
         grid-template-columns: 1fr;
     }
@@ -158,11 +158,11 @@ const ArticlesGrid = styled.div`
 const LoadingIndicator = styled.div`
     text-align: center;
     padding: 20px;
-    
+
     i {
         margin-right: 8px;
         animation: spin 1s linear infinite;
-        
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -198,6 +198,7 @@ export const FolderDetailPage: React.FC = () => {
 
     // State
     const [folderDetail, setFolderDetail] = useState<FolderDetailWithArticles | null>(null);
+    const [folderWithArticles, setFolderWithArticles] = useState<FolderWithArticles[]>([]);
     const [articles, setArticles] = useState<FolderArticle[]>([]);
     const [filteredArticles, setFilteredArticles] = useState<FolderArticle[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -238,6 +239,18 @@ export const FolderDetailPage: React.FC = () => {
                 setFolderDetail(response.data);
                 setArticles(response.data.articles.content);
                 setFilteredArticles(response.data.articles.content);
+
+                // Tạo cấu trúc dữ liệu phù hợp cho MagazineFolderView
+                const folderWithArticlesData: FolderWithArticles = {
+                    id: response.data.id,
+                    name: response.data.name,
+                    theme: response.data.theme,
+                    user_id: response.data.user_id,
+                    created_at: response.data.created_at,
+                    articles: response.data.articles.content
+                };
+                setFolderWithArticles([folderWithArticlesData]);
+
                 setHasMore(!response.data.articles.last);
                 setCurrentPage(0);
             } catch (error) {
@@ -285,6 +298,15 @@ export const FolderDetailPage: React.FC = () => {
             const newArticles = response.data.articles.content;
 
             setArticles(prev => [...prev, ...newArticles]);
+
+            // Cập nhật folderWithArticles khi tải thêm bài viết
+            if (folderDetail) {
+                setFolderWithArticles([{
+                    ...folderDetail,
+                    articles: [...articles, ...newArticles]
+                }]);
+            }
+
             setCurrentPage(nextPage);
             setHasMore(!response.data.articles.last);
         } catch (error) {
@@ -299,6 +321,14 @@ export const FolderDetailPage: React.FC = () => {
     useEffect(() => {
         if (debouncedSearch.trim() === '') {
             setFilteredArticles(articles);
+
+            // Cập nhật folderWithArticles khi filter thay đổi
+            if (folderDetail) {
+                setFolderWithArticles([{
+                    ...folderDetail,
+                    articles: articles
+                }]);
+            }
             return;
         }
 
@@ -311,7 +341,15 @@ export const FolderDetailPage: React.FC = () => {
         );
 
         setFilteredArticles(filtered);
-    }, [debouncedSearch, articles]);
+
+        // Cập nhật folderWithArticles với articles đã được lọc
+        if (folderDetail) {
+            setFolderWithArticles([{
+                ...folderDetail,
+                articles: filtered
+            }]);
+        }
+    }, [debouncedSearch, articles, folderDetail]);
 
     // Sort articles based on sort order
     useEffect(() => {
@@ -322,7 +360,15 @@ export const FolderDetailPage: React.FC = () => {
         });
 
         setFilteredArticles(sortedArticles);
-    }, [sortOrder]);
+
+        // Cập nhật folderWithArticles với articles đã được sắp xếp
+        if (folderDetail) {
+            setFolderWithArticles([{
+                ...folderDetail,
+                articles: sortedArticles
+            }]);
+        }
+    }, [sortOrder, folderDetail]);
 
     // Handlers
     const handleArticleClick = (article: FolderArticle) => {
@@ -462,37 +508,23 @@ export const FolderDetailPage: React.FC = () => {
 
                     <ArticlesContainer view={viewMode}>
                         {viewMode === 'cards' && (
-                            <ArticlesGrid>
-                                {filteredArticles.map((article, index) => {
-                                    if (index === filteredArticles.length - 1) {
-                                        // Apply ref to last article for infinite scroll
-                                        return (
-                                            <div ref={lastArticleRef} key={article.id}>
-                                                <ArticleCard
-                                                    article={article}
-                                                    onClick={() => handleArticleClick(article)}
-                                                    lazyLoad={true}
-                                                />
-                                            </div>
-                                        );
-                                    } else {
-                                        return (
-                                            <ArticleCard
-                                                key={article.id}
-                                                article={article}
-                                                onClick={() => handleArticleClick(article)}
-                                                lazyLoad={true}
-                                            />
-                                        );
-                                    }
-                                })}
-                            </ArticlesGrid>
+                            <>
+                                <CardsFolderView
+                                    folders={folderWithArticles}
+                                    onArticleClick={handleArticleClick}
+                                    onSaveArticle={handleSaveArticle}
+                                />
+                                {/* The last item reference for infinite scroll */}
+                                {hasMore && (
+                                    <div ref={lastArticleRef} style={{ height: '10px', width: '100%' }}></div>
+                                )}
+                            </>
                         )}
 
                         {viewMode === 'magazine' && (
                             <>
-                                <MagazineView
-                                    articles={filteredArticles}
+                                <MagazineFolderView
+                                    folders={folderWithArticles}
                                     onArticleClick={handleArticleClick}
                                     onSaveArticle={handleSaveArticle}
                                 />

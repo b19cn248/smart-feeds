@@ -9,6 +9,7 @@ import { ShareModal } from './ShareModal';
 import { SaveToBoardModal } from './SaveToBoardModal';
 import { SaveToTeamBoardModal } from './SaveToTeamBoardModal';
 import { useArticleImage } from '../../../../hooks/useArticleImage';
+import { HashtagList } from '../HashtagList'; // Thêm import HashtagList
 
 const DEFAULT_ARTICLE_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzY0NzQ4YiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlIEF2YWlsYWJsZTwvdGV4dD48L3N2Zz4=';
 
@@ -128,11 +129,11 @@ const DropdownItem = styled.button`
     gap: 8px;
     color: ${({ theme }) => theme.colors.text.primary};
     transition: background-color 0.2s;
-    
+
     &:hover {
         background-color: ${({ theme }) => theme.colors.gray[100]};
     }
-    
+
     i {
         color: ${({ theme }) => theme.colors.primary.main};
     }
@@ -170,6 +171,11 @@ const MetaItem = styled.div`
     i {
         margin-right: 8px;
     }
+`;
+
+// Thêm styled component cho HashtagSection
+const HashtagSection = styled.div`
+    margin: 16px 0 24px 0;
 `;
 
 const ArticleImage = styled.img`
@@ -379,6 +385,13 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
                                 {formatDate(new Date(article.publish_date))}
                             </MetaItem>
                         </ArticleMeta>
+
+                        {/* Thêm phần hiển thị hashtags */}
+                        {'hashtag' in article && article.hashtag && article.hashtag.length > 0 && (
+                            <HashtagSection>
+                                <HashtagList hashtags={article.hashtag} />
+                            </HashtagSection>
+                        )}
 
                         {/* Hiển thị featured image CHỈ khi ảnh KHÔNG xuất hiện trong nội dung */}
                         {!hasImageInContent && shouldShowFeaturedImage && imageSrc && (

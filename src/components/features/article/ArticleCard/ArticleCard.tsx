@@ -5,6 +5,7 @@ import { Article } from '../../../../types';
 import { FolderArticle } from '../../../../types/folderArticles.types';
 import { formatDate } from '../../../../utils';
 import { Card } from '../../../common/Card';
+import { HashtagList } from '../HashtagList';
 
 // Default article image - a simple gray placeholder with text
 const DEFAULT_ARTICLE_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzY0NzQ4YiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlIEF2YWlsYWJsZTwvdGV4dD48L3N2Zz4=';
@@ -89,7 +90,6 @@ const ArticleMeta = styled.div`
     border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
     padding-top: 12px;
     margin-top: auto; /* Đẩy phần meta xuống cuối */
-    
 `;
 
 const ArticleSource = styled.div`
@@ -204,6 +204,12 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
                 <ArticleContent>
                     <ArticleTitle>{article.title}</ArticleTitle>
                     <ArticleExcerpt>{excerptText}</ArticleExcerpt>
+
+                    {/* Hiển thị hashtags trước meta info */}
+                    {'hashtag' in article && article.hashtag && article.hashtag.length > 0 && (
+                        <HashtagList hashtags={article.hashtag} limit={3} compact={true} />
+                    )}
+
                     <ArticleMeta>
                         <ArticleSource>
                             <i className="fas fa-newspaper" />
