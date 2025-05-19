@@ -294,7 +294,10 @@ export const ArticlesPage: React.FC = () => {
 
     // Add hashtag click handler
     const handleHashtagClick = (hashtag: string) => {
+        // Set search query to the clicked hashtag
         setSearchQuery(hashtag);
+        // Reset to first page when searching
+        setCurrentPage(0);
     };
 
     // Loading state
