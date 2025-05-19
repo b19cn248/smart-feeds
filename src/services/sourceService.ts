@@ -1,5 +1,5 @@
 // src/services/sourceService.ts
-import { Source, SourceResponse } from '../types';
+import { Source, SourceResponse, SourceArticlesResponse } from '../types';
 import { apiClient } from './apiClient';
 
 export const sourceService = {
@@ -18,5 +18,16 @@ export const sourceService = {
      */
     async getSourceById(id: number): Promise<Source> {
         return apiClient.get<Source>(`/sources/${id}`);
+    },
+
+    /**
+     * Get articles from a specific source
+     * @param id - Source ID
+     * @param page - Page number (optional)
+     * @param size - Page size (optional)
+     */
+    async getSourceArticles(id: number, page = 0, size = 100): Promise<SourceArticlesResponse> {
+        // Lưu ý: Hiện tại API không hỗ trợ phân trang nên không truyền tham số này
+        return apiClient.get<SourceArticlesResponse>(`/sources/${id}/articles?page=${page}&size=${size}`);
     }
 };

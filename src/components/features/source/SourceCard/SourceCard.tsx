@@ -1,6 +1,7 @@
 // src/components/features/source/SourceCard/SourceCard.tsx
 import React from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom'; // Thêm import này
 import { Source } from '../../../../types';
 import { formatDate } from '../../../../utils';
 import { Card } from '../../../common/Card';
@@ -73,7 +74,7 @@ const SourceMeta = styled.div`
 const SourceStatus = styled.div<{ active: boolean }>`
     display: flex;
     align-items: center;
-    
+
     i {
         margin-right: 6px;
         color: ${({ active, theme }) => active ? theme.colors.success : theme.colors.error};
@@ -107,14 +108,18 @@ interface SourceCardProps {
     onClick?: () => void;
     onEditClick?: (e: React.MouseEvent) => void;
     onDeleteClick?: (e: React.MouseEvent) => void;
+    onAddToFolderClick?: (e: React.MouseEvent) => void; // Thêm prop mới
 }
 
 export const SourceCard: React.FC<SourceCardProps> = ({
                                                           source,
                                                           onClick,
                                                           onEditClick,
-                                                          onDeleteClick
+                                                          onDeleteClick,
+                                                          onAddToFolderClick // Thêm prop mới
                                                       }) => {
+    const navigate = useNavigate(); // Thêm hook để điều hướng
+
     // Helper để lấy domain từ URL
     const getDomain = (url: string): string => {
         try {
@@ -135,8 +140,19 @@ export const SourceCard: React.FC<SourceCardProps> = ({
         if (onDeleteClick) onDeleteClick(e);
     };
 
+    // Thêm handler mới cho nút Add to Folder
+    const handleAddToFolderClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (onAddToFolderClick) onAddToFolderClick(e);
+    };
+
+    // Sửa hàm xử lý click để điều hướng đến trang chi tiết
+    const handleCardClick = () => {
+        navigate(`/sources/${source.id}`);
+    };
+
     return (
-        <Card onClick={onClick}>
+        <Card onClick={handleCardClick}> {/* Thay đổi từ onClick thành handleCardClick */}
             <SourceContent>
                 <SourceHeader>
                     <SourceIcon>
@@ -162,6 +178,10 @@ export const SourceCard: React.FC<SourceCardProps> = ({
                     </ActionButton>
                     <ActionButton onClick={handleDeleteClick} title="Delete source">
                         <i className="fas fa-trash" />
+                    </ActionButton>
+                    {/* Thêm nút Add to Folder */}
+                    <ActionButton onClick={handleAddToFolderClick} title="Add to folder">
+                        <i className="fas fa-folder-plus" />
                     </ActionButton>
                 </SourceActions>
             </SourceContent>

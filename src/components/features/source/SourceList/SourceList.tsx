@@ -6,24 +6,24 @@ import { SourceCard } from '../SourceCard';
 import { gridContainer } from '../../../../styles/mixins';
 
 const SourceGrid = styled.div`
-  ${gridContainer}
+    ${gridContainer}
 `;
 
 const EmptyState = styled.div`
-  text-align: center;
-  padding: 48px 0;
+    text-align: center;
+    padding: 48px 0;
 `;
 
 const EmptyStateIcon = styled.div`
-  font-size: 48px;
-  color: ${({ theme }) => theme.colors.gray[400]};
-  margin-bottom: 16px;
+    font-size: 48px;
+    color: ${({ theme }) => theme.colors.gray[400]};
+    margin-bottom: 16px;
 `;
 
 const EmptyStateText = styled.p`
-  font-size: ${({ theme }) => theme.typography.fontSize.lg};
-  color: ${({ theme }) => theme.colors.text.secondary};
-  margin-bottom: 24px;
+    font-size: ${({ theme }) => theme.typography.fontSize.lg};
+    color: ${({ theme }) => theme.colors.text.secondary};
+    margin-bottom: 24px;
 `;
 
 interface SourceListProps {
@@ -31,6 +31,7 @@ interface SourceListProps {
     onSourceClick?: (sourceId: number) => void;
     onEditClick?: (sourceId: number) => void;
     onDeleteClick?: (sourceId: number) => void;
+    onAddToFolderClick?: (sourceId: number) => void; // Thêm prop mới
     searchQuery?: string;
 }
 
@@ -39,6 +40,7 @@ export const SourceList: React.FC<SourceListProps> = ({
                                                           onSourceClick,
                                                           onEditClick,
                                                           onDeleteClick,
+                                                          onAddToFolderClick, // Thêm prop mới
                                                           searchQuery = ''
                                                       }) => {
     // Filter sources by search query
@@ -71,6 +73,7 @@ export const SourceList: React.FC<SourceListProps> = ({
                     onClick={() => onSourceClick?.(source.id)}
                     onEditClick={() => onEditClick?.(source.id)}
                     onDeleteClick={() => onDeleteClick?.(source.id)}
+                    onAddToFolderClick={() => onAddToFolderClick?.(source.id)} // Thêm prop mới
                 />
             ))}
         </SourceGrid>
