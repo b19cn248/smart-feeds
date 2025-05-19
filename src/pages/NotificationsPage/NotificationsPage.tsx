@@ -1,4 +1,3 @@
-// src/pages/TeamBoardsPage/TeamBoardsPage.tsx
 import React from 'react';
 import styled from 'styled-components';
 import { Button } from '../../components/common/Button';
@@ -33,17 +32,17 @@ const Message = styled.p`
     max-width: 600px;
 `;
 
-export const TeamBoardsPage: React.FC = () => {
+export const NotificationsPage: React.FC = () => {
     return (
         <PageContainer>
             <Icon>
-                <i className="fas fa-chalkboard" />
+                <i className="fas fa-bell" />
             </Icon>
-            <Title>Team Boards</Title>
+            <Title>Notifications</Title>
             <Message>Tính năng chưa phát triển</Message>
             <Button onClick={() => window.history.back()} leftIcon="arrow-left">
                 Quay lại
             </Button>
         </PageContainer>
     );
-};
+}; 

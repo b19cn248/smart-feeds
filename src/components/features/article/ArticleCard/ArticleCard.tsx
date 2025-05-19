@@ -115,12 +115,14 @@ interface ArticleCardProps {
     article: Article | FolderArticle;
     onClick?: () => void;
     lazyLoad?: boolean;
+    onHashtagClick?: (hashtag: string) => void;
 }
 
 export const ArticleCard: React.FC<ArticleCardProps> = ({
                                                             article,
                                                             onClick,
-                                                            lazyLoad = false
+                                                            lazyLoad = false,
+                                                            onHashtagClick
                                                         }) => {
     const [isImageLoaded, setIsImageLoaded] = useState(!lazyLoad);
     const [isInViewport, setIsInViewport] = useState(!lazyLoad);
@@ -207,7 +209,12 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
 
                     {/* Hiển thị hashtags trước meta info */}
                     {'hashtag' in article && article.hashtag && article.hashtag.length > 0 && (
-                        <HashtagList hashtags={article.hashtag} limit={3} compact={true} />
+                        <HashtagList 
+                            hashtags={article.hashtag} 
+                            limit={3} 
+                            compact={true}
+                            onClick={onHashtagClick}
+                        />
                     )}
 
                     <ArticleMeta>

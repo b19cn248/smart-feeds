@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { FolderWithArticles, FolderArticle } from '../../../../types/folderArticles.types';
 import { formatDate } from '../../../../utils';
 import { Button } from '../../../common/Button';
+import { HashtagList } from '../HashtagList';
 
 const SectionContainer = styled.div`
     margin-bottom: 32px;
@@ -180,6 +181,12 @@ const ActionButton = styled.button`
     }
 `;
 
+const HashtagContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+`;
+
 // Helper để lấy màu từ theme
 const getColorFromTheme = (theme: string): string => {
     const themeToColorMap: Record<string, string> = {
@@ -205,13 +212,15 @@ interface TitleOnlyFolderViewProps {
     folders: FolderWithArticles[];
     onArticleClick: (article: FolderArticle) => void;
     onSaveArticle?: (article: FolderArticle) => void;
+    onHashtagClick?: (hashtag: string) => void;
 }
 
 export const TitleOnlyFolderView: React.FC<TitleOnlyFolderViewProps> = ({
-                                                                            folders,
-                                                                            onArticleClick,
-                                                                            onSaveArticle
-                                                                        }) => {
+    folders,
+    onArticleClick,
+    onSaveArticle,
+    onHashtagClick
+}) => {
     // Tạo một object state để theo dõi trạng thái mở/đóng của từng folder
     const [expandedState, setExpandedState] = useState<Record<number, boolean>>({});
     const containerRefs = useRef<Record<number, HTMLDivElement | null>>({});
@@ -275,6 +284,7 @@ export const TitleOnlyFolderView: React.FC<TitleOnlyFolderViewProps> = ({
                                 <i className="fas fa-folder" />
                             </FolderIcon>
                             <SectionTitle>{folder.name}</SectionTitle>
+                            <ArticleCount>{folder.articles.length}</ArticleCount>
                         </TitleContainer>
                         <HeaderActions>
                             <ViewAllButton
@@ -311,28 +321,16 @@ export const TitleOnlyFolderView: React.FC<TitleOnlyFolderViewProps> = ({
                                                 {formatDate(new Date(article.publish_date))}
                                             </DateText>
                                         </SourceInfo>
-                                        <ActionButtons>
-                                            {onSaveArticle && (
-                                                <ActionButton
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        onSaveArticle(article);
-                                                    }}
-                                                    title="Save to board"
-                                                >
-                                                    <i className="fas fa-bookmark" />
-                                                </ActionButton>
-                                            )}
-                                            <ActionButton
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    window.open(article.url, '_blank');
-                                                }}
-                                                title="Open original"
-                                            >
-                                                <i className="fas fa-external-link-alt" />
-                                            </ActionButton>
-                                        </ActionButtons>
+                                        {article.hashtag && article.hashtag.length > 0 && (
+                                            <HashtagContainer>
+                                                <HashtagList
+                                                    hashtags={article.hashtag}
+                                                    limit={3}
+                                                    compact={true}
+                                                    onClick={onHashtagClick}
+                                                />
+                                            </HashtagContainer>
+                                        )}
                                     </Meta>
                                 </TitleItem>
                             ))}

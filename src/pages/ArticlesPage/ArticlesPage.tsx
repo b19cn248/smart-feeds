@@ -208,18 +208,19 @@ export const ArticlesPage: React.FC = () => {
     // Fetch folders with articles
     useEffect(() => {
         fetchFoldersWithArticles();
-    }, [currentPage]);
+    }, [currentPage, debouncedSearch]);
 
     const fetchFoldersWithArticles = async () => {
         try {
             setIsLoading(true);
             setError(null);
-            // Sử dụng các thông số API đúng theo tài liệu
+            // Add search query to API call
             const response = await folderArticlesService.getFoldersWithArticles(
                 currentPage,     // page
                 10,              // size
                 'createdAt,DESC', // sort
-                6             // article_size
+                6,              // article_size
+                debouncedSearch  // keyword for search
             );
             setFolders(response.data.content);
             setFilteredFolders(response.data.content);
@@ -231,33 +232,6 @@ export const ArticlesPage: React.FC = () => {
             setIsLoading(false);
         }
     };
-
-    // Filter folders based on search query
-    useEffect(() => {
-        if (debouncedSearch.trim() === '') {
-            setFilteredFolders(folders);
-            return;
-        }
-
-        const lowerCaseQuery = debouncedSearch.toLowerCase();
-        const filtered = folders.filter(folder => {
-            // Search in folder name
-            if (folder.name.toLowerCase().includes(lowerCaseQuery)) {
-                return true;
-            }
-
-            // Search in articles
-            return folder.articles.some(
-                article =>
-                    article.title?.toLowerCase().includes(lowerCaseQuery) ||
-                    article.content?.toLowerCase().includes(lowerCaseQuery) ||
-                    article.source?.toString().toLowerCase().includes(lowerCaseQuery) ||
-                    article.author?.toLowerCase().includes(lowerCaseQuery)
-            );
-        });
-
-        setFilteredFolders(filtered);
-    }, [debouncedSearch, folders]);
 
     // Flatten articles from all folders and sort them
     useEffect(() => {
@@ -316,6 +290,11 @@ export const ArticlesPage: React.FC = () => {
         setCurrentPage(page);
         // Scroll to top when changing page
         window.scrollTo({top: 0, behavior: 'smooth'});
+    };
+
+    // Add hashtag click handler
+    const handleHashtagClick = (hashtag: string) => {
+        setSearchQuery(hashtag);
     };
 
     // Loading state
@@ -382,29 +361,29 @@ export const ArticlesPage: React.FC = () => {
 
                     <ArticlesContainer view={viewMode}>
                         {viewMode === 'cards' && (
-                            // Cards View - Sử dụng component CardsFolderView mới
                             <CardsFolderView
                                 folders={filteredFolders}
                                 onArticleClick={handleArticleClick}
                                 onSaveArticle={handleSaveArticle}
+                                onHashtagClick={handleHashtagClick}
                             />
                         )}
 
                         {viewMode === 'magazine' && (
-                            // Magazine View - Sử dụng component mới nhóm theo folder
                             <MagazineFolderView
                                 folders={filteredFolders}
                                 onArticleClick={handleArticleClick}
                                 onSaveArticle={handleSaveArticle}
+                                onHashtagClick={handleHashtagClick}
                             />
                         )}
 
                         {viewMode === 'title-only' && (
-                            // Title-Only View - Sử dụng component mới nhóm theo folder
                             <TitleOnlyFolderView
                                 folders={filteredFolders}
                                 onArticleClick={handleArticleClick}
                                 onSaveArticle={handleSaveArticle}
+                                onHashtagClick={handleHashtagClick}
                             />
                         )}
                     </ArticlesContainer>

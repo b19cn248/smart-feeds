@@ -270,13 +270,15 @@ interface MagazineFolderViewProps {
     folders: FolderWithArticles[];
     onArticleClick: (article: FolderArticle) => void;
     onSaveArticle?: (article: FolderArticle) => void;
+    onHashtagClick?: (hashtag: string) => void;
 }
 
 export const MagazineFolderView: React.FC<MagazineFolderViewProps> = ({
-                                                                          folders,
-                                                                          onArticleClick,
-                                                                          onSaveArticle
-                                                                      }) => {
+    folders,
+    onArticleClick,
+    onSaveArticle,
+    onHashtagClick
+}) => {
     // Tạo một object state để theo dõi trạng thái mở/đóng của từng folder
     const [expandedState, setExpandedState] = useState<Record<number, boolean>>({});
     const containerRefs = useRef<Record<number, HTMLDivElement | null>>({});
@@ -337,6 +339,7 @@ export const MagazineFolderView: React.FC<MagazineFolderViewProps> = ({
                                 <i className="fas fa-folder" />
                             </FolderIcon>
                             <SectionTitle>{folder.name}</SectionTitle>
+                            <ArticleCount>{folder.articles.length}</ArticleCount>
                         </TitleContainer>
                         <HeaderActions>
                             <ViewAllButton
@@ -378,6 +381,7 @@ export const MagazineFolderView: React.FC<MagazineFolderViewProps> = ({
                                                         hashtags={article.hashtag}
                                                         limit={4}
                                                         compact={true}
+                                                        onClick={onHashtagClick}
                                                     />
                                                 </HashtagContainer>
                                             )}
