@@ -14,6 +14,7 @@ import { ArticlesPage } from './pages/ArticlesPage';
 import { SourcesPage } from './pages/SourcesPage';
 import { SourceDetailPage } from './pages/SourceDetailPage'; // Thêm import
 import { BoardsPage } from './pages/BoardsPage';
+import DiscoverPage from './pages/Discover';
 import { BoardDetailPage } from './pages/BoardDetailPage';
 import { TeamsPage } from './pages/TeamsPage';
 import { FolderDetailPage } from './pages/FolderDetailPage';
@@ -151,6 +152,14 @@ const App: React.FC = () => {
                                                                 <TeamBoardDetailPage />
                                                             </MainLayout>
                                                         </ProtectedRoute>
+                                                    }
+                                                />
+                                                <Route
+                                                    path="/discover"
+                                                    element={
+                                                        <MainLayout headerTitle="Discover">
+                                                            <DiscoverPage />
+                                                        </MainLayout>
                                                     }
                                                 />
 
