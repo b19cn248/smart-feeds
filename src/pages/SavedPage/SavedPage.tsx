@@ -1,4 +1,3 @@
-// src/pages/Discover/DiscoverPage.tsx
 import React from 'react';
 import { Box, Container } from '@mui/material';
 import styled from 'styled-components';
@@ -9,7 +8,7 @@ declare module 'styled-components' {
 }
 
 const StyledContainer = styled(Container)`
-    min-height: calc(100vh - 64px);
+    min-height: calc(100vh - 64px); // Trừ đi chiều cao của header
     display: flex;
     align-items: center;
     justify-content: center;
@@ -37,7 +36,7 @@ const Subtitle = styled.p`
     margin: 0 auto;
 `;
 
-const NotificationsPage: React.FC = () => {
+const SavedPage: React.FC = () => {
     return (
         <StyledContainer>
             <StyledBox>
@@ -52,4 +51,4 @@ const NotificationsPage: React.FC = () => {
     );
 };
 
-export default NotificationsPage;
+export default SavedPage; 
