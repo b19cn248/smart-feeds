@@ -269,7 +269,9 @@ export const CardsFolderView: React.FC<CardsFolderViewProps> = ({
                                         key={article.id}
                                         article={article}
                                         onClick={() => onArticleClick(article)}
-                                        onHashtagClick={onHashtagClick}
+                                        onHashtagClick={(hashtag) => {
+                                            if (onHashtagClick) onHashtagClick(hashtag);
+                                        }}
                                         lazyLoad={true}
                                     />
                                 ))}

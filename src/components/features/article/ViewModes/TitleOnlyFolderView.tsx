@@ -325,9 +325,12 @@ export const TitleOnlyFolderView: React.FC<TitleOnlyFolderViewProps> = ({
                                             <HashtagContainer>
                                                 <HashtagList
                                                     hashtags={article.hashtag}
-                                                    limit={3}
+                                                    limit={4}
                                                     compact={true}
-                                                    onClick={onHashtagClick}
+                                                    onClick={(e, hashtag) => {
+                                                        e.stopPropagation();
+                                                        if (onHashtagClick) onHashtagClick(hashtag);
+                                                    }}
                                                 />
                                             </HashtagContainer>
                                         )}

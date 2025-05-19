@@ -381,7 +381,10 @@ export const MagazineFolderView: React.FC<MagazineFolderViewProps> = ({
                                                         hashtags={article.hashtag}
                                                         limit={4}
                                                         compact={true}
-                                                        onClick={onHashtagClick}
+                                                        onClick={(e, hashtag) => {
+                                                            e.stopPropagation();
+                                                            if (onHashtagClick) onHashtagClick(hashtag);
+                                                        }}
                                                     />
                                                 </HashtagContainer>
                                             )}

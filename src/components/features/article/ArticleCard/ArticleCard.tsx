@@ -213,7 +213,10 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
                             hashtags={article.hashtag} 
                             limit={3} 
                             compact={true}
-                            onClick={onHashtagClick}
+                            onClick={(e, hashtag) => {
+                                e.stopPropagation(); // Ngăn chặn sự kiện click lan truyền
+                                if (onHashtagClick) onHashtagClick(hashtag);
+                            }}
                         />
                     )}
 
