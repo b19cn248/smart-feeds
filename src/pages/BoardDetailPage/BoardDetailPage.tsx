@@ -8,253 +8,134 @@ import { LoadingScreen } from '../../components/common/LoadingScreen';
 import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
 import { BoardModal } from '../../components/features/board/BoardModal';
+import { DeleteConfirmationModal } from '../../components/common/DeleteConfirmationModal';
+import { AddArticleForm } from '../../components/features/board/AddArticleForm';
+import { ArticleMagazineList } from '../../components/features/board/ArticleMagazineList';
+import { EnhancedArticleDetail } from '../../components/features/article/EnhancedArticleDetail';
 import { BoardUpdateRequest, AddArticleFromUrlRequest, Board, Article } from '../../types';
 import { formatDate } from '../../utils';
+import { getArticleActionMessage } from '../../utils/notification.utils';
 
 const PageHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-  flex-wrap: wrap;
-  gap: 16px;
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
-    flex-direction: column;
-    align-items: stretch;
-  }
-`;
-
-const BoardTitleSection = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 16px;
-`;
-
-const BoardIcon = styled.div<{ color: string }>`
-  width: 48px;
-  height: 48px;
-  border-radius: ${({ theme }) => theme.radii.md};
-  background-color: ${({ color }) => `${color}20`};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  i {
-    font-size: 24px;
-    color: ${({ color }) => color};
-  }
-`;
-
-const BoardInfo = styled.div`
-  flex: 1;
-`;
-
-const BoardTitle = styled.h1`
-  font-size: ${({ theme }) => theme.typography.fontSize['3xl']};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
-  color: ${({ theme }) => theme.colors.text.primary};
-  margin: 0 0 4px 0;
-`;
-
-const BoardDescription = styled.p`
-  font-size: ${({ theme }) => theme.typography.fontSize.md};
-  color: ${({ theme }) => theme.colors.text.secondary};
-  margin: 0;
-`;
-
-const Actions = styled.div`
-  display: flex;
-  gap: 12px;
-  align-items: center;
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
-    width: 100%;
-    justify-content: flex-end;
-  }
-`;
-
-const BoardMeta = styled.div`
-  display: flex;
-  gap: 24px;
-  margin-bottom: 32px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
-
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
-    flex-direction: column;
-    gap: 12px;
-  }
-`;
-
-const MetaItem = styled.div`
-  display: flex;
-  align-items: center;
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  color: ${({ theme }) => theme.colors.text.secondary};
-
-  i {
-    margin-right: 8px;
-    font-size: ${({ theme }) => theme.typography.fontSize.md};
-  }
-`;
-
-const ArticlesSection = styled.div`
-  margin-top: 32px;
-`;
-
-const SectionTitle = styled.h2`
-  font-size: ${({ theme }) => theme.typography.fontSize['2xl']};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
-  color: ${({ theme }) => theme.colors.text.primary};
-  margin: 0 0 16px 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`;
-
-const ArticleList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-`;
-
-const ArticleCard = styled.div`
-  background-color: ${({ theme }) => theme.colors.background.secondary};
-  border-radius: ${({ theme }) => theme.radii.lg};
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
-  overflow: hidden;
-  transition: ${({ theme }) => theme.transitions.default};
-
-  &:hover {
-    border-color: ${({ theme }) => theme.colors.gray[300]};
-    box-shadow: ${({ theme }) => theme.shadows.md};
-  }
-`;
-
-const ArticleCardContent = styled.div`
-  padding: 20px;
-`;
-
-const ArticleHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 12px;
-`;
-
-const ArticleTitle = styled.h3`
-  font-size: ${({ theme }) => theme.typography.fontSize.lg};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
-  color: ${({ theme }) => theme.colors.text.primary};
-  margin: 0;
-`;
-
-const ArticleActions = styled.div`
-  display: flex;
-  gap: 8px;
-`;
-
-const ActionButton = styled.button`
-  background: none;
-  border: none;
-  padding: 4px;
-  color: ${({ theme }) => theme.colors.text.secondary};
-  cursor: pointer;
-  transition: ${({ theme }) => theme.transitions.default};
-  border-radius: ${({ theme }) => theme.radii.sm};
-
-  &:hover {
-    color: ${({ theme }) => theme.colors.text.primary};
-    background-color: ${({ theme }) => theme.colors.gray[100]};
-  }
-`;
-
-const ArticleMeta = styled.div`
-  display: flex;
-  justify-content: space-between;
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  color: ${({ theme }) => theme.colors.text.secondary};
-  margin-bottom: 12px;
-`;
-
-const ArticleSource = styled.span`
-  display: flex;
-  align-items: center;
-  
-  i {
-    margin-right: 6px;
-  }
-`;
-
-const ArticleDate = styled.span`
     display: flex;
+    justify-content: space-between;
     align-items: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
 
-    i {
-        margin-right: 6px;
-        font-size: ${({ theme }) => theme.typography.fontSize.xs};
+    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+        flex-direction: column;
+        align-items: stretch;
     }
 `;
 
-// src/pages/BoardDetailPage/BoardDetailPage.tsx (continued)
-const ArticleContent = styled.div`
- color: ${({ theme }) => theme.colors.text.secondary};
- font-size: ${({ theme }) => theme.typography.fontSize.md};
- line-height: 1.6;
- margin-bottom: 8px;
- display: -webkit-box;
- -webkit-line-clamp: 3;
- -webkit-box-orient: vertical;
- overflow: hidden;
+const BoardTitleSection = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 16px;
 `;
 
-const ArticleLink = styled.a`
- display: inline-flex;
- align-items: center;
- font-size: ${({ theme }) => theme.typography.fontSize.sm};
- color: ${({ theme }) => theme.colors.primary.main};
- text-decoration: none;
+const BoardIcon = styled.div<{ color: string }>`
+    width: 48px;
+    height: 48px;
+    border-radius: ${({ theme }) => theme.radii.md};
+    background-color: ${({ color }) => `${color}20`};
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
- i {
-   margin-left: 6px;
-   font-size: 12px;
- }
+    i {
+        font-size: 24px;
+        color: ${({ color }) => color};
+    }
+`;
 
- &:hover {
-   text-decoration: underline;
- }
+const BoardInfo = styled.div`
+    flex: 1;
+`;
+
+const BoardTitle = styled.h1`
+    font-size: ${({ theme }) => theme.typography.fontSize['3xl']};
+    font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
+    color: ${({ theme }) => theme.colors.text.primary};
+    margin: 0 0 4px 0;
+`;
+
+const BoardDescription = styled.p`
+    font-size: ${({ theme }) => theme.typography.fontSize.md};
+    color: ${({ theme }) => theme.colors.text.secondary};
+    margin: 0;
+`;
+
+const Actions = styled.div`
+    display: flex;
+    gap: 12px;
+    align-items: center;
+
+    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+        width: 100%;
+        justify-content: flex-end;
+    }
+`;
+
+const BoardMeta = styled.div`
+    display: flex;
+    gap: 24px;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
+
+    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+        flex-direction: column;
+        gap: 12px;
+    }
+`;
+
+const MetaItem = styled.div`
+    display: flex;
+    align-items: center;
+    font-size: ${({ theme }) => theme.typography.fontSize.sm};
+    color: ${({ theme }) => theme.colors.text.secondary};
+
+    i {
+        margin-right: 8px;
+        font-size: ${({ theme }) => theme.typography.fontSize.md};
+    }
+`;
+
+const ArticlesSection = styled.div`
+    margin-top: 32px;
+`;
+
+const SectionTitle = styled.h2`
+    font-size: ${({ theme }) => theme.typography.fontSize['2xl']};
+    font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
+    color: ${({ theme }) => theme.colors.text.primary};
+    margin: 0 0 16px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 `;
 
 const EmptyState = styled.div`
- text-align: center;
- padding: 48px 0;
- background-color: ${({ theme }) => theme.colors.background.secondary};
- border-radius: ${({ theme }) => theme.radii.lg};
- border: 2px dashed ${({ theme }) => theme.colors.gray[200]};
+    text-align: center;
+    padding: 48px 0;
+    background-color: ${({ theme }) => theme.colors.background.secondary};
+    border-radius: ${({ theme }) => theme.radii.lg};
+    border: 2px dashed ${({ theme }) => theme.colors.gray[200]};
 `;
 
 const EmptyStateIcon = styled.div`
- font-size: 48px;
- color: ${({ theme }) => theme.colors.gray[400]};
- margin-bottom: 16px;
+    font-size: 48px;
+    color: ${({ theme }) => theme.colors.gray[400]};
+    margin-bottom: 16px;
 `;
 
 const EmptyStateText = styled.p`
- font-size: ${({ theme }) => theme.typography.fontSize.lg};
- color: ${({ theme }) => theme.colors.text.secondary};
- margin-bottom: 24px;
-`;
-
-const Form = styled.form`
- display: flex;
- flex-direction: column;
- gap: 16px;
-`;
-
-const FormGroup = styled.div`
- display: flex;
- flex-direction: column;
- gap: 8px;
+    font-size: ${({ theme }) => theme.typography.fontSize.lg};
+    color: ${({ theme }) => theme.colors.text.secondary};
+    margin-bottom: 24px;
 `;
 
 export const BoardDetailPage: React.FC = () => {
@@ -272,16 +153,16 @@ export const BoardDetailPage: React.FC = () => {
     } = useBoard();
     const { showToast } = useToast();
 
-    // Local state
+    // Modal state
     const [showEditModal, setShowEditModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showAddArticleModal, setShowAddArticleModal] = useState(false);
-    const [articleUrl, setArticleUrl] = useState('');
-    const [articleTitle, setArticleTitle] = useState('');
-    const [articleContent, setArticleContent] = useState('');
-    const [articleNote, setArticleNote] = useState('');
     const [showDeleteArticleModal, setShowDeleteArticleModal] = useState(false);
+    const [showArticleDetail, setShowArticleDetail] = useState(false);
+
+    // Selected article state
     const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+    const [viewingArticle, setViewingArticle] = useState<Article | null>(null);
 
     // Load board details when component mounts
     useEffect(() => {
@@ -289,6 +170,18 @@ export const BoardDetailPage: React.FC = () => {
             getBoardById(parseInt(boardId, 10));
         }
     }, [boardId, getBoardById]);
+
+    // Handle article click to view detail
+    const handleArticleClick = (article: Article) => {
+        setViewingArticle(article);
+        setShowArticleDetail(true);
+    };
+
+    // Handle article delete click
+    const handleArticleDeleteClick = (article: Article) => {
+        setSelectedArticle(article);
+        setShowDeleteArticleModal(true);
+    };
 
     // Handle edit board
     const handleEditBoard = async (data: BoardUpdateRequest) => {
@@ -317,29 +210,18 @@ export const BoardDetailPage: React.FC = () => {
     };
 
     // Handle add article from URL
-    const handleAddArticleFromUrl = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!selectedBoard || !articleUrl.trim()) return;
+    const handleAddArticleFromUrl = async (data: AddArticleFromUrlRequest) => {
+        if (!selectedBoard) return;
 
         try {
-            const data: AddArticleFromUrlRequest = {
-                url: articleUrl.trim(),
-                title: articleTitle.trim() || undefined,
-                content: articleContent.trim() || undefined,
-                note: articleNote.trim() || undefined
-            };
-
             await addArticleFromUrlToBoard(selectedBoard.id, data);
-            showToast('success', 'Success', 'Article added to board successfully');
+            const { type, title, message } = getArticleActionMessage.add.success(data.title || 'Article');
+            showToast(type, title, message);
             setShowAddArticleModal(false);
-            // Reset form fields
-            setArticleUrl('');
-            setArticleTitle('');
-            setArticleContent('');
-            setArticleNote('');
         } catch (error) {
-            showToast('error', 'Error', 'Failed to add article to board');
+            const { type, title, message } = getArticleActionMessage.add.failure(error as Error);
+            showToast(type, title, message);
+            throw error;
         }
     };
 
@@ -349,11 +231,13 @@ export const BoardDetailPage: React.FC = () => {
 
         try {
             await removeArticleFromBoard(selectedBoard.id, selectedArticle.id);
-            showToast('success', 'Success', 'Article removed from board successfully');
+            const { type, title, message } = getArticleActionMessage.remove.success(selectedArticle.title);
+            showToast(type, title, message);
             setShowDeleteArticleModal(false);
             setSelectedArticle(null);
         } catch (error) {
-            showToast('error', 'Error', 'Failed to remove article from board');
+            const { type, title, message } = getArticleActionMessage.remove.failure(error as Error);
+            showToast(type, title, message);
         }
     };
 
@@ -383,8 +267,6 @@ export const BoardDetailPage: React.FC = () => {
             </EmptyState>
         );
     }
-
-    const hasArticles = selectedBoard.articles && selectedBoard.articles.length > 0;
 
     return (
         <>
@@ -435,59 +317,20 @@ export const BoardDetailPage: React.FC = () => {
                     </Button>
                 </SectionTitle>
 
-                {hasArticles ? (
-                    <ArticleList>
-                        {selectedBoard.articles!.map((article) => (
-                            <ArticleCard key={article.id}>
-                                <ArticleCardContent>
-                                    <ArticleHeader>
-                                        <ArticleTitle>{article.title}</ArticleTitle>
-                                        <ArticleActions>
-                                            <ActionButton
-                                                onClick={() => {
-                                                    setSelectedArticle(article);
-                                                    setShowDeleteArticleModal(true);
-                                                }}
-                                                title="Remove from board"
-                                            >
-                                                <i className="fas fa-times" />
-                                            </ActionButton>
-                                        </ArticleActions>
-                                    </ArticleHeader>
-                                    <ArticleMeta>
-                                        <ArticleSource>
-                                            <i className="fas fa-newspaper" />
-                                            {typeof article.source === 'string' ? article.source : 'Unknown source'}
-                                        </ArticleSource>
-                                        <ArticleDate>
-                                            {formatDate(new Date(article.publish_date))}
-                                        </ArticleDate>
-                                    </ArticleMeta>
-                                    <ArticleContent>
-                                        {article.content}
-                                    </ArticleContent>
-                                    <ArticleLink href={article.url} target="_blank" rel="noopener noreferrer">
-                                        Read full article
-                                        <i className="fas fa-external-link-alt" />
-                                    </ArticleLink>
-                                </ArticleCardContent>
-                            </ArticleCard>
-                        ))}
-                    </ArticleList>
-                ) : (
-                    <EmptyState>
-                        <EmptyStateIcon>
-                            <i className="fas fa-newspaper" />
-                        </EmptyStateIcon>
-                        <EmptyStateText>
-                            No articles in this board yet
-                        </EmptyStateText>
-                        <Button onClick={() => setShowAddArticleModal(true)} leftIcon="plus">
-                            Add Article
-                        </Button>
-                    </EmptyState>
-                )}
+                <ArticleMagazineList
+                    articles={selectedBoard.articles || []}
+                    onArticleClick={handleArticleClick}
+                    onDeleteClick={handleArticleDeleteClick}
+                    onAddArticleClick={() => setShowAddArticleModal(true)}
+                />
             </ArticlesSection>
+
+            {/* Enhanced Article Detail Modal */}
+            <EnhancedArticleDetail
+                article={viewingArticle}
+                isOpen={showArticleDetail}
+                onClose={() => setShowArticleDetail(false)}
+            />
 
             {/* Edit Board Modal */}
             <BoardModal
@@ -506,33 +349,14 @@ export const BoardDetailPage: React.FC = () => {
             />
 
             {/* Delete Board Modal */}
-            <Modal
+            <DeleteConfirmationModal
                 isOpen={showDeleteModal}
                 onClose={() => setShowDeleteModal(false)}
+                onConfirm={handleDeleteBoard}
                 title="Delete Board"
-                size="sm"
-            >
-                <div style={{ padding: '20px 0' }}>
-                    <p>Are you sure you want to delete the board "{selectedBoard.name}"?</p>
-                    <p>This action cannot be undone.</p>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                    <Button
-                        variant="ghost"
-                        onClick={() => setShowDeleteModal(false)}
-                        disabled={isLoading}
-                    >
-                        Cancel
-                    </Button>
-                    <Button
-                        variant="secondary"
-                        onClick={handleDeleteBoard}
-                        isLoading={isLoading}
-                    >
-                        Delete
-                    </Button>
-                </div>
-            </Modal>
+                message={`Are you sure you want to delete the board "${selectedBoard.name}"? This action cannot be undone.`}
+                isLoading={isLoading}
+            />
 
             {/* Add Article Modal */}
             <Modal
@@ -541,108 +365,28 @@ export const BoardDetailPage: React.FC = () => {
                 title="Add Article from URL"
                 size="md"
             >
-                <Form onSubmit={handleAddArticleFromUrl}>
-                    <FormGroup>
-                        <label htmlFor="article-url">Article URL (required)</label>
-                        <input
-                            id="article-url"
-                            type="url"
-                            value={articleUrl}
-                            onChange={(e) => setArticleUrl(e.target.value)}
-                            placeholder="https://example.com/article"
-                            className="form-control"
-                            required
-                        />
-                    </FormGroup>
-                    <FormGroup>
-                        <label htmlFor="article-title">Title (optional)</label>
-                        <input
-                            id="article-title"
-                            type="text"
-                            value={articleTitle}
-                            onChange={(e) => setArticleTitle(e.target.value)}
-                            placeholder="Enter article title"
-                            className="form-control"
-                        />
-                    </FormGroup>
-                    <FormGroup>
-                        <label htmlFor="article-content">Content (optional)</label>
-                        <textarea
-                            id="article-content"
-                            value={articleContent}
-                            onChange={(e) => setArticleContent(e.target.value)}
-                            placeholder="Enter article content"
-                            className="form-control"
-                            rows={4}
-                        />
-                    </FormGroup>
-                    <FormGroup>
-                        <label htmlFor="article-note">Personal note (optional)</label>
-                        <textarea
-                            id="article-note"
-                            value={articleNote}
-                            onChange={(e) => setArticleNote(e.target.value)}
-                            placeholder="Add a personal note about this article"
-                            className="form-control"
-                            rows={2}
-                        />
-                    </FormGroup>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            onClick={() => setShowAddArticleModal(false)}
-                            disabled={isLoading}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            type="submit"
-                            isLoading={isLoading}
-                            disabled={!articleUrl.trim()}
-                        >
-                            Add Article
-                        </Button>
-                    </div>
-                </Form>
+                <AddArticleForm
+                    onSubmit={handleAddArticleFromUrl}
+                    onCancel={() => setShowAddArticleModal(false)}
+                    isLoading={isLoading}
+                />
             </Modal>
 
             {/* Delete Article Modal */}
             {selectedArticle && (
-                <Modal
+                <DeleteConfirmationModal
                     isOpen={showDeleteArticleModal}
                     onClose={() => {
                         setShowDeleteArticleModal(false);
                         setSelectedArticle(null);
                     }}
+                    onConfirm={handleDeleteArticle}
                     title="Remove Article"
-                    size="sm"
-                >
-                    <div style={{ padding: '20px 0' }}>
-                        <p>Are you sure you want to remove the article "{selectedArticle.title}" from this board?</p>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                        <Button
-                            variant="ghost"
-                            onClick={() => {
-                                setShowDeleteArticleModal(false);
-                                setSelectedArticle(null);
-                            }}
-                            disabled={isLoading}
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="secondary"
-                            onClick={handleDeleteArticle}
-                            isLoading={isLoading}
-                        >
-                            Remove
-                        </Button>
-                    </div>
-                </Modal>
+                    message={`Are you sure you want to remove the article "${selectedArticle.title}" from this board?`}
+                    confirmButtonText="Remove"
+                    isLoading={isLoading}
+                />
             )}
         </>
     );
 };
-

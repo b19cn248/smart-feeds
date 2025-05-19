@@ -7,7 +7,8 @@ import {
     TeamBoardUpdateRequest,
     TeamBoardShareRequest,
     TeamBoardNotesResponse,
-    TeamBoardHighlightsResponse
+    TeamBoardHighlightsResponse,
+    TeamBoardNewsletterCreateRequest
 } from '../types';
 import { apiClient } from './apiClient';
 
@@ -122,5 +123,12 @@ export const teamBoardService = {
             highlight_text: highlightText,
             position_info: positionInfo
         });
-    }
+    },
+
+    /**
+     * Tạo newsletter từ Team Board
+     */
+    createNewsletter: async (boardId: number, data: TeamBoardNewsletterCreateRequest): Promise<any> => {
+        return apiClient.post(`/team-boards/${boardId}/newsletters`, data);
+    },
 };
