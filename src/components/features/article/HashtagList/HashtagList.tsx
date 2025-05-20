@@ -42,10 +42,10 @@ interface HashtagListProps {
 
 export const HashtagList: React.FC<HashtagListProps> = ({
     hashtags,
-    limit,
-    compact = false,
-    onClick
-}) => {
+                                                            limit,
+                                                            compact = false,
+                                                            onClick
+                                                        }) => {
     const displayTags = limit ? hashtags.slice(0, limit) : hashtags;
 
     return (

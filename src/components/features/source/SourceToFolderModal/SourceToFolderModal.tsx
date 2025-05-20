@@ -130,7 +130,7 @@ export const SourceToFolderModal: React.FC<SourceToFolderModalProps> = ({
 
         try {
             setAddingToFolder(true);
-            await addSourceToFolder(selectedFolderId, source.id);
+            await addSourceToFolder(selectedFolderId, [source.id]);
             showToast('success', 'Success', `Source added to folder successfully`);
             onClose();
         } catch (error) {

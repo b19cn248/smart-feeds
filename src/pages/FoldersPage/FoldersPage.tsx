@@ -11,8 +11,9 @@ import { useFolder } from '../../contexts/FolderContext';
 import { useDebounce } from '../../hooks';
 import { useToast } from '../../contexts/ToastContext';
 import { VIEW_TYPES } from '../../constants';
-import { ViewType, FolderFormData } from '../../types';
+import { ViewType, FolderFormData, Folder, getThemeFromColor } from '../../types';
 import { useFilteredFolders } from '../../hooks';
+import { folderService } from '../../services/folderService';
 
 const PageHeader = styled.div`
     display: flex;
@@ -122,8 +123,11 @@ export const FoldersPage: React.FC = () => {
     const [activeView, setActiveView] = useState<ViewType>(VIEW_TYPES.ALL);
     const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editFolder, setEditFolder] = useState<Folder | null>(null);
+    const [isEditLoading, setIsEditLoading] = useState(false);
 
-    const { addFolder, isLoading, error, fetchFolders } = useFolder();
+    const { addFolder, isLoading, error, fetchFolders, folders } = useFolder();
     const { showToast } = useToast();
 
     const debouncedSearch = useDebounce(searchQuery, 300);
@@ -139,16 +143,45 @@ export const FoldersPage: React.FC = () => {
         }
     };
 
+    // Handle editing a folder
+    const handleEditFolder = (folderId: number) => {
+        const folder = folders.find(f => f.id === folderId);
+        if (folder) {
+            setEditFolder(folder);
+            setShowEditModal(true);
+        }
+    };
+
+    // Handle update folder submit
+    const handleUpdateFolder = async (data: FolderFormData) => {
+        if (!editFolder) return;
+        setIsEditLoading(true);
+        try {
+            await folderService.updateFolder(editFolder.id, {
+                name: data.name,
+                theme: getThemeFromColor(data.color)
+            });
+            showToast('success', 'Success', `Folder '${data.name}' updated successfully.`);
+            setShowEditModal(false);
+            setEditFolder(null);
+            fetchFolders();
+        } catch (error) {
+            showToast('error', 'Error', 'Failed to update folder. Please try again.');
+        } finally {
+            setIsEditLoading(false);
+        }
+    };
+
     // Handle clicking on a folder to show details
     const handleFolderClick = (folderId: number) => {
         setSelectedFolderId(folderId);
         setShowDetailModal(true);
     };
 
-    // Handle folder menu click (not implemented yet)
-    const handleFolderMenuClick = (folderId: number, event: React.MouseEvent) => {
-        // Future implementation for folder menu
-        console.log('Show menu for folder:', folderId);
+    // Handle folder menu click
+    const handleFolderMenuClick = (folderId: number, event?: React.MouseEvent) => {
+        if (event) event.preventDefault();
+        handleEditFolder(folderId);
     };
 
     // Handle refreshing folders list
@@ -249,6 +282,17 @@ export const FoldersPage: React.FC = () => {
                 onSubmit={handleAddFolder}
                 mode="create"
                 isLoading={isLoading}
+            />
+
+            {/* Edit Folder Modal */}
+            <FolderModal
+                key={editFolder?.id}
+                isOpen={showEditModal}
+                onClose={() => { setShowEditModal(false); setEditFolder(null); }}
+                onSubmit={handleUpdateFolder}
+                mode="edit"
+                isLoading={isEditLoading}
+                initialData={editFolder ? { name: editFolder.name, color: editFolder.color } : undefined}
             />
 
             {/* Folder Detail Modal */}

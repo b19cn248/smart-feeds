@@ -26,7 +26,7 @@ interface FolderContextValue {
     addFolder: (name: string, color: string) => Promise<Folder>;
     updateFolder: (folder: Folder) => void;
     deleteFolder: (id: number) => void;
-    addSourceToFolder: (folderId: number, sourceId: number) => Promise<void>;
+    addSourceToFolder: (folderId: number, sourceIds: number[]) => Promise<void>;
 }
 
 // State interface
@@ -188,13 +188,13 @@ export const FolderProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         dispatch({ type: 'DELETE_FOLDER', payload: id });
     }, []);
 
-    // Add source to folder
-    const addSourceToFolder = useCallback(async (folderId: number, sourceId: number) => {
+    // Add sources to folder (multi)
+    const addSourceToFolder = useCallback(async (folderId: number, sourceIds: number[]) => {
         dispatch({ type: 'SET_LOADING', payload: true });
         dispatch({ type: 'SET_ERROR', payload: null });
 
         try {
-            const response = await folderService.addSourceToFolder(folderId, sourceId);
+            const response = await folderService.addSourceToFolder(folderId, sourceIds);
             const folderWithSources = response.data;
             const mappedFolder = mapFolderWithSourcesToFolder(folderWithSources);
 
@@ -209,8 +209,8 @@ export const FolderProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                 });
             }
         } catch (error) {
-            console.error('Error adding source to folder:', error);
-            dispatch({ type: 'SET_ERROR', payload: 'Failed to add source to folder' });
+            console.error('Error adding sources to folder:', error);
+            dispatch({ type: 'SET_ERROR', payload: 'Failed to add sources to folder' });
             throw error;
         } finally {
             dispatch({ type: 'SET_LOADING', payload: false });
