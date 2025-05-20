@@ -12,12 +12,11 @@ import { MainLayout } from './components/features/layout/MainLayout';
 import { FoldersPage } from './pages/FoldersPage';
 import { ArticlesPage } from './pages/ArticlesPage';
 import { SourcesPage } from './pages/SourcesPage';
+import { SourceDetailPage } from './pages/SourceDetailPage'; // Thêm import
 import { BoardsPage } from './pages/BoardsPage';
 import DiscoverPage from './pages/Discover';
 import { BoardDetailPage } from './pages/BoardDetailPage';
 import { TeamsPage } from './pages/TeamsPage';
-import { TeamBoardsPage } from './pages/TeamBoardsPage';
-import { TeamBoardDetailPage } from './pages/TeamBoardDetailPage';
 import { FolderDetailPage } from './pages/FolderDetailPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { ToastContainer } from './components/common/Toast';
@@ -28,6 +27,8 @@ import SavedPage from './pages/SavedPage';
 import FavoritesPage from './pages/FavoritesPage';
 import HistoryPage from './pages/HistoryPage';
 import NotificationsPage from './pages/NotificationsPage';
+import { TeamBoardsPage } from './pages/TeamBoardsPage';
+import { TeamBoardDetailPage } from './pages/TeamBoardDetailPage';
 
 const App: React.FC = () => {
     return (
@@ -73,6 +74,18 @@ const App: React.FC = () => {
                                                         <ProtectedRoute>
                                                             <MainLayout headerTitle="Sources">
                                                                 <SourcesPage />
+                                                            </MainLayout>
+                                                        </ProtectedRoute>
+                                                    }
+                                                />
+
+                                                {/* Source Detail Route - Thêm mới */}
+                                                <Route
+                                                    path="/sources/:sourceId"
+                                                    element={
+                                                        <ProtectedRoute>
+                                                            <MainLayout headerTitle="Source Details">
+                                                                <SourceDetailPage />
                                                             </MainLayout>
                                                         </ProtectedRoute>
                                                     }

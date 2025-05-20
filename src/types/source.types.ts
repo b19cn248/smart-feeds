@@ -1,4 +1,6 @@
 // src/types/source.types.ts
+import { Article } from './article.types';
+
 export interface Source {
     id: number;
     url: string;
@@ -25,6 +27,17 @@ export interface SourceResponse {
         number: number;
         numberOfElements: number;
         empty: boolean;
+    };
+    timestamp: string;
+}
+
+// Thêm interface cho api response lấy articles của source
+export interface SourceArticlesResponse {
+    status: number;
+    message: string;
+    data: {
+        source: Source;
+        articles: Article[];
     };
     timestamp: string;
 }

@@ -10,87 +10,88 @@ import { useToast } from '../../contexts/ToastContext';
 import { Source } from '../../types';
 import { useDebounce } from '../../hooks';
 import { LoadingScreen } from '../../components/common/LoadingScreen';
+import { SourceToFolderModal } from '../../components/features/source/SourceToFolderModal'; // Thêm import
 
 const PageHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-  flex-wrap: wrap;
-  gap: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
-    flex-direction: column;
-    align-items: stretch;
-  }
+    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+        flex-direction: column;
+        align-items: stretch;
+    }
 `;
 
 const PageTitle = styled.h1`
-  font-size: ${({ theme }) => theme.typography.fontSize['3xl']};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
-  color: ${({ theme }) => theme.colors.text.primary};
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0;
+    font-size: ${({ theme }) => theme.typography.fontSize['3xl']};
+    font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
+    color: ${({ theme }) => theme.colors.text.primary};
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
 
-  i {
-    color: ${({ theme }) => theme.colors.primary.main};
-  }
+    i {
+        color: ${({ theme }) => theme.colors.primary.main};
+    }
 `;
 
 const Actions = styled.div`
-  display: flex;
-  gap: 12px;
-  align-items: center;
+    display: flex;
+    gap: 12px;
+    align-items: center;
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
-    width: 100%;
-    justify-content: space-between;
-  }
+    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+        width: 100%;
+        justify-content: space-between;
+    }
 `;
 
 const SearchWrapper = styled.div`
-  position: relative;
-  max-width: 240px;
-  width: 100%;
+    position: relative;
+    max-width: 240px;
+    width: 100%;
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
-    max-width: 100%;
-  }
+    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+        max-width: 100%;
+    }
 `;
 
 const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 `;
 
 const FormGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 `;
 
 const RadioGroup = styled.div`
-  display: flex;
-  gap: 16px;
+    display: flex;
+    gap: 16px;
 `;
 
 const RadioLabel = styled.label`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-size: ${({ theme }) => theme.typography.fontSize.md};
-  color: ${({ theme }) => theme.colors.text.primary};
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: ${({ theme }) => theme.typography.fontSize.md};
+    color: ${({ theme }) => theme.colors.text.primary};
 `;
 
 const ButtonGroup = styled.div`
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 8px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 8px;
 `;
 
 export const SourcesPage: React.FC = () => {
@@ -105,6 +106,9 @@ export const SourcesPage: React.FC = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [selectedSource, setSelectedSource] = useState<Source | null>(null);
 
+    // Thêm state cho modal Add to Folder
+    const [showAddToFolderModal, setShowAddToFolderModal] = useState(false);
+
     // Form state
     const [sourceUrl, setSourceUrl] = useState('');
     const [sourceType, setSourceType] = useState('RSS');
@@ -115,8 +119,7 @@ export const SourcesPage: React.FC = () => {
 
     // Handle source click
     const handleSourceClick = (sourceId: number) => {
-        // You can implement navigation to source details page here
-        console.log('Source clicked:', sourceId);
+        // Đã được xử lý trong SourceCard để điều hướng trực tiếp đến trang chi tiết
     };
 
     // Open edit modal
@@ -137,6 +140,15 @@ export const SourcesPage: React.FC = () => {
         if (source) {
             setSelectedSource(source);
             setShowDeleteModal(true);
+        }
+    };
+
+    // Thêm handler cho nút Add to Folder
+    const handleAddToFolderClick = (sourceId: number) => {
+        const source = sources.find(s => s.id === sourceId);
+        if (source) {
+            setSelectedSource(source);
+            setShowAddToFolderModal(true);
         }
     };
 
@@ -249,7 +261,6 @@ export const SourcesPage: React.FC = () => {
                     <i className="fas fa-rss" />
                     Sources
                 </PageTitle>
-
                 <Actions>
                     <SearchWrapper>
                         <Input
@@ -260,11 +271,9 @@ export const SourcesPage: React.FC = () => {
                             leftIcon="search"
                         />
                     </SearchWrapper>
-
                     <Button onClick={() => setShowAddModal(true)} leftIcon="plus">
                         Add Source
                     </Button>
-
                     <Button variant="ghost" onClick={handleRefresh} leftIcon="sync">
                         Refresh
                     </Button>
@@ -282,6 +291,7 @@ export const SourcesPage: React.FC = () => {
                 onSourceClick={handleSourceClick}
                 onEditClick={handleEditClick}
                 onDeleteClick={handleDeleteClick}
+                onAddToFolderClick={handleAddToFolderClick} // Thêm prop mới
                 searchQuery={debouncedSearch}
             />
 
@@ -485,6 +495,13 @@ export const SourcesPage: React.FC = () => {
                     </Button>
                 </ButtonGroup>
             </Modal>
+
+            {/* Thêm Add to Folder Modal */}
+            <SourceToFolderModal
+                isOpen={showAddToFolderModal}
+                onClose={() => setShowAddToFolderModal(false)}
+                source={selectedSource}
+            />
         </>
     );
 };

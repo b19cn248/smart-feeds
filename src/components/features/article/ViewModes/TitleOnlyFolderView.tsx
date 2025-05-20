@@ -289,7 +289,10 @@ export const TitleOnlyFolderView: React.FC<TitleOnlyFolderViewProps> = ({
                         <HeaderActions>
                             <ViewAllButton
                                 variant="secondary"
-                                onClick={(e) => handleViewAllClick(e, folder.id)}
+                                onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                                    e.stopPropagation();
+                                    handleViewAllClick(e, folder.id);
+                                }}
                                 className="view-all-button"
                                 leftIcon="list"
                             >
@@ -327,7 +330,7 @@ export const TitleOnlyFolderView: React.FC<TitleOnlyFolderViewProps> = ({
                                                     hashtags={article.hashtag}
                                                     limit={4}
                                                     compact={true}
-                                                    onClick={(e, hashtag) => {
+                                                    onClick={(e: React.MouseEvent<Element, MouseEvent>, hashtag: string) => {
                                                         e.stopPropagation();
                                                         if (onHashtagClick) onHashtagClick(hashtag);
                                                     }}
