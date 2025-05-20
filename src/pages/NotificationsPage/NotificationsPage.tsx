@@ -1,3 +1,4 @@
+// src/pages/Discover/DiscoverPage.tsx
 import React from 'react';
 import { Box, Container } from '@mui/material';
 import styled from 'styled-components';
@@ -36,7 +37,7 @@ const Subtitle = styled.p`
     margin: 0 auto;
 `;
 
-const DiscoverPage: React.FC = () => {
+const NotificationsPage: React.FC = () => {
     return (
         <StyledContainer>
             <StyledBox>
@@ -51,4 +52,4 @@ const DiscoverPage: React.FC = () => {
     );
 };
 
-export default DiscoverPage; 
+export default NotificationsPage;

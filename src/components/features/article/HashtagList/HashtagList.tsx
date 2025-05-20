@@ -34,42 +34,32 @@ const HashtagBadge = styled.span<{ compact?: boolean }>`
 `;
 
 interface HashtagListProps {
-    hashtags?: string[];
+    hashtags: string[];
     limit?: number;
     compact?: boolean;
-    onClick?: (tag: string) => void;
+    onClick?: (e: React.MouseEvent, hashtag: string) => void;
 }
 
 export const HashtagList: React.FC<HashtagListProps> = ({
-                                                            hashtags = [],
-                                                            limit,
-                                                            compact = false,
-                                                            onClick
-                                                        }) => {
-    if (!hashtags || hashtags.length === 0) return null;
-
-    // Giới hạn số lượng hashtag hiển thị nếu cần
-    const displayedHashtags = limit ? hashtags.slice(0, limit) : hashtags;
-    const hasMore = limit && hashtags.length > limit;
-
-    const handleClick = (tag: string) => {
-        if (onClick) {
-            onClick(tag);
-        }
-    };
+    hashtags,
+    limit,
+    compact = false,
+    onClick
+}) => {
+    const displayTags = limit ? hashtags.slice(0, limit) : hashtags;
 
     return (
         <HashtagContainer compact={compact}>
-            {displayedHashtags.map((tag, index) => (
+            {displayTags.map((tag, index) => (
                 <HashtagBadge
-                    key={`${tag}-${index}`}
+                    key={index}
                     compact={compact}
-                    onClick={() => handleClick(tag)}
+                    onClick={(e) => onClick && onClick(e, tag)}
                 >
                     <i className="fas fa-hashtag" />{tag}
                 </HashtagBadge>
             ))}
-            {hasMore && (
+            {limit && hashtags.length > limit && (
                 <HashtagBadge compact={compact}>
                     +{hashtags.length - limit} more
                 </HashtagBadge>

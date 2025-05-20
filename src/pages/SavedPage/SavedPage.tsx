@@ -8,7 +8,7 @@ declare module 'styled-components' {
 }
 
 const StyledContainer = styled(Container)`
-    min-height: calc(100vh - 64px);
+    min-height: calc(100vh - 64px); // Trừ đi chiều cao của header
     display: flex;
     align-items: center;
     justify-content: center;
@@ -36,7 +36,7 @@ const Subtitle = styled.p`
     margin: 0 auto;
 `;
 
-const DiscoverPage: React.FC = () => {
+const SavedPage: React.FC = () => {
     return (
         <StyledContainer>
             <StyledBox>
@@ -51,4 +51,4 @@ const DiscoverPage: React.FC = () => {
     );
 };
 
-export default DiscoverPage; 
+export default SavedPage; 

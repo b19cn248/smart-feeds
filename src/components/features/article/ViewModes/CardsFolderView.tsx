@@ -147,13 +147,15 @@ interface CardsFolderViewProps {
     folders: FolderWithArticles[];
     onArticleClick: (article: FolderArticle) => void;
     onSaveArticle?: (article: FolderArticle) => void;
+    onHashtagClick?: (hashtag: string) => void;
 }
 
 export const CardsFolderView: React.FC<CardsFolderViewProps> = ({
-                                                                    folders,
-                                                                    onArticleClick,
-                                                                    onSaveArticle
-                                                                }) => {
+    folders,
+    onArticleClick,
+    onSaveArticle,
+    onHashtagClick
+}) => {
     // Tạo state để theo dõi trạng thái mở rộng của từng folder
     const [expandedState, setExpandedState] = useState<Record<number, boolean>>({});
     // Tạo state để theo dõi số lượng bài viết hiển thị cho từng folder
@@ -239,6 +241,7 @@ export const CardsFolderView: React.FC<CardsFolderViewProps> = ({
                                     <i className="fas fa-folder" />
                                 </FolderIcon>
                                 <SectionTitle>{folder.name}</SectionTitle>
+                                <ArticleCount>{folder.articles.length}</ArticleCount>
                             </TitleContainer>
                             <HeaderActions>
                                 <ViewAllButton
@@ -266,6 +269,9 @@ export const CardsFolderView: React.FC<CardsFolderViewProps> = ({
                                         key={article.id}
                                         article={article}
                                         onClick={() => onArticleClick(article)}
+                                        onHashtagClick={(hashtag) => {
+                                            if (onHashtagClick) onHashtagClick(hashtag);
+                                        }}
                                         lazyLoad={true}
                                     />
                                 ))}

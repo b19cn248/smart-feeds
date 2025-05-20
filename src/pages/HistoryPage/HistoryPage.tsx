@@ -36,7 +36,7 @@ const Subtitle = styled.p`
     margin: 0 auto;
 `;
 
-const DiscoverPage: React.FC = () => {
+const HistoryPage: React.FC = () => {
     return (
         <StyledContainer>
             <StyledBox>
@@ -51,4 +51,4 @@ const DiscoverPage: React.FC = () => {
     );
 };
 
-export default DiscoverPage; 
+export default HistoryPage; 
