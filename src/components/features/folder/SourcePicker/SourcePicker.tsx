@@ -85,21 +85,21 @@ const ButtonGroup = styled.div`
 `;
 
 interface SourcePickerProps {
-    onSelect: (sourceId: number) => void;
+    onSelect: (sourceIds: number[]) => void;
     onCancel: () => void;
     excludeSourceIds?: number[];
     isLoading?: boolean;
 }
 
 export const SourcePicker: React.FC<SourcePickerProps> = ({
-                                                              onSelect,
-                                                              onCancel,
-                                                              excludeSourceIds = [],
-                                                              isLoading = false,
-                                                          }) => {
+    onSelect,
+    onCancel,
+    excludeSourceIds = [],
+    isLoading = false,
+}) => {
     const { sources, fetchSources, isLoading: isSourceLoading } = useSource();
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
+    const [selectedSourceIds, setSelectedSourceIds] = useState<number[]>([]);
 
     const debouncedSearch = useDebounce(searchQuery, 300);
 
@@ -114,13 +114,17 @@ export const SourcePicker: React.FC<SourcePickerProps> = ({
         fetchSources();
     }, [fetchSources]);
 
-    const handleSourceClick = (sourceId: number) => {
-        setSelectedSourceId(sourceId);
+    const handleSourceToggle = (sourceId: number) => {
+        setSelectedSourceIds(prev =>
+            prev.includes(sourceId)
+                ? prev.filter(id => id !== sourceId)
+                : [...prev, sourceId]
+        );
     };
 
-    const handleAddSource = () => {
-        if (selectedSourceId !== null) {
-            onSelect(selectedSourceId);
+    const handleAddSources = () => {
+        if (selectedSourceIds.length > 0) {
+            onSelect(selectedSourceIds);
         }
     };
 
@@ -154,9 +158,16 @@ export const SourcePicker: React.FC<SourcePickerProps> = ({
                     filteredSources.map((source) => (
                         <SourceItem
                             key={source.id}
-                            isSelected={selectedSourceId === source.id}
-                            onClick={() => handleSourceClick(source.id)}
+                            isSelected={selectedSourceIds.includes(source.id)}
+                            onClick={() => handleSourceToggle(source.id)}
                         >
+                            <input
+                                type="checkbox"
+                                checked={selectedSourceIds.includes(source.id)}
+                                onChange={() => handleSourceToggle(source.id)}
+                                onClick={e => e.stopPropagation()}
+                                style={{ marginRight: 12 }}
+                            />
                             <SourceInfo>
                                 <SourceUrl title={source.url}>
                                     {getDomain(source.url)}
@@ -189,11 +200,11 @@ export const SourcePicker: React.FC<SourcePickerProps> = ({
                 </Button>
                 <Button
                     type="button"
-                    onClick={handleAddSource}
-                    disabled={selectedSourceId === null || isLoading}
+                    onClick={handleAddSources}
+                    disabled={selectedSourceIds.length === 0 || isLoading}
                     isLoading={isLoading}
                 >
-                    Add Source
+                    Add Source{selectedSourceIds.length > 1 ? 's' : ''}
                 </Button>
             </ButtonGroup>
         </div>

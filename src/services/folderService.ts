@@ -29,12 +29,12 @@ export const folderService = {
     },
 
     /**
-     * Add a source to a folder
+     * Add sources to a folder (multiple at once)
      * @param folderId - Folder ID
-     * @param sourceId - Source ID
+     * @param sourceIds - Array of Source IDs
      */
-    async addSourceToFolder(folderId: number, sourceId: number): Promise<FolderDetailResponse> {
-        return apiClient.post<FolderDetailResponse>(`/folders/${folderId}/sources`, { source_id: sourceId });
+    async addSourceToFolder(folderId: number, sourceIds: number[]): Promise<FolderDetailResponse> {
+        return apiClient.post<FolderDetailResponse>(`/folders/${folderId}/sources`, { source_ids: sourceIds });
     },
 
     /**

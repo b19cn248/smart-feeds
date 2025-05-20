@@ -142,16 +142,16 @@ export const FolderDetailModal: React.FC<FolderDetailModalProps> = ({
         }
     }, [isOpen, folderId, getFolderById]);
 
-    // Handle adding a source to the folder
-    const handleAddSource = async (sourceId: number) => {
+    // Handle adding sources to the folder (multi)
+    const handleAddSources = async (sourceIds: number[]) => {
         if (!folderId) return;
-
         setAddingSource(true);
         try {
-            await addSourceToFolder(folderId, sourceId);
+            await folderService.addSourceToFolder(folderId, sourceIds);
             setShowSourcePicker(false);
+            await getFolderById(folderId); // Refresh folder data
         } catch (error) {
-            console.error('Error adding source to folder:', error);
+            console.error('Error adding sources to folder:', error);
         } finally {
             setAddingSource(false);
         }
@@ -215,7 +215,7 @@ export const FolderDetailModal: React.FC<FolderDetailModalProps> = ({
                 <DetailSection>
                     {showSourcePicker ? (
                         <SourcePicker
-                            onSelect={handleAddSource}
+                            onSelect={handleAddSources}
                             onCancel={() => setShowSourcePicker(false)}
                             excludeSourceIds={selectedFolderSources.map(source => source.id)}
                             isLoading={addingSource}
