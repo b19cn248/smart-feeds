@@ -151,11 +151,11 @@ interface CardsFolderViewProps {
 }
 
 export const CardsFolderView: React.FC<CardsFolderViewProps> = ({
-    folders,
-    onArticleClick,
+                                                                    folders,
+                                                                    onArticleClick,
     onSaveArticle,
     onHashtagClick
-}) => {
+                                                                }) => {
     // Tạo state để theo dõi trạng thái mở rộng của từng folder
     const [expandedState, setExpandedState] = useState<Record<number, boolean>>({});
     // Tạo state để theo dõi số lượng bài viết hiển thị cho từng folder

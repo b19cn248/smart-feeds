@@ -7,6 +7,7 @@ import { SourcePicker } from '../SourcePicker';
 import { useFolder } from '../../../../contexts/FolderContext';
 import { Folder } from '../../../../types';
 import { formatDate } from '../../../../utils';
+import { folderService } from '../../../../services/folderService';
 
 const DetailSection = styled.div`
   margin-bottom: 24px;
@@ -130,6 +131,9 @@ export const FolderDetailModal: React.FC<FolderDetailModalProps> = ({
     const { getFolderById, selectedFolder, selectedFolderSources, isLoading, addSourceToFolder } = useFolder();
     const [showSourcePicker, setShowSourcePicker] = useState(false);
     const [addingSource, setAddingSource] = useState(false);
+    const [removingSourceId, setRemovingSourceId] = useState<number | null>(null);
+    const [isRemoving, setIsRemoving] = useState(false);
+    const [showConfirm, setShowConfirm] = useState<{ sourceId: number, sourceName: string } | null>(null);
 
     // Load folder details when the modal opens
     useEffect(() => {
@@ -150,6 +154,22 @@ export const FolderDetailModal: React.FC<FolderDetailModalProps> = ({
             console.error('Error adding source to folder:', error);
         } finally {
             setAddingSource(false);
+        }
+    };
+
+    // Handle remove source from folder
+    const handleRemoveSource = async (sourceId: number) => {
+        if (!folderId) return;
+        setIsRemoving(true);
+        try {
+            await folderService.removeSourceFromFolder(folderId, sourceId);
+            await getFolderById(folderId); // Refresh folder data
+            setShowConfirm(null);
+        } catch (error) {
+            // Có thể show toast ở đây nếu muốn
+            console.error('Error removing source from folder:', error);
+        } finally {
+            setIsRemoving(false);
         }
     };
 
@@ -224,6 +244,14 @@ export const FolderDetailModal: React.FC<FolderDetailModalProps> = ({
                                                 </SourceUrl>
                                                 <SourceType>{source.type}</SourceType>
                                             </SourceInfo>
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => setShowConfirm({ sourceId: source.id, sourceName: getDomain(source.url) })}
+                                                title="Remove source from folder"
+                                            >
+                                                <i className="fas fa-trash" />
+                                            </Button>
                                         </SourceItem>
                                     ))}
                                 </SourcesList>
@@ -251,6 +279,16 @@ export const FolderDetailModal: React.FC<FolderDetailModalProps> = ({
             size="md"
         >
             {renderContent()}
+            {/* Confirm Remove Source Modal */}
+            {showConfirm && (
+                <Modal isOpen={true} onClose={() => setShowConfirm(null)} title="Remove Source" size="sm">
+                    <p>Are you sure you want to remove <b>{showConfirm.sourceName}</b> from this folder?</p>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+                        <Button variant="ghost" onClick={() => setShowConfirm(null)} disabled={isRemoving}>Cancel</Button>
+                        <Button variant="secondary" onClick={() => handleRemoveSource(showConfirm.sourceId)} isLoading={isRemoving}>Remove</Button>
+                    </div>
+                </Modal>
+            )}
         </Modal>
     );
 };

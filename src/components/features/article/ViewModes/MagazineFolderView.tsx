@@ -274,11 +274,11 @@ interface MagazineFolderViewProps {
 }
 
 export const MagazineFolderView: React.FC<MagazineFolderViewProps> = ({
-    folders,
-    onArticleClick,
+                                                                          folders,
+                                                                          onArticleClick,
     onSaveArticle,
     onHashtagClick
-}) => {
+                                                                      }) => {
     // Tạo một object state để theo dõi trạng thái mở/đóng của từng folder
     const [expandedState, setExpandedState] = useState<Record<number, boolean>>({});
     const containerRefs = useRef<Record<number, HTMLDivElement | null>>({});
