@@ -1,13 +1,13 @@
 // src/components/features/source/SourceToFolderModal/SourceToFolderModal.tsx
-import React, { useState, useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import styled from 'styled-components';
-import { Modal } from '../../../common/Modal';
-import { Button } from '../../../common/Button';
-import { Input } from '../../../common/Input';
-import { useFolder } from '../../../../contexts/FolderContext';
-import { useToast } from '../../../../contexts/ToastContext';
-import { Source, Folder } from '../../../../types';
-import { useDebounce } from '../../../../hooks';
+import {Modal} from '../../../common/Modal';
+import {Button} from '../../../common/Button';
+import {Input} from '../../../common/Input';
+import {useFolder} from '../../../../contexts/FolderContext';
+import {useToast} from '../../../../contexts/ToastContext';
+import {Source} from '../../../../types';
+import {useDebounce} from '../../../../hooks';
 
 const SearchWrapper = styled.div`
     margin-bottom: 16px;
@@ -17,8 +17,8 @@ const FoldersList = styled.div`
     max-height: 300px;
     overflow-y: auto;
     margin: 16px 0;
-    border: 1px solid ${({ theme }) => theme.colors.gray[200]};
-    border-radius: ${({ theme }) => theme.radii.md};
+    border: 1px solid ${({theme}) => theme.colors.gray[200]};
+    border-radius: ${({theme}) => theme.radii.md};
 `;
 
 const FolderItem = styled.div<{ isSelected: boolean }>`
@@ -26,19 +26,19 @@ const FolderItem = styled.div<{ isSelected: boolean }>`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
-    background-color: ${({ isSelected, theme }) =>
-    isSelected ? `${theme.colors.primary.main}10` : 'transparent'};
+    border-bottom: 1px solid ${({theme}) => theme.colors.gray[200]};
+    background-color: ${({isSelected, theme}) =>
+            isSelected ? `${theme.colors.primary.main}10` : 'transparent'};
     cursor: pointer;
-    transition: ${({ theme }) => theme.transitions.default};
+    transition: ${({theme}) => theme.transitions.default};
 
     &:last-child {
         border-bottom: none;
     }
 
     &:hover {
-        background-color: ${({ isSelected, theme }) =>
-    isSelected ? `${theme.colors.primary.main}20` : theme.colors.gray[100]};
+        background-color: ${({isSelected, theme}) =>
+                isSelected ? `${theme.colors.primary.main}20` : theme.colors.gray[100]};
     }
 `;
 
@@ -52,7 +52,7 @@ const FolderInfo = styled.div`
 const FolderIcon = styled.div<{ color: string }>`
     width: 32px;
     height: 32px;
-    border-radius: ${({ theme }) => theme.radii.md};
+    border-radius: ${({theme}) => theme.radii.md};
     background-color: ${props => `${props.color}20`};
     display: flex;
     align-items: center;
@@ -67,15 +67,15 @@ const FolderIcon = styled.div<{ color: string }>`
 `;
 
 const FolderName = styled.div`
-    font-size: ${({ theme }) => theme.typography.fontSize.md};
-    color: ${({ theme }) => theme.colors.text.primary};
-    font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+    font-size: ${({theme}) => theme.typography.fontSize.md};
+    color: ${({theme}) => theme.colors.text.primary};
+    font-weight: ${({theme}) => theme.typography.fontWeight.medium};
 `;
 
 const NoResultsMessage = styled.div`
     padding: 16px;
     text-align: center;
-    color: ${({ theme }) => theme.colors.text.secondary};
+    color: ${({theme}) => theme.colors.text.secondary};
 `;
 
 const ButtonGroup = styled.div`
@@ -96,8 +96,8 @@ export const SourceToFolderModal: React.FC<SourceToFolderModalProps> = ({
                                                                             onClose,
                                                                             source
                                                                         }) => {
-    const { folders, addSourceToFolder, isLoading, fetchFolders } = useFolder();
-    const { showToast } = useToast();
+    const {folders, addSourceToFolder, isLoading, fetchFolders} = useFolder();
+    const {showToast} = useToast();
 
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
@@ -145,7 +145,7 @@ export const SourceToFolderModal: React.FC<SourceToFolderModalProps> = ({
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title="Add Source to Folder"
+            title={`Add ${source?.name || 'Source'} to Folder`}
             size="md"
         >
             <SearchWrapper>
@@ -170,7 +170,7 @@ export const SourceToFolderModal: React.FC<SourceToFolderModalProps> = ({
                         >
                             <FolderInfo>
                                 <FolderIcon color={folder.color}>
-                                    <i className="fas fa-folder" />
+                                    <i className="fas fa-folder"/>
                                 </FolderIcon>
                                 <FolderName>{folder.name}</FolderName>
                             </FolderInfo>
