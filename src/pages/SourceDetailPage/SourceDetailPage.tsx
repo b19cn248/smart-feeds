@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { sourceService } from '../../services/sourceService';
-import { MagazineFolderView } from '../../components/features/article/ViewModes'; // Thay đổi từ MagazineView
+import { MagazineView } from '../../components/features/article/ViewModes';
 import { EnhancedArticleDetail } from '../../components/features/article/EnhancedArticleDetail';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
@@ -11,9 +11,8 @@ import { LoadingScreen } from '../../components/common/LoadingScreen';
 import { useToast } from '../../contexts/ToastContext';
 import { useBoard } from '../../contexts/BoardContext';
 import { Source, Article } from '../../types';
-import { FolderWithArticles, FolderArticle } from '../../types/folderArticles.types'; // Thêm import này
 import { useDebounce } from '../../hooks';
-import { SourceToFolderModal } from '../../components/features/source/SourceToFolderModal';
+import { SourceToFolderModal } from '../../components/features/source/SourceToFolderModal'; // Thêm import này
 
 const PageContainer = styled.div`
     display: flex;
@@ -206,7 +205,6 @@ export const SourceDetailPage: React.FC = () => {
     // State
     const [source, setSource] = useState<Source | null>(null);
     const [articles, setArticles] = useState<Article[]>([]);
-    const [folderizedArticles, setFolderizedArticles] = useState<FolderWithArticles[]>([]); // Thêm state mới
     const [filteredArticles, setFilteredArticles] = useState<Article[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -248,18 +246,6 @@ export const SourceDetailPage: React.FC = () => {
 
                 setArticles(sortedArticles);
                 setFilteredArticles(sortedArticles);
-
-                // Tạo dữ liệu cho MagazineFolderView - biến đổi thành cấu trúc folder
-                const pseudo_folder: FolderWithArticles = {
-                    id: parseInt(sourceId),
-                    name: response.data.source.url,
-                    theme: 'tech', // Giả lập theme
-                    user_id: response.data.source.user_id,
-                    created_at: response.data.source.created_at,
-                    articles: sortedArticles as FolderArticle[] // Ép kiểu Article thành FolderArticle
-                };
-
-                setFolderizedArticles([pseudo_folder]);
             } catch (error) {
                 console.error('Error fetching source details:', error);
                 setError('Failed to load source details. Please try again.');
@@ -281,6 +267,9 @@ export const SourceDetailPage: React.FC = () => {
             if (entries[0].isIntersecting) {
                 // Nơi để gọi API load thêm bài viết nếu cần thiết
                 // Hiện tại API chưa hỗ trợ phân trang nên tạm thời không triển khai
+
+                // Khi API hỗ trợ phân trang, có thể thêm code sau:
+                // loadMoreArticles();
             }
         }, { threshold: 0.5 });
 
@@ -292,20 +281,6 @@ export const SourceDetailPage: React.FC = () => {
     useEffect(() => {
         if (debouncedSearch.trim() === '') {
             setFilteredArticles(articles);
-
-            // Cập nhật folderizedArticles khi search thay đổi
-            if (source && articles.length > 0) {
-                const pseudo_folder: FolderWithArticles = {
-                    id: source.id,
-                    name: source.url,
-                    theme: 'tech',
-                    user_id: source.user_id,
-                    created_at: source.created_at,
-                    articles: articles as FolderArticle[]
-                };
-                setFolderizedArticles([pseudo_folder]);
-            }
-
             return;
         }
 
@@ -318,33 +293,7 @@ export const SourceDetailPage: React.FC = () => {
         );
 
         setFilteredArticles(filtered);
-
-        // Cập nhật folderizedArticles khi search thay đổi
-        if (source && filtered.length > 0) {
-            const pseudo_folder: FolderWithArticles = {
-                id: source.id,
-                name: source.url,
-                theme: 'tech',
-                user_id: source.user_id,
-                created_at: source.created_at,
-                articles: filtered as FolderArticle[]
-            };
-            setFolderizedArticles([pseudo_folder]);
-        } else {
-            // Nếu không có kết quả, đặt một folder trống
-            if (source) {
-                const empty_folder: FolderWithArticles = {
-                    id: source.id,
-                    name: source.url,
-                    theme: 'tech',
-                    user_id: source.user_id,
-                    created_at: source.created_at,
-                    articles: []
-                };
-                setFolderizedArticles([empty_folder]);
-            }
-        }
-    }, [debouncedSearch, articles, source]);
+    }, [debouncedSearch, articles]);
 
     // Sort articles based on sort order
     useEffect(() => {
@@ -355,24 +304,10 @@ export const SourceDetailPage: React.FC = () => {
         });
 
         setFilteredArticles(sortedArticles);
-
-        // Cập nhật folderizedArticles khi sort thay đổi
-        if (source && sortedArticles.length > 0) {
-            const pseudo_folder: FolderWithArticles = {
-                id: source.id,
-                name: source.url,
-                theme: 'tech',
-                user_id: source.user_id,
-                created_at: source.created_at,
-                articles: sortedArticles as FolderArticle[]
-            };
-            setFolderizedArticles([pseudo_folder]);
-        }
     }, [sortOrder]);
 
     // Handlers
-    const handleArticleClick = (article: FolderArticle) => {
-        // Chuyển article từ FolderArticle về Article (giữ nguyên hashtag)
+    const handleArticleClick = (article: Article) => {
         setSelectedArticle(article);
         setIsDetailOpen(true);
     };
@@ -385,7 +320,7 @@ export const SourceDetailPage: React.FC = () => {
         }, 300);
     };
 
-    const handleSaveArticle = async (article: FolderArticle) => {
+    const handleSaveArticle = async (article: Article) => {
         if (boards.length === 0) {
             showToast('warning', 'No Boards Available', 'Create a board first to save articles');
             return;
@@ -507,7 +442,7 @@ export const SourceDetailPage: React.FC = () => {
 
             <SourceInfo>
                 <SourceHeader>
-                    <h2>{getDomain(source.url)}</h2>
+                    <h2>{source.name}</h2>
                     <Button
                         variant="secondary"
                         leftIcon="folder-plus"
@@ -547,9 +482,8 @@ export const SourceDetailPage: React.FC = () => {
                         </FilterActions>
                     </FilterBar>
 
-                    {/* Thay thế MagazineView bằng MagazineFolderView */}
-                    <MagazineFolderView
-                        folders={folderizedArticles}
+                    <MagazineView
+                        articles={filteredArticles}
                         onArticleClick={handleArticleClick}
                         onSaveArticle={handleSaveArticle}
                     />

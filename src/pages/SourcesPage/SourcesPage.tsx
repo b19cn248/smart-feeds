@@ -111,6 +111,7 @@ export const SourcesPage: React.FC = () => {
 
     // Form state
     const [sourceUrl, setSourceUrl] = useState('');
+    const [sourceName, setSourceName] = useState(''); // Thêm state cho source name
     const [sourceType, setSourceType] = useState('RSS');
     const [sourceActive, setSourceActive] = useState(true);
 
@@ -128,6 +129,7 @@ export const SourcesPage: React.FC = () => {
         if (source) {
             setSelectedSource(source);
             setSourceUrl(source.url);
+            setSourceName(source.name); // Set source name
             setSourceType(source.type);
             setSourceActive(source.active);
             setShowEditModal(true);
@@ -161,9 +163,15 @@ export const SourcesPage: React.FC = () => {
             return;
         }
 
+        if (!sourceName.trim()) {
+            showToast('error', 'Error', 'Please enter a source name');
+            return;
+        }
+
         // Create new source object
         const newSource: Omit<Source, 'id'> = {
             url: sourceUrl,
+            name: sourceName, // Thêm name
             type: sourceType,
             language: null,
             account_id: null,
@@ -196,10 +204,16 @@ export const SourcesPage: React.FC = () => {
             return;
         }
 
+        if (!sourceName.trim()) {
+            showToast('error', 'Error', 'Please enter a source name');
+            return;
+        }
+
         // Create updated source object
         const updatedSource: Source = {
             ...selectedSource,
             url: sourceUrl,
+            name: sourceName, // Thêm name
             type: sourceType,
             active: sourceActive,
         };
@@ -234,6 +248,7 @@ export const SourcesPage: React.FC = () => {
     // Reset form
     const resetForm = () => {
         setSourceUrl('');
+        setSourceName(''); // Reset source name
         setSourceType('RSS');
         setSourceActive(true);
         setSelectedSource(null);
@@ -303,6 +318,17 @@ export const SourcesPage: React.FC = () => {
                 size="sm"
             >
                 <Form onSubmit={handleAddSource}>
+                    <FormGroup>
+                        <Input
+                            label="Source Name"
+                            placeholder="Enter source name"
+                            value={sourceName}
+                            onChange={(e) => setSourceName(e.target.value)}
+                            leftIcon="tag"
+                            required
+                        />
+                    </FormGroup>
+
                     <FormGroup>
                         <Input
                             label="Source URL"
@@ -389,6 +415,17 @@ export const SourcesPage: React.FC = () => {
                 size="sm"
             >
                 <Form onSubmit={handleUpdateSource}>
+                    <FormGroup>
+                        <Input
+                            label="Source Name"
+                            placeholder="Enter source name"
+                            value={sourceName}
+                            onChange={(e) => setSourceName(e.target.value)}
+                            leftIcon="tag"
+                            required
+                        />
+                    </FormGroup>
+
                     <FormGroup>
                         <Input
                             label="Source URL"

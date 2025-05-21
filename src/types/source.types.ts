@@ -4,6 +4,7 @@ import { Article } from './article.types';
 export interface Source {
     id: number;
     url: string;
+    name: string; // Thêm trường name
     language: string | null;
     type: string;
     account_id: string | null;

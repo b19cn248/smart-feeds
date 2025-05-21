@@ -1,7 +1,7 @@
 // src/components/features/source/SourceCard/SourceCard.tsx
 import React from 'react';
 import styled from 'styled-components';
-import { useNavigate } from 'react-router-dom'; // Thêm import này
+import { useNavigate } from 'react-router-dom';
 import { Source } from '../../../../types';
 import { formatDate } from '../../../../utils';
 import { Card } from '../../../common/Card';
@@ -40,11 +40,19 @@ const SourceInfo = styled.div`
     min-width: 0;
 `;
 
-const SourceUrl = styled.h3`
+const SourceName = styled.h3`
     font-weight: ${({ theme }) => theme.typography.fontWeight.semibold};
     margin: 0 0 4px 0;
     color: ${({ theme }) => theme.colors.text.primary};
     font-size: ${({ theme }) => theme.typography.fontSize.lg};
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+`;
+
+const SourceUrl = styled.div`
+    font-size: ${({ theme }) => theme.typography.fontSize.sm};
+    color: ${({ theme }) => theme.colors.text.secondary};
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -58,6 +66,7 @@ const SourceType = styled.div`
     border-radius: ${({ theme }) => theme.radii.full};
     font-size: ${({ theme }) => theme.typography.fontSize.xs};
     font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+    margin-top: 4px;
 `;
 
 const SourceMeta = styled.div`
@@ -108,7 +117,7 @@ interface SourceCardProps {
     onClick?: () => void;
     onEditClick?: (e: React.MouseEvent) => void;
     onDeleteClick?: (e: React.MouseEvent) => void;
-    onAddToFolderClick?: (e: React.MouseEvent) => void; // Thêm prop mới
+    onAddToFolderClick?: (e: React.MouseEvent) => void;
 }
 
 export const SourceCard: React.FC<SourceCardProps> = ({
@@ -116,9 +125,9 @@ export const SourceCard: React.FC<SourceCardProps> = ({
                                                           onClick,
                                                           onEditClick,
                                                           onDeleteClick,
-                                                          onAddToFolderClick // Thêm prop mới
+                                                          onAddToFolderClick
                                                       }) => {
-    const navigate = useNavigate(); // Thêm hook để điều hướng
+    const navigate = useNavigate();
 
     // Helper để lấy domain từ URL
     const getDomain = (url: string): string => {
@@ -140,25 +149,26 @@ export const SourceCard: React.FC<SourceCardProps> = ({
         if (onDeleteClick) onDeleteClick(e);
     };
 
-    // Thêm handler mới cho nút Add to Folder
     const handleAddToFolderClick = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (onAddToFolderClick) onAddToFolderClick(e);
     };
 
-    // Sửa hàm xử lý click để điều hướng đến trang chi tiết
     const handleCardClick = () => {
         navigate(`/sources/${source.id}`);
     };
 
     return (
-        <Card onClick={handleCardClick}> {/* Thay đổi từ onClick thành handleCardClick */}
+        <Card onClick={handleCardClick}>
             <SourceContent>
                 <SourceHeader>
                     <SourceIcon>
                         <i className="fas fa-rss" />
                     </SourceIcon>
                     <SourceInfo>
+                        {/* Hiển thị tên nguồn tin thay vì URL */}
+                        <SourceName title={source.name}>{source.name}</SourceName>
+                        {/* Hiển thị URL như thông tin phụ */}
                         <SourceUrl title={source.url}>{getDomain(source.url)}</SourceUrl>
                         <SourceType>{source.type}</SourceType>
                     </SourceInfo>
@@ -179,7 +189,6 @@ export const SourceCard: React.FC<SourceCardProps> = ({
                     <ActionButton onClick={handleDeleteClick} title="Delete source">
                         <i className="fas fa-trash" />
                     </ActionButton>
-                    {/* Thêm nút Add to Folder */}
                     <ActionButton onClick={handleAddToFolderClick} title="Add to folder">
                         <i className="fas fa-folder-plus" />
                     </ActionButton>
