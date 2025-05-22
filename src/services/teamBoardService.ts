@@ -102,7 +102,7 @@ export const teamBoardService = {
      */
     addArticleNote: async (boardId: number, articleId: number, content: string, mentionedUserIds?: number[]): Promise<any> => {
         console.log('teamBoardService: addArticleNote called', { boardId, articleId, content, mentionedUserIds });
-        const response = await apiClient.post(`/team-boards/${boardId}/notes`, {
+        const response = await apiClient.post(`/api/v1/team-boards/${boardId}/notes`, {
             articleId,
             content,
             mentionedUserIds: mentionedUserIds || []
