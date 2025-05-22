@@ -1,1 +1,2 @@
-export { default } from './DiscoverPage';
+import DiscoverPage from './DiscoverPage';
+export default DiscoverPage; 

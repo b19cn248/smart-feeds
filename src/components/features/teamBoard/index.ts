@@ -4,3 +4,4 @@ export * from './TeamBoardList';
 export * from './TeamBoardForm';
 export * from './TeamMemberList';
 export * from './ShareBoardForm';
+export * from './UpdatePermissionForm'; // Thêm dòng này

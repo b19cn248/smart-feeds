@@ -1,8 +1,9 @@
 // src/contexts/TeamBoardContext/TeamBoardContext.tsx
 import React, { createContext, useReducer, useCallback, ReactNode, useEffect } from 'react';
-import { TeamBoard, TeamBoardDetail } from '../../types';
+import { TeamBoard, TeamBoardDetail, TeamBoardNewsletterCreateRequest } from '../../types';
 import { teamBoardService } from '../../services';
 import { useToast } from '../ToastContext';
+import { getArticleActionMessage } from '../../utils/notification.utils';
 
 // Actions
 type TeamBoardAction =
@@ -29,6 +30,17 @@ interface TeamBoardContextValue {
     shareTeamBoard: (id: number, email: string, permission: string) => Promise<boolean>;
     addArticleToTeamBoard: (boardId: number, articleId: number) => Promise<boolean>;
     removeArticleFromTeamBoard: (boardId: number, articleId: number) => Promise<boolean>;
+    // Thêm hai phương thức mới
+    updateMemberPermission: (boardId: number, userId: number, email: string, permission: string) => Promise<boolean>;
+    removeMember: (boardId: number, userId: number) => Promise<boolean>;
+    // Thêm phương thức tạo newsletter
+    createNewsletter: (
+        boardId: number,
+        title: string,
+        recipients: string[],
+        articleIds: number[],
+        scheduleType: 'DAILY' | 'WEEKLY' | 'MONTHLY' |  'IMMEDIATE'
+    ) => Promise<boolean>;
 }
 
 // Initial state
@@ -256,6 +268,59 @@ export const TeamBoardProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     }, [fetchTeamBoardDetail, showToast, state.teamBoardDetail]);
 
+    // Thêm phương thức updateMemberPermission
+    const updateMemberPermission = useCallback(async (boardId: number, userId: number, email: string, permission: string) => {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        dispatch({ type: 'SET_ERROR', payload: null });
+
+        try {
+            await teamBoardService.updateMemberPermission(boardId, userId, {
+                email,
+                permission: permission as any
+            });
+
+            // Refresh board detail to get updated members
+            if (state.teamBoardDetail && state.teamBoardDetail.id === boardId) {
+                fetchTeamBoardDetail(boardId);
+            }
+
+            showToast('success', 'Success', 'Member permission updated successfully');
+            return true;
+        } catch (error) {
+            console.error('Error updating member permission:', error);
+            dispatch({ type: 'SET_ERROR', payload: 'Failed to update member permission' });
+            showToast('error', 'Error', 'Failed to update member permission');
+            return false;
+        } finally {
+            dispatch({ type: 'SET_LOADING', payload: false });
+        }
+    }, [fetchTeamBoardDetail, showToast, state.teamBoardDetail]);
+
+    // Thêm phương thức removeMember
+    const removeMember = useCallback(async (boardId: number, userId: number) => {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        dispatch({ type: 'SET_ERROR', payload: null });
+
+        try {
+            await teamBoardService.removeMember(boardId, userId);
+
+            // Refresh board detail to get updated members
+            if (state.teamBoardDetail && state.teamBoardDetail.id === boardId) {
+                fetchTeamBoardDetail(boardId);
+            }
+
+            showToast('success', 'Success', 'Member removed successfully');
+            return true;
+        } catch (error) {
+            console.error('Error removing member:', error);
+            dispatch({ type: 'SET_ERROR', payload: 'Failed to remove member' });
+            showToast('error', 'Error', 'Failed to remove member');
+            return false;
+        } finally {
+            dispatch({ type: 'SET_LOADING', payload: false });
+        }
+    }, [fetchTeamBoardDetail, showToast, state.teamBoardDetail]);
+
     const addArticleToTeamBoard = useCallback(async (boardId: number, articleId: number) => {
         dispatch({ type: 'SET_LOADING', payload: true });
         dispatch({ type: 'SET_ERROR', payload: null });
@@ -304,6 +369,35 @@ export const TeamBoardProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     }, [fetchTeamBoardDetail, showToast, state.teamBoardDetail]);
 
+    // Thêm hàm createNewsletter
+    const createNewsletter = useCallback(async (
+        boardId: number,
+        title: string,
+        recipients: string[],
+        articleIds: number[],
+        scheduleType: 'DAILY' | 'WEEKLY' | 'MONTHLY' |  'IMMEDIATE'
+    ) => {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        dispatch({ type: 'SET_ERROR', payload: null });
+        try {
+            await teamBoardService.createNewsletter(boardId, {
+                title,
+                recipients,
+                article_ids: articleIds,
+                schedule_type: scheduleType
+            });
+            showToast('success', 'Success', 'Newsletter created successfully');
+            return true;
+        } catch (error) {
+            console.error('Error creating newsletter:', error);
+            dispatch({ type: 'SET_ERROR', payload: 'Failed to create newsletter' });
+            showToast('error', 'Error', 'Failed to create newsletter');
+            return false;
+        } finally {
+            dispatch({ type: 'SET_LOADING', payload: false });
+        }
+    }, [showToast]);
+
     // Fetch team boards when component mounts
     useEffect(() => {
         fetchTeamBoards();
@@ -322,7 +416,10 @@ export const TeamBoardProvider: React.FC<{ children: ReactNode }> = ({ children 
         deleteTeamBoard,
         shareTeamBoard,
         addArticleToTeamBoard,
-        removeArticleFromTeamBoard
+        removeArticleFromTeamBoard,
+        updateMemberPermission,
+        removeMember,
+        createNewsletter
     };
 
     return (

@@ -103,52 +103,58 @@ const FolderMenu = styled.button`
     ${iconButton}
 `;
 
+const EditButton = styled.button`
+    ${iconButton}
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: ${({ theme }) => theme.colors.background.secondary};
+    z-index: 2;
+`;
+
 interface FolderCardProps {
     folder: Folder;
     onClick?: () => void;
-    onMenuClick?: (e: React.MouseEvent) => void;
+    onEdit?: () => void;
 }
 
 export const FolderCard: React.FC<FolderCardProps> = ({
-                                                          folder,
-                                                          onClick,
-                                                          onMenuClick
-                                                      }) => {
-    const handleMenuClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        onMenuClick?.(e);
-    };
-
+    folder,
+    onClick,
+    onEdit
+}) => {
     return (
         <Card onClick={onClick} padding="0">
-            <div style={{ padding: '20px' }}>
-                <ColorStrip color={folder.color} />
-                <FolderHeader>
-                    <FolderIcon color={folder.color}>
-                        <i className="fas fa-folder" />
-                    </FolderIcon>
-                    <FolderInfo>
-                        <FolderName>{folder.name}</FolderName>
-                        <FolderMeta>
-                            <span>Created {formatDate(folder.lastUpdated)}</span>
-                            {folder.theme && (
-                                <FolderThemeBadge>
-                                    {folder.theme}
-                                </FolderThemeBadge>
-                            )}
-                            {folder.isActive && <ActiveBadge>Active</ActiveBadge>}
-                        </FolderMeta>
-                    </FolderInfo>
-                </FolderHeader>
-                <FolderActions>
-                    <FolderSources>
-                        <i className="fas fa-rss" />
-                        {folder.sourcesCount} {folder.sourcesCount === 1 ? 'source' : 'sources'}
-                    </FolderSources>
-                    <FolderMenu onClick={handleMenuClick} aria-label="Folder options">
-                        <i className="fas fa-ellipsis-v" />
-                    </FolderMenu>
-                </FolderActions>
+            <div style={{ position: 'relative' }}>
+                <EditButton onClick={e => { e.stopPropagation(); onEdit && onEdit(); }} title="Edit folder">
+                    <i className="fas fa-pen" />
+                </EditButton>
+                <div style={{ padding: '20px' }}>
+                    <ColorStrip color={folder.color} />
+                    <FolderHeader>
+                        <FolderIcon color={folder.color}>
+                            <i className="fas fa-folder" />
+                        </FolderIcon>
+                        <FolderInfo>
+                            <FolderName>{folder.name}</FolderName>
+                            <FolderMeta>
+                                <span>Created {formatDate(folder.lastUpdated)}</span>
+                                {folder.theme && (
+                                    <FolderThemeBadge>
+                                        {folder.theme}
+                                    </FolderThemeBadge>
+                                )}
+                                {folder.isActive && <ActiveBadge>Active</ActiveBadge>}
+                            </FolderMeta>
+                        </FolderInfo>
+                    </FolderHeader>
+                    <FolderActions>
+                        <FolderSources>
+                            <i className="fas fa-rss" />
+                            {folder.sourcesCount} {folder.sourcesCount === 1 ? 'source' : 'sources'}
+                        </FolderSources>
+                    </FolderActions>
+                </div>
             </div>
         </Card>
     );

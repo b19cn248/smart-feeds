@@ -1,20 +1,19 @@
 // src/pages/FolderDetailPage/FolderDetailPage.tsx
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {useNavigate, useParams} from 'react-router-dom';
 import styled from 'styled-components';
-import { FolderArticle, FolderDetailWithArticles } from '../../types/folderArticles.types';
-import { folderArticlesService } from '../../services/folderArticlesService';
-import { useToast } from '../../contexts/ToastContext';
-import { useBoard } from '../../contexts/BoardContext';
-import { LoadingScreen } from '../../components/common/LoadingScreen';
-import { Button } from '../../components/common/Button';
-import { Input } from '../../components/common/Input';
-import { ArticleCard } from '../../components/features/article/ArticleCard';
-import { EnhancedArticleDetail } from '../../components/features/article/EnhancedArticleDetail';
-import { ViewSelector, ViewMode } from '../../components/features/article/ViewSelector';
-import { MagazineView, TitleOnlyView } from '../../components/features/article/ViewModes';
-import { useLocalStorage } from '../../hooks/useLocalStorage';
-import { useDebounce } from '../../hooks';
+import {FolderArticle, FolderDetailWithArticles, FolderWithArticles} from '../../types/folderArticles.types';
+import {folderArticlesService} from '../../services/folderArticlesService';
+import {useToast} from '../../contexts/ToastContext';
+import {useBoard} from '../../contexts/BoardContext';
+import {LoadingScreen} from '../../components/common/LoadingScreen';
+import {Button} from '../../components/common/Button';
+import {Input} from '../../components/common/Input';
+import {EnhancedArticleDetail} from '../../components/features/article/EnhancedArticleDetail';
+import {ViewMode, ViewSelector} from '../../components/features/article/ViewSelector';
+import {CardsFolderView, MagazineFolderView, TitleOnlyView} from '../../components/features/article/ViewModes';
+import {useLocalStorage} from '../../hooks/useLocalStorage';
+import {useDebounce} from '../../hooks';
 
 const PageContainer = styled.div`
     display: flex;
@@ -30,29 +29,29 @@ const PageHeader = styled.div`
     flex-wrap: wrap;
     gap: 16px;
 
-    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    @media (max-width: ${({theme}) => theme.breakpoints.sm}) {
         flex-direction: column;
         align-items: stretch;
     }
 `;
 
 const PageTitle = styled.h1`
-    font-size: ${({ theme }) => theme.typography.fontSize['3xl']};
-    font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
-    color: ${({ theme }) => theme.colors.text.primary};
+    font-size: ${({theme}) => theme.typography.fontSize['3xl']};
+    font-weight: ${({theme}) => theme.typography.fontWeight.bold};
+    color: ${({theme}) => theme.colors.text.primary};
     display: flex;
     align-items: center;
     gap: 12px;
     margin: 0;
 
     i {
-        color: ${({ theme }) => theme.colors.primary.main};
+        color: ${({theme}) => theme.colors.primary.main};
     }
 `;
 
 const SubTitle = styled.div`
-    color: ${({ theme }) => theme.colors.text.secondary};
-    font-size: ${({ theme }) => theme.typography.fontSize.md};
+    color: ${({theme}) => theme.colors.text.secondary};
+    font-size: ${({theme}) => theme.typography.fontSize.md};
     margin-top: 4px;
 `;
 
@@ -62,7 +61,7 @@ const Actions = styled.div`
     align-items: center;
     flex-wrap: wrap;
 
-    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    @media (max-width: ${({theme}) => theme.breakpoints.sm}) {
         width: 100%;
         justify-content: space-between;
     }
@@ -72,7 +71,7 @@ const SearchWrapper = styled.div`
     position: relative;
     width: 240px;
 
-    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    @media (max-width: ${({theme}) => theme.breakpoints.sm}) {
         width: 100%;
     }
 `;
@@ -83,11 +82,11 @@ const FilterBar = styled.div`
     align-items: center;
     margin-bottom: 24px;
     padding: 12px 16px;
-    background-color: ${({ theme }) => theme.colors.background.secondary};
-    border-radius: ${({ theme }) => theme.radii.lg};
-    box-shadow: ${({ theme }) => theme.shadows.sm};
+    background-color: ${({theme}) => theme.colors.background.secondary};
+    border-radius: ${({theme}) => theme.radii.lg};
+    box-shadow: ${({theme}) => theme.shadows.sm};
 
-    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    @media (max-width: ${({theme}) => theme.breakpoints.sm}) {
         flex-direction: column;
         gap: 12px;
         align-items: flex-start;
@@ -99,7 +98,7 @@ const FilterActions = styled.div`
     gap: 12px;
     align-items: center;
 
-    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+    @media (max-width: ${({theme}) => theme.breakpoints.sm}) {
         width: 100%;
         justify-content: space-between;
     }
@@ -107,40 +106,40 @@ const FilterActions = styled.div`
 
 const SortSelect = styled.select`
     padding: 8px 12px;
-    border-radius: ${({ theme }) => theme.radii.md};
-    border: 1px solid ${({ theme }) => theme.colors.gray[300]};
-    background-color: ${({ theme }) => theme.colors.background.secondary};
-    color: ${({ theme }) => theme.colors.text.primary};
-    font-size: ${({ theme }) => theme.typography.fontSize.sm};
+    border-radius: ${({theme}) => theme.radii.md};
+    border: 1px solid ${({theme}) => theme.colors.gray[300]};
+    background-color: ${({theme}) => theme.colors.background.secondary};
+    color: ${({theme}) => theme.colors.text.primary};
+    font-size: ${({theme}) => theme.typography.fontSize.sm};
 `;
 
 const EmptyState = styled.div`
     text-align: center;
     padding: 48px 0;
-    background-color: ${({ theme }) => theme.colors.background.secondary};
-    border-radius: ${({ theme }) => theme.radii.lg};
-    border: 2px dashed ${({ theme }) => theme.colors.gray[200]};
+    background-color: ${({theme}) => theme.colors.background.secondary};
+    border-radius: ${({theme}) => theme.radii.lg};
+    border: 2px dashed ${({theme}) => theme.colors.gray[200]};
     margin-top: 24px;
 `;
 
 const EmptyStateIcon = styled.div`
     font-size: 48px;
-    color: ${({ theme }) => theme.colors.gray[400]};
+    color: ${({theme}) => theme.colors.gray[400]};
     margin-bottom: 16px;
 `;
 
 const EmptyStateText = styled.p`
-    font-size: ${({ theme }) => theme.typography.fontSize.lg};
-    color: ${({ theme }) => theme.colors.text.secondary};
+    font-size: ${({theme}) => theme.typography.fontSize.lg};
+    color: ${({theme}) => theme.colors.text.secondary};
     margin-bottom: 24px;
 `;
 
 const ArticlesContainer = styled.div<{ view: ViewMode }>`
     flex: 1;
-    background-color: ${({ view, theme }) =>
-    view === 'title-only' ? theme.colors.background.secondary : 'transparent'};
-    border-radius: ${({ view, theme }) =>
-    view === 'title-only' ? theme.radii.lg : '0'};
+    background-color: ${({view, theme}) =>
+            view === 'title-only' ? theme.colors.background.secondary : 'transparent'};
+    border-radius: ${({view, theme}) =>
+            view === 'title-only' ? theme.radii.lg : '0'};
     overflow: hidden;
 `;
 
@@ -149,8 +148,8 @@ const ArticlesGrid = styled.div`
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 24px;
     padding: 20px 0;
-    
-    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+
+    @media (max-width: ${({theme}) => theme.breakpoints.sm}) {
         grid-template-columns: 1fr;
     }
 `;
@@ -158,14 +157,18 @@ const ArticlesGrid = styled.div`
 const LoadingIndicator = styled.div`
     text-align: center;
     padding: 20px;
-    
+
     i {
         margin-right: 8px;
         animation: spin 1s linear infinite;
-        
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
     }
 `;
@@ -193,11 +196,12 @@ const getColorFromTheme = (theme: string): string => {
 
 export const FolderDetailPage: React.FC = () => {
     // Get folder ID from URL params
-    const { folderId } = useParams<{ folderId: string }>();
+    const {folderId} = useParams<{ folderId: string }>();
     const navigate = useNavigate();
 
     // State
     const [folderDetail, setFolderDetail] = useState<FolderDetailWithArticles | null>(null);
+    const [folderWithArticles, setFolderWithArticles] = useState<FolderWithArticles[]>([]);
     const [articles, setArticles] = useState<FolderArticle[]>([]);
     const [filteredArticles, setFilteredArticles] = useState<FolderArticle[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -217,8 +221,8 @@ export const FolderDetailPage: React.FC = () => {
 
     // Hooks
     const debouncedSearch = useDebounce(searchQuery, 300);
-    const { boards, addArticleToBoard } = useBoard();
-    const { showToast } = useToast();
+    const {boards, addArticleToBoard} = useBoard();
+    const {showToast} = useToast();
 
     // Fetch folder details with initial articles
     useEffect(() => {
@@ -238,6 +242,18 @@ export const FolderDetailPage: React.FC = () => {
                 setFolderDetail(response.data);
                 setArticles(response.data.articles.content);
                 setFilteredArticles(response.data.articles.content);
+
+                // Tạo cấu trúc dữ liệu phù hợp cho MagazineFolderView
+                const folderWithArticlesData: FolderWithArticles = {
+                    id: response.data.id,
+                    name: response.data.name,
+                    theme: response.data.theme,
+                    user_id: response.data.user_id,
+                    created_at: response.data.created_at,
+                    articles: response.data.articles.content
+                };
+                setFolderWithArticles([folderWithArticlesData]);
+
                 setHasMore(!response.data.articles.last);
                 setCurrentPage(0);
             } catch (error) {
@@ -261,7 +277,7 @@ export const FolderDetailPage: React.FC = () => {
             if (entries[0].isIntersecting && hasMore) {
                 loadMoreArticles();
             }
-        }, { threshold: 0.5 });
+        }, {threshold: 0.5});
 
         if (node) observer.current.observe(node);
         lastArticleElementRef.current = node;
@@ -285,6 +301,15 @@ export const FolderDetailPage: React.FC = () => {
             const newArticles = response.data.articles.content;
 
             setArticles(prev => [...prev, ...newArticles]);
+
+            // Cập nhật folderWithArticles khi tải thêm bài viết
+            if (folderDetail) {
+                setFolderWithArticles([{
+                    ...folderDetail,
+                    articles: [...articles, ...newArticles]
+                }]);
+            }
+
             setCurrentPage(nextPage);
             setHasMore(!response.data.articles.last);
         } catch (error) {
@@ -299,6 +324,14 @@ export const FolderDetailPage: React.FC = () => {
     useEffect(() => {
         if (debouncedSearch.trim() === '') {
             setFilteredArticles(articles);
+
+            // Cập nhật folderWithArticles khi filter thay đổi
+            if (folderDetail) {
+                setFolderWithArticles([{
+                    ...folderDetail,
+                    articles: articles
+                }]);
+            }
             return;
         }
 
@@ -311,7 +344,15 @@ export const FolderDetailPage: React.FC = () => {
         );
 
         setFilteredArticles(filtered);
-    }, [debouncedSearch, articles]);
+
+        // Cập nhật folderWithArticles với articles đã được lọc
+        if (folderDetail) {
+            setFolderWithArticles([{
+                ...folderDetail,
+                articles: filtered
+            }]);
+        }
+    }, [debouncedSearch, articles, folderDetail]);
 
     // Sort articles based on sort order
     useEffect(() => {
@@ -322,7 +363,15 @@ export const FolderDetailPage: React.FC = () => {
         });
 
         setFilteredArticles(sortedArticles);
-    }, [sortOrder]);
+
+        // Cập nhật folderWithArticles với articles đã được sắp xếp
+        if (folderDetail) {
+            setFolderWithArticles([{
+                ...folderDetail,
+                articles: sortedArticles
+            }]);
+        }
+    }, [sortOrder, folderDetail]);
 
     // Handlers
     const handleArticleClick = (article: FolderArticle) => {
@@ -365,7 +414,7 @@ export const FolderDetailPage: React.FC = () => {
 
     // Loading state
     if (isLoading && !folderDetail) {
-        return <LoadingScreen />;
+        return <LoadingScreen/>;
     }
 
     // Error state
@@ -379,7 +428,7 @@ export const FolderDetailPage: React.FC = () => {
                 </PageHeader>
                 <EmptyState>
                     <EmptyStateIcon>
-                        <i className="fas fa-exclamation-triangle" />
+                        <i className="fas fa-exclamation-triangle"/>
                     </EmptyStateIcon>
                     <EmptyStateText>{error}</EmptyStateText>
                     <Button onClick={() => window.location.reload()}>Retry</Button>
@@ -399,7 +448,7 @@ export const FolderDetailPage: React.FC = () => {
                 </PageHeader>
                 <EmptyState>
                     <EmptyStateIcon>
-                        <i className="fas fa-folder-open" />
+                        <i className="fas fa-folder-open"/>
                     </EmptyStateIcon>
                     <EmptyStateText>Folder not found</EmptyStateText>
                     <Button onClick={handleGoBack}>Go Back</Button>
@@ -420,9 +469,9 @@ export const FolderDetailPage: React.FC = () => {
                             onClick={handleGoBack}
                             leftIcon="arrow-left"
                             variant="secondary"
-                            style={{ marginRight: '8px' }}
+                            style={{marginRight: '8px'}}
                         />
-                        <i className="fas fa-folder" style={{ color: getColorFromTheme(folderDetail.theme) }} />
+                        <i className="fas fa-folder" style={{color: getColorFromTheme(folderDetail.theme)}}/>
                         {folderDetail.name}
                     </PageTitle>
                     <SubTitle>{articles.length} articles</SubTitle>
@@ -447,7 +496,7 @@ export const FolderDetailPage: React.FC = () => {
             {hasArticles && (
                 <>
                     <FilterBar>
-                        <ViewSelector activeView={viewMode} onChange={setViewMode} />
+                        <ViewSelector activeView={viewMode} onChange={setViewMode}/>
 
                         <FilterActions>
                             <SortSelect
@@ -462,43 +511,29 @@ export const FolderDetailPage: React.FC = () => {
 
                     <ArticlesContainer view={viewMode}>
                         {viewMode === 'cards' && (
-                            <ArticlesGrid>
-                                {filteredArticles.map((article, index) => {
-                                    if (index === filteredArticles.length - 1) {
-                                        // Apply ref to last article for infinite scroll
-                                        return (
-                                            <div ref={lastArticleRef} key={article.id}>
-                                                <ArticleCard
-                                                    article={article}
-                                                    onClick={() => handleArticleClick(article)}
-                                                    lazyLoad={true}
-                                                />
-                                            </div>
-                                        );
-                                    } else {
-                                        return (
-                                            <ArticleCard
-                                                key={article.id}
-                                                article={article}
-                                                onClick={() => handleArticleClick(article)}
-                                                lazyLoad={true}
-                                            />
-                                        );
-                                    }
-                                })}
-                            </ArticlesGrid>
-                        )}
-
-                        {viewMode === 'magazine' && (
                             <>
-                                <MagazineView
-                                    articles={filteredArticles}
+                                <CardsFolderView
+                                    folders={folderWithArticles}
                                     onArticleClick={handleArticleClick}
                                     onSaveArticle={handleSaveArticle}
                                 />
                                 {/* The last item reference for infinite scroll */}
                                 {hasMore && (
-                                    <div ref={lastArticleRef} style={{ height: '10px', width: '100%' }}></div>
+                                    <div ref={lastArticleRef} style={{height: '10px', width: '100%'}}></div>
+                                )}
+                            </>
+                        )}
+
+                        {viewMode === 'magazine' && (
+                            <>
+                                <MagazineFolderView
+                                    folders={folderWithArticles}
+                                    onArticleClick={handleArticleClick}
+                                    onSaveArticle={handleSaveArticle}
+                                />
+                                {/* The last item reference for infinite scroll */}
+                                {hasMore && (
+                                    <div ref={lastArticleRef} style={{height: '10px', width: '100%'}}></div>
                                 )}
                             </>
                         )}
@@ -512,14 +547,14 @@ export const FolderDetailPage: React.FC = () => {
                                 />
                                 {/* The last item reference for infinite scroll */}
                                 {hasMore && (
-                                    <div ref={lastArticleRef} style={{ height: '10px', width: '100%' }}></div>
+                                    <div ref={lastArticleRef} style={{height: '10px', width: '100%'}}></div>
                                 )}
                             </>
                         )}
 
                         {isLoadingMore && (
                             <LoadingIndicator>
-                                <i className="fas fa-circle-notch" />
+                                <i className="fas fa-circle-notch"/>
                                 Loading more articles...
                             </LoadingIndicator>
                         )}
@@ -531,7 +566,7 @@ export const FolderDetailPage: React.FC = () => {
             {!hasArticles && (
                 <EmptyState>
                     <EmptyStateIcon>
-                        <i className="fas fa-newspaper" />
+                        <i className="fas fa-newspaper"/>
                     </EmptyStateIcon>
                     <EmptyStateText>
                         {debouncedSearch

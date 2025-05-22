@@ -12,18 +12,23 @@ import { MainLayout } from './components/features/layout/MainLayout';
 import { FoldersPage } from './pages/FoldersPage';
 import { ArticlesPage } from './pages/ArticlesPage';
 import { SourcesPage } from './pages/SourcesPage';
+import { SourceDetailPage } from './pages/SourceDetailPage'; // Thêm import
 import { BoardsPage } from './pages/BoardsPage';
 import DiscoverPage from './pages/Discover';
 import { BoardDetailPage } from './pages/BoardDetailPage';
 import { TeamsPage } from './pages/TeamsPage';
-import { TeamBoardsPage } from './pages/TeamBoardsPage';
-import { TeamBoardDetailPage } from './pages/TeamBoardDetailPage';
 import { FolderDetailPage } from './pages/FolderDetailPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { ToastContainer } from './components/common/Toast';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { GlobalStyles } from './styles/GlobalStyles';
-import { ThemeProvider } from "./contexts/ ThemeContext";
+import { ThemeProvider } from './contexts/ThemeContext';
+import SavedPage from './pages/SavedPage';
+import FavoritesPage from './pages/FavoritesPage';
+import HistoryPage from './pages/HistoryPage';
+import NotificationsPage from './pages/NotificationsPage';
+import { TeamBoardsPage } from './pages/TeamBoardsPage';
+import { TeamBoardDetailPage } from './pages/TeamBoardDetailPage';
 
 const App: React.FC = () => {
     return (
@@ -69,6 +74,18 @@ const App: React.FC = () => {
                                                         <ProtectedRoute>
                                                             <MainLayout headerTitle="Sources">
                                                                 <SourcesPage />
+                                                            </MainLayout>
+                                                        </ProtectedRoute>
+                                                    }
+                                                />
+
+                                                {/* Source Detail Route - Thêm mới */}
+                                                <Route
+                                                    path="/sources/:sourceId"
+                                                    element={
+                                                        <ProtectedRoute>
+                                                            <MainLayout headerTitle="Source Details">
+                                                                <SourceDetailPage />
                                                             </MainLayout>
                                                         </ProtectedRoute>
                                                     }
@@ -141,11 +158,53 @@ const App: React.FC = () => {
                                                         </ProtectedRoute>
                                                     }
                                                 />
+
+                                                {/* Discover Route */}
                                                 <Route
                                                     path="/discover"
                                                     element={
                                                         <MainLayout headerTitle="Discover">
                                                             <DiscoverPage />
+                                                        </MainLayout>
+                                                    }
+                                                />
+
+                                                {/* Saved Route */}
+                                                <Route
+                                                    path="/saved"
+                                                    element={
+                                                        <MainLayout headerTitle="Saved">
+                                                            <SavedPage />
+                                                        </MainLayout>
+                                                    }
+                                                />
+
+                                                {/* Favorites Route */}
+                                                <Route
+                                                    path="/favorites"
+                                                    element={
+                                                        <MainLayout headerTitle="Favorites">
+                                                            <FavoritesPage />
+                                                        </MainLayout>
+                                                    }
+                                                />
+
+                                                {/* History Route */}
+                                                <Route
+                                                    path="/history"
+                                                    element={
+                                                        <MainLayout headerTitle="History">
+                                                            <HistoryPage />
+                                                        </MainLayout>
+                                                    }
+                                                />
+
+                                                {/* Notifications Route */}
+                                                <Route
+                                                    path="/notifications"
+                                                    element={
+                                                        <MainLayout headerTitle="Notifications">
+                                                            <NotificationsPage />
                                                         </MainLayout>
                                                     }
                                                 />

@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { FolderWithArticles, FolderArticle } from '../../../../types/folderArticles.types';
 import { formatDate, truncateText } from '../../../../utils';
 import { Button } from '../../../common/Button';
+import { HashtagList } from '../HashtagList';
 
 const SectionContainer = styled.div`
     margin-bottom: 32px;
@@ -114,7 +115,7 @@ const MagazineItem = styled.div`
     @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
         flex-direction: column;
     }
-    
+
 `;
 
 const ArticleImage = styled.div<{ imageUrl: string }>`
@@ -164,6 +165,12 @@ const Excerpt = styled.p`
     -webkit-box-orient: vertical;
     overflow: hidden;
     line-height: 1.5;
+`;
+
+const HashtagContainer = styled.div`
+    margin-top: 12px;
+    margin-bottom: 8px;
+    flex-grow: 0;
 `;
 
 const Meta = styled.div`
@@ -263,12 +270,14 @@ interface MagazineFolderViewProps {
     folders: FolderWithArticles[];
     onArticleClick: (article: FolderArticle) => void;
     onSaveArticle?: (article: FolderArticle) => void;
+    onHashtagClick?: (hashtag: string) => void;
 }
 
 export const MagazineFolderView: React.FC<MagazineFolderViewProps> = ({
                                                                           folders,
                                                                           onArticleClick,
-                                                                          onSaveArticle
+    onSaveArticle,
+    onHashtagClick
                                                                       }) => {
     // Tạo một object state để theo dõi trạng thái mở/đóng của từng folder
     const [expandedState, setExpandedState] = useState<Record<number, boolean>>({});
@@ -306,9 +315,6 @@ export const MagazineFolderView: React.FC<MagazineFolderViewProps> = ({
         }));
     };
 
-    // src/components/features/article/ViewModes/MagazineFolderView.tsx
-// Sửa đổi hàm handleViewAllClick
-
     const handleViewAllClick = (e: React.MouseEvent, folderId: number) => {
         e.stopPropagation(); // Ngăn không cho sự kiện lan tỏa đến toggleExpand
 
@@ -333,6 +339,7 @@ export const MagazineFolderView: React.FC<MagazineFolderViewProps> = ({
                                 <i className="fas fa-folder" />
                             </FolderIcon>
                             <SectionTitle>{folder.name}</SectionTitle>
+                            <ArticleCount>{folder.articles.length}</ArticleCount>
                         </TitleContainer>
                         <HeaderActions>
                             <ViewAllButton
@@ -366,6 +373,22 @@ export const MagazineFolderView: React.FC<MagazineFolderViewProps> = ({
                                         <ArticleContent>
                                             <Title>{article.title}</Title>
                                             <Excerpt>{excerptText}</Excerpt>
+
+                                            {/* Hiển thị hashtags */}
+                                            {article.hashtag && article.hashtag.length > 0 && (
+                                                <HashtagContainer>
+                                                    <HashtagList
+                                                        hashtags={article.hashtag}
+                                                        limit={4}
+                                                        compact={true}
+                                                        onClick={(e, hashtag) => {
+                                                            e.stopPropagation();
+                                                            if (onHashtagClick) onHashtagClick(hashtag);
+                                                        }}
+                                                    />
+                                                </HashtagContainer>
+                                            )}
+
                                             <Meta>
                                                 <SourceInfo>
                                                     <SourceName>

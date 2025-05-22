@@ -14,7 +14,7 @@ import { BoardCreateRequest, BoardUpdateRequest, Board } from '../../types';
 import {Modal} from "../../components/common/Modal";
 
 const PageHeader = styled.div`
-  display: flex;
+  display: flex;k
   justify-content: space-between;
   align-items: center;
   margin-bottom: 32px;
