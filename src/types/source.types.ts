@@ -5,6 +5,7 @@ export interface Source {
     id: number;
     url: string;
     name: string; // Thêm trường name
+    image_url?: string; // Thêm trường
     language: string | null;
     type: string;
     account_id: string | null;

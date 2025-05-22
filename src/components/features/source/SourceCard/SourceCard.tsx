@@ -19,19 +19,26 @@ const SourceHeader = styled.div`
     gap: 12px;
 `;
 
-const SourceIcon = styled.div`
-    width: 40px;
-    height: 40px;
+const SourceImage = styled.div<{ hasImage: boolean }>`
+    width: 48px;
+    height: 48px;
     border-radius: ${({ theme }) => theme.radii.md};
-    background-color: ${({ theme }) => `${theme.colors.primary.main}20`};
+    background-color: ${({ theme, hasImage }) => hasImage ? 'transparent' : `${theme.colors.primary.main}20`};
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    overflow: hidden;
 
     i {
-        font-size: 18px;
+        font-size: 20px;
         color: ${({ theme }) => theme.colors.primary.main};
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 `;
 
@@ -158,15 +165,21 @@ export const SourceCard: React.FC<SourceCardProps> = ({
         navigate(`/sources/${source.id}`);
     };
 
+    const hasImage = !!source.image_url;
+
     return (
         <Card onClick={handleCardClick}>
             <SourceContent>
                 <SourceHeader>
-                    <SourceIcon>
-                        <i className="fas fa-rss" />
-                    </SourceIcon>
+                    <SourceImage hasImage={hasImage}>
+                        {hasImage ? (
+                            <img src={source.image_url} alt={source.name} />
+                        ) : (
+                            <i className="fas fa-rss" />
+                        )}
+                    </SourceImage>
                     <SourceInfo>
-                        {/* Hiển thị tên nguồn tin thay vì URL */}
+                        {/* Hiển thị tên nguồn thay vì URL */}
                         <SourceName title={source.name}>{source.name}</SourceName>
                         {/* Hiển thị URL như thông tin phụ */}
                         <SourceUrl title={source.url}>{getDomain(source.url)}</SourceUrl>

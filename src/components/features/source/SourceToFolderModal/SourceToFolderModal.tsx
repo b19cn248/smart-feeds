@@ -72,6 +72,54 @@ const FolderName = styled.div`
     font-weight: ${({theme}) => theme.typography.fontWeight.medium};
 `;
 
+const SourceInfo = styled.div`
+    padding: 16px;
+    background-color: ${({ theme }) => theme.colors.gray[50]};
+    border-radius: ${({ theme }) => theme.radii.md};
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+`;
+
+const SourceImage = styled.div<{ hasImage: boolean }>`
+    width: 48px;
+    height: 48px;
+    border-radius: ${({ theme }) => theme.radii.md};
+    background-color: ${({ theme, hasImage }) => hasImage ? 'transparent' : `${theme.colors.primary.main}20`};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-right: 16px;
+    overflow: hidden;
+
+    i {
+        font-size: 20px;
+        color: ${({ theme }) => theme.colors.primary.main};
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+`;
+
+const SourceDetails = styled.div`
+    flex: 1;
+`;
+
+const SourceName = styled.h4`
+    margin: 0 0 4px 0;
+    font-size: ${({ theme }) => theme.typography.fontSize.lg};
+    color: ${({ theme }) => theme.colors.text.primary};
+`;
+
+const SourceUrl = styled.div`
+    font-size: ${({ theme }) => theme.typography.fontSize.sm};
+    color: ${({ theme }) => theme.colors.text.secondary};
+`;
+
 const NoResultsMessage = styled.div`
     padding: 16px;
     text-align: center;
@@ -141,6 +189,18 @@ export const SourceToFolderModal: React.FC<SourceToFolderModalProps> = ({
         }
     };
 
+    // Extract domain from URL
+    const getDomain = (url: string): string => {
+        try {
+            const domain = new URL(url).hostname;
+            return domain.startsWith('www.') ? domain.substring(4) : domain;
+        } catch (error) {
+            return url;
+        }
+    };
+
+    const hasImage: boolean = !!(source && source.image_url);
+
     return (
         <Modal
             isOpen={isOpen}
@@ -148,6 +208,22 @@ export const SourceToFolderModal: React.FC<SourceToFolderModalProps> = ({
             title={`Add ${source?.name || 'Source'} to Folder`}
             size="md"
         >
+            {source && (
+                <SourceInfo>
+                    <SourceImage hasImage={hasImage}>
+                        {hasImage ? (
+                            <img src={source.image_url} alt={source.name} />
+                        ) : (
+                            <i className="fas fa-rss" />
+                        )}
+                    </SourceImage>
+                    <SourceDetails>
+                        <SourceName>{source.name}</SourceName>
+                        <SourceUrl>{getDomain(source.url)}</SourceUrl>
+                    </SourceDetails>
+                </SourceInfo>
+            )}
+
             <SearchWrapper>
                 <Input
                     type="text"
