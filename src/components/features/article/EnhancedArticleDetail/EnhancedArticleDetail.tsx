@@ -9,7 +9,8 @@ import { ShareModal } from './ShareModal';
 import { SaveToBoardModal } from './SaveToBoardModal';
 import { SaveToTeamBoardModal } from './SaveToTeamBoardModal';
 import { useArticleImage } from '../../../../hooks/useArticleImage';
-import { HashtagList } from '../HashtagList'; // Thêm import HashtagList
+import { HashtagList } from '../HashtagList';
+import { ArticleNotes } from '../../teamBoard/ArticleNotes';
 
 const DEFAULT_ARTICLE_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzY0NzQ4YiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlIEF2YWlsYWJsZTwvdGV4dD48L3N2Zz4=';
 
@@ -140,11 +141,24 @@ const DropdownItem = styled.button`
 `;
 
 const DetailContent = styled.div`
-    padding: 32px 24px;
+    display: flex;
+    gap: 24px;
+    height: calc(100% - 60px);
+    overflow: hidden;
+`;
 
-    @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
-        padding: 24px 16px;
-    }
+const ArticleSection = styled.div`
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+`;
+
+const SidebarSection = styled.div`
+    width: 320px;
+    border-left: 1px solid ${({ theme }) => theme.colors.gray[200]};
+    overflow-y: auto;
+    padding: 24px;
+    background-color: ${({ theme }) => theme.colors.background.secondary};
 `;
 
 const ArticleTitle = styled.h1`
@@ -242,13 +256,15 @@ interface EnhancedArticleDetailProps {
     article: Article | FolderArticle | null;
     isOpen: boolean;
     onClose: () => void;
+    teamBoardId?: string;
 }
 
 export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
-                                                                                article,
-                                                                                isOpen,
-                                                                                onClose,
-                                                                            }) => {
+    article,
+    isOpen,
+    onClose,
+    teamBoardId
+}) => {
     const [showShareModal, setShowShareModal] = useState(false);
     const [showSaveModal, setShowSaveModal] = useState(false);
     const [showTeamSaveModal, setShowTeamSaveModal] = useState(false);
@@ -291,6 +307,8 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
 
     // Handle clicks on overlay to close the modal
     const handleOverlayClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         if (e.target === e.currentTarget) {
             onClose();
         }
@@ -298,20 +316,46 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
 
     // Toggle save dropdown
     const toggleSaveDropdown = (e: React.MouseEvent) => {
+        e.preventDefault();
         e.stopPropagation();
         setShowSaveDropdown(!showSaveDropdown);
     };
 
     // Handle save to board
-    const handleSaveToBoard = () => {
+    const handleSaveToBoard = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         setShowSaveDropdown(false);
         setShowSaveModal(true);
     };
 
     // Handle save to team board
-    const handleSaveToTeamBoard = () => {
+    const handleSaveToTeamBoard = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         setShowSaveDropdown(false);
         setShowTeamSaveModal(true);
+    };
+
+    // Handle open original article
+    const handleOpenOriginal = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        window.open(article.url, '_blank');
+    };
+
+    // Handle share article
+    const handleShare = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowShareModal(true);
+    };
+
+    // Handle close modal
+    const handleClose = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onClose();
     };
 
     // Determine source text to display
@@ -352,76 +396,87 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
                                     </DropdownItem>
                                 </SaveDropdown>
                             </div>
-                            <ActionButton onClick={() => setShowShareModal(true)} title="Share article">
+                            <ActionButton onClick={handleShare} title="Share article">
                                 <i className="fas fa-share-alt" />
                                 <span>Share</span>
                             </ActionButton>
-                            <ActionButton onClick={() => window.open(article.url, '_blank')} title="Read original">
+                            <ActionButton onClick={handleOpenOriginal} title="Read original">
                                 <i className="fas fa-external-link-alt" />
                                 <span>Original</span>
                             </ActionButton>
-                            <ActionButton onClick={onClose} title="Close">
+                            <ActionButton onClick={handleClose} title="Close">
                                 <i className="fas fa-times" />
                             </ActionButton>
                         </HeaderActions>
                     </DetailHeader>
 
                     <DetailContent>
-                        <ArticleTitle>{article.title}</ArticleTitle>
+                        <ArticleSection>
+                            <ArticleTitle>{article.title}</ArticleTitle>
 
-                        <ArticleMeta>
-                            <MetaItem>
-                                <i className="fas fa-newspaper" />
-                                {getSourceText()}
-                            </MetaItem>
-                            {article.author && (
+                            <ArticleMeta>
                                 <MetaItem>
-                                    <i className="fas fa-user" />
-                                    {article.author}
+                                    <i className="fas fa-newspaper" />
+                                    {getSourceText()}
                                 </MetaItem>
+                                {article.author && (
+                                    <MetaItem>
+                                        <i className="fas fa-user" />
+                                        {article.author}
+                                    </MetaItem>
+                                )}
+                                <MetaItem>
+                                    <i className="fas fa-calendar" />
+                                    {formatDate(new Date(article.publish_date))}
+                                </MetaItem>
+                            </ArticleMeta>
+
+                            {/* Thêm phần hiển thị hashtags */}
+                            {'hashtag' in article && article.hashtag && article.hashtag.length > 0 && (
+                                <HashtagSection>
+                                    <HashtagList hashtags={article.hashtag} />
+                                </HashtagSection>
                             )}
-                            <MetaItem>
-                                <i className="fas fa-calendar" />
-                                {formatDate(new Date(article.publish_date))}
-                            </MetaItem>
-                        </ArticleMeta>
 
-                        {/* Thêm phần hiển thị hashtags */}
-                        {'hashtag' in article && article.hashtag && article.hashtag.length > 0 && (
-                            <HashtagSection>
-                                <HashtagList hashtags={article.hashtag} />
-                            </HashtagSection>
-                        )}
+                            {/* Hiển thị featured image CHỈ khi ảnh KHÔNG xuất hiện trong nội dung */}
+                            {!hasImageInContent && shouldShowFeaturedImage && imageSrc && (
+                                <ArticleImage
+                                    src={imageSrc}
+                                    alt={article.title}
+                                    loading="eager" // Đảm bảo ảnh được load ưu tiên
+                                    onError={(e) => {
+                                        console.error("Image failed to load:", imageSrc);
+                                        e.currentTarget.src = DEFAULT_ARTICLE_IMAGE;
+                                    }}
+                                />
+                            )}
 
-                        {/* Hiển thị featured image CHỈ khi ảnh KHÔNG xuất hiện trong nội dung */}
-                        {!hasImageInContent && shouldShowFeaturedImage && imageSrc && (
-                            <ArticleImage
-                                src={imageSrc}
-                                alt={article.title}
-                                loading="eager" // Đảm bảo ảnh được load ưu tiên
-                                onError={(e) => {
-                                    console.error("Image failed to load:", imageSrc);
-                                    e.currentTarget.src = DEFAULT_ARTICLE_IMAGE;
-                                }}
-                            />
-                        )}
+                            {/* Sử dụng ArticleContentRenderer để hiển thị nội dung */}
+                            <ArticleContent ref={contentRef}>
+                                <ArticleContentRenderer
+                                    article={article}
+                                    className="article-content"
+                                    featuredImage={article.image_url}
+                                />
+                            </ArticleContent>
 
-                        {/* Sử dụng ArticleContentRenderer để hiển thị nội dung */}
-                        <ArticleContent ref={contentRef}>
-                            <ArticleContentRenderer
-                                article={article}
-                                className="article-content"
-                                featuredImage={article.image_url}
-                            />
-                        </ArticleContent>
+                            {/* Cải thiện nút "Read full article" - đặt trong container căn giữa */}
+                            <ButtonContainer>
+                                <ReadMoreButton href={article.url} target="_blank" rel="noopener noreferrer">
+                                    Read Original
+                                    <i className="fas fa-external-link-alt" />
+                                </ReadMoreButton>
+                            </ButtonContainer>
+                        </ArticleSection>
 
-                        {/* Cải thiện nút "Read full article" - đặt trong container căn giữa */}
-                        <ButtonContainer>
-                            <ReadMoreButton href={article.url} target="_blank" rel="noopener noreferrer">
-                                Read Original
-                                <i className="fas fa-external-link-alt" />
-                            </ReadMoreButton>
-                        </ButtonContainer>
+                        <SidebarSection>
+                            {teamBoardId && (
+                                <ArticleNotes
+                                    boardId={parseInt(teamBoardId, 10)}
+                                    articleId={article.id}
+                                />
+                            )}
+                        </SidebarSection>
                     </DetailContent>
                 </DetailContainer>
             </Overlay>

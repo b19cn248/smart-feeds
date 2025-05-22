@@ -1,6 +1,6 @@
 // src/contexts/TeamBoardContext/TeamBoardContext.tsx
 import React, { createContext, useReducer, useCallback, ReactNode, useEffect } from 'react';
-import { TeamBoard, TeamBoardDetail, TeamBoardNewsletterCreateRequest } from '../../types';
+import { TeamBoard, TeamBoardDetail, TeamBoardNewsletterCreateRequest, TeamBoardNote, TeamBoardNotesResponse } from '../../types';
 import { teamBoardService } from '../../services';
 import { useToast } from '../ToastContext';
 import { getArticleActionMessage } from '../../utils/notification.utils';
@@ -13,7 +13,8 @@ type TeamBoardAction =
     | { type: 'UPDATE_TEAM_BOARD'; payload: TeamBoard }
     | { type: 'DELETE_TEAM_BOARD'; payload: number }
     | { type: 'SET_LOADING'; payload: boolean }
-    | { type: 'SET_ERROR'; payload: string | null };
+    | { type: 'SET_ERROR'; payload: string | null }
+    | { type: 'SET_ARTICLE_NOTES'; payload: { articleId: number; notes: TeamBoardNote[] } };
 
 // Context value interface
 interface TeamBoardContextValue {
@@ -30,17 +31,17 @@ interface TeamBoardContextValue {
     shareTeamBoard: (id: number, email: string, permission: string) => Promise<boolean>;
     addArticleToTeamBoard: (boardId: number, articleId: number) => Promise<boolean>;
     removeArticleFromTeamBoard: (boardId: number, articleId: number) => Promise<boolean>;
-    // Thêm hai phương thức mới
     updateMemberPermission: (boardId: number, userId: number, email: string, permission: string) => Promise<boolean>;
     removeMember: (boardId: number, userId: number) => Promise<boolean>;
-    // Thêm phương thức tạo newsletter
     createNewsletter: (
         boardId: number,
         title: string,
         recipients: string[],
         articleIds: number[],
-        scheduleType: 'DAILY' | 'WEEKLY' | 'MONTHLY' |  'IMMEDIATE'
+        scheduleType: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'IMMEDIATE'
     ) => Promise<boolean>;
+    getArticleNotes: (boardId: number, articleId: number) => Promise<TeamBoardNotesResponse>;
+    addArticleNote: (boardId: number, articleId: number, content: string, mentionedUserIds: number[]) => Promise<boolean>;
 }
 
 // Initial state
@@ -49,13 +50,15 @@ interface TeamBoardState {
     teamBoardDetail: TeamBoardDetail | null;
     isLoading: boolean;
     error: string | null;
+    articleNotes: Record<number, TeamBoardNote[]>;
 }
 
 const initialState: TeamBoardState = {
     teamBoards: [],
     teamBoardDetail: null,
     isLoading: false,
-    error: null
+    error: null,
+    articleNotes: {}
 };
 
 // Reducer
@@ -109,6 +112,15 @@ const teamBoardReducer = (state: TeamBoardState, action: TeamBoardAction): TeamB
             return {
                 ...state,
                 error: action.payload
+            };
+
+        case 'SET_ARTICLE_NOTES':
+            return {
+                ...state,
+                articleNotes: {
+                    ...state.articleNotes,
+                    [action.payload.articleId]: action.payload.notes
+                }
             };
 
         default:
@@ -398,6 +410,51 @@ export const TeamBoardProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     }, [showToast]);
 
+    // Add new note-related methods
+    const getArticleNotes = useCallback(async (boardId: number, articleId: number) => {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        dispatch({ type: 'SET_ERROR', payload: null });
+
+        try {
+            const response = await teamBoardService.getArticleNotes(boardId, articleId);
+            dispatch({ type: 'SET_ARTICLE_NOTES', payload: { articleId, notes: response.data } });
+            return response;
+        } catch (error) {
+            console.error('Error fetching article notes:', error);
+            dispatch({ type: 'SET_ERROR', payload: 'Failed to fetch article notes' });
+            showToast('error', 'Error', 'Failed to fetch article notes');
+            return { status: 500, message: 'Error', data: [], timestamp: new Date().toISOString() };
+        } finally {
+            dispatch({ type: 'SET_LOADING', payload: false });
+        }
+    }, [showToast]);
+
+    const addArticleNote = useCallback(async (boardId: number, articleId: number, content: string, mentionedUserIds: number[] = []) => {
+        console.log('TeamBoardContext: addArticleNote called', { boardId, articleId, content, mentionedUserIds });
+        
+        dispatch({ type: 'SET_LOADING', payload: true });
+        dispatch({ type: 'SET_ERROR', payload: null });
+
+        try {
+            console.log('TeamBoardContext: Calling teamBoardService.addArticleNote');
+            await teamBoardService.addArticleNote(boardId, articleId, content, mentionedUserIds);
+            
+            console.log('TeamBoardContext: Refreshing notes');
+            const notes = await getArticleNotes(boardId, articleId);
+            dispatch({ type: 'SET_ARTICLE_NOTES', payload: { articleId, notes: notes.data } });
+            
+            showToast('success', 'Success', 'Note added successfully');
+            return true;
+        } catch (error) {
+            console.error('TeamBoardContext: Error adding article note:', error);
+            dispatch({ type: 'SET_ERROR', payload: 'Failed to add note' });
+            showToast('error', 'Error', 'Failed to add note');
+            return false;
+        } finally {
+            dispatch({ type: 'SET_LOADING', payload: false });
+        }
+    }, [getArticleNotes, showToast]);
+
     // Fetch team boards when component mounts
     useEffect(() => {
         fetchTeamBoards();
@@ -419,7 +476,9 @@ export const TeamBoardProvider: React.FC<{ children: ReactNode }> = ({ children 
         removeArticleFromTeamBoard,
         updateMemberPermission,
         removeMember,
-        createNewsletter
+        createNewsletter,
+        getArticleNotes,
+        addArticleNote
     };
 
     return (
