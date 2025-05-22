@@ -180,7 +180,7 @@ export const ArticleNotes: React.FC<ArticleNotesProps> = ({ boardId, articleId }
         e.preventDefault();
         e.stopPropagation();
         
-        console.log('handleSubmit called', { boardId, articleId, newNote, mentionedUserIds });
+        console.log('Form submitted', { boardId, articleId, newNote });
         
         if (!newNote.trim()) {
             console.log('Note is empty, returning');
@@ -189,8 +189,8 @@ export const ArticleNotes: React.FC<ArticleNotesProps> = ({ boardId, articleId }
 
         setIsSubmitting(true);
         try {
-            console.log('Calling addArticleNote...');
-            const success = await addArticleNote(boardId, articleId, newNote, mentionedUserIds);
+            console.log('Calling addArticleNote with params:', { boardId, articleId, content: newNote });
+            const success = await addArticleNote(boardId, articleId, newNote);
             console.log('addArticleNote result:', success);
             
             if (success) {
@@ -285,7 +285,13 @@ export const ArticleNotes: React.FC<ArticleNotesProps> = ({ boardId, articleId }
             </NotesHeader>
 
             {isAddingNote && (
-                <NoteForm onSubmit={handleSubmit}>
+                <NoteForm 
+                    onSubmit={handleSubmit}
+                    onClick={(e) => {
+                        console.log('Form clicked');
+                        e.stopPropagation();
+                    }}
+                >
                     <FormattingToolbar>
                         <FormatButton type="button" title="Bold">
                             <i className="fas fa-bold" />
@@ -338,6 +344,10 @@ export const ArticleNotes: React.FC<ArticleNotesProps> = ({ boardId, articleId }
                             type="submit"
                             disabled={!newNote.trim() || isSubmitting}
                             isLoading={isSubmitting}
+                            onClick={(e) => {
+                                console.log('Submit button clicked');
+                                e.stopPropagation();
+                            }}
                         >
                             Save
                         </SubmitButton>
