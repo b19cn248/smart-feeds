@@ -8,63 +8,105 @@ import { useSource } from '../../../../contexts/SourceContext';
 import { useDebounce } from '../../../../hooks';
 
 const SourceList = styled.div`
-  max-height: 300px;
-  overflow-y: auto;
-  margin: 16px 0;
-  border: 1px solid ${({ theme }) => theme.colors.gray[200]};
-  border-radius: ${({ theme }) => theme.radii.md};
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 16px 0;
+    border: 1px solid ${({ theme }) => theme.colors.gray[200]};
+    border-radius: ${({ theme }) => theme.radii.md};
 `;
 
 const SourceItem = styled.div<{ isSelected: boolean }>`
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
-  background-color: ${({ isSelected, theme }) =>
-    isSelected ? `${theme.colors.primary.main}10` : 'transparent'};
-  cursor: pointer;
-  transition: ${({ theme }) => theme.transitions.default};
-
-  &:last-child {
-    border-bottom: none;
-  }
-
-  &:hover {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
     background-color: ${({ isSelected, theme }) =>
-    isSelected ? `${theme.colors.primary.main}20` : theme.colors.gray[100]};
-  }
+            isSelected ? `${theme.colors.primary.main}10` : 'transparent'};
+    cursor: pointer;
+    transition: ${({ theme }) => theme.transitions.default};
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background-color: ${({ isSelected, theme }) =>
+                isSelected ? `${theme.colors.primary.main}20` : theme.colors.gray[100]};
+    }
 `;
 
 const SourceInfo = styled.div`
-  flex: 1;
-  min-width: 0;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+`;
+
+const SourceImage = styled.div<{ hasImage: boolean }>`
+    width: 32px;
+    height: 32px;
+    border-radius: ${({ theme }) => theme.radii.md};
+    background-color: ${({ theme, hasImage }) => hasImage ? 'transparent' : `${theme.colors.primary.main}20`};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-right: 12px;
+    overflow: hidden;
+
+    i {
+        font-size: 16px;
+        color: ${({ theme }) => theme.colors.primary.main};
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+`;
+
+const SourceNameUrl = styled.div`
+    flex: 1;
+    min-width: 0;
+`;
+
+const SourceName = styled.div`
+    font-size: ${({ theme }) => theme.typography.fontSize.md};
+    color: ${({ theme }) => theme.colors.text.primary};
+    font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 `;
 
 const SourceUrl = styled.div`
-  font-size: ${({ theme }) => theme.typography.fontSize.md};
-  color: ${({ theme }) => theme.colors.text.primary};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+    font-size: ${({ theme }) => theme.typography.fontSize.sm};
+    color: ${({ theme }) => theme.colors.text.secondary};
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 `;
 
 const SourceType = styled.div`
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  color: ${({ theme }) => theme.colors.text.secondary};
-  margin-top: 4px;
+    flex-shrink: 0;
+    font-size: ${({ theme }) => theme.typography.fontSize.sm};
+    color: ${({ theme }) => theme.colors.text.secondary};
+    margin-top: 4px;
 `;
 
 const SourceStatus = styled.div<{ active: boolean }>`
-  display: flex;
-  align-items: center;
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  color: ${({ active, theme }) => active ? theme.colors.success : theme.colors.error};
-  
-  i {
-    margin-right: 6px;
-  }
+    display: flex;
+    align-items: center;
+    font-size: ${({ theme }) => theme.typography.fontSize.sm};
+    color: ${({ active, theme }) => active ? theme.colors.success : theme.colors.error};
+    margin-left: 12px;
+
+    i {
+        margin-right: 6px;
+    }
 `;
 
 const NoResultsMessage = styled.div`
@@ -92,11 +134,11 @@ interface SourcePickerProps {
 }
 
 export const SourcePicker: React.FC<SourcePickerProps> = ({
-    onSelect,
-    onCancel,
-    excludeSourceIds = [],
-    isLoading = false,
-}) => {
+                                                              onSelect,
+                                                              onCancel,
+                                                              excludeSourceIds = [],
+                                                              isLoading = false,
+                                                          }) => {
     const { sources, fetchSources, isLoading: isSourceLoading } = useSource();
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedSourceIds, setSelectedSourceIds] = useState<number[]>([]);
@@ -105,7 +147,9 @@ export const SourcePicker: React.FC<SourcePickerProps> = ({
 
     // Filter sources by search query and exclude already added sources
     const filteredSources = sources.filter(source =>
-        (debouncedSearch === '' || source.url.toLowerCase().includes(debouncedSearch.toLowerCase())) &&
+        (debouncedSearch === '' ||
+            source.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+            source.url.toLowerCase().includes(debouncedSearch.toLowerCase())) &&
         !excludeSourceIds.includes(source.id)
     );
 
@@ -155,31 +199,46 @@ export const SourcePicker: React.FC<SourcePickerProps> = ({
                 {isSourceLoading ? (
                     <NoResultsMessage>Loading sources...</NoResultsMessage>
                 ) : filteredSources.length > 0 ? (
-                    filteredSources.map((source) => (
-                        <SourceItem
-                            key={source.id}
-                            isSelected={selectedSourceIds.includes(source.id)}
-                            onClick={() => handleSourceToggle(source.id)}
-                        >
-                            <input
-                                type="checkbox"
-                                checked={selectedSourceIds.includes(source.id)}
-                                onChange={() => handleSourceToggle(source.id)}
-                                onClick={e => e.stopPropagation()}
-                                style={{ marginRight: 12 }}
-                            />
-                            <SourceInfo>
-                                <SourceUrl title={source.url}>
-                                    {getDomain(source.url)}
-                                </SourceUrl>
-                                <SourceType>{source.type}</SourceType>
-                            </SourceInfo>
-                            <SourceStatus active={source.active}>
-                                <i className={`fas fa-${source.active ? 'circle-check' : 'circle-xmark'}`} />
-                                {source.active ? 'Active' : 'Inactive'}
-                            </SourceStatus>
-                        </SourceItem>
-                    ))
+                    filteredSources.map((source) => {
+                        const hasImage = !!source.image_url;
+
+                        return (
+                            <SourceItem
+                                key={source.id}
+                                isSelected={selectedSourceIds.includes(source.id)}
+                                onClick={() => handleSourceToggle(source.id)}
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={selectedSourceIds.includes(source.id)}
+                                    onChange={() => handleSourceToggle(source.id)}
+                                    onClick={e => e.stopPropagation()}
+                                    style={{ marginRight: 12 }}
+                                />
+                                <SourceInfo>
+                                    <SourceImage hasImage={hasImage}>
+                                        {hasImage ? (
+                                            <img src={source.image_url} alt={source.name} />
+                                        ) : (
+                                            <i className="fas fa-rss" />
+                                        )}
+                                    </SourceImage>
+                                    <SourceNameUrl>
+                                        <SourceName title={source.name}>
+                                            {source.name}
+                                        </SourceName>
+                                        <SourceUrl title={source.url}>
+                                            {getDomain(source.url)}
+                                        </SourceUrl>
+                                    </SourceNameUrl>
+                                </SourceInfo>
+                                <SourceStatus active={source.active}>
+                                    <i className={`fas fa-${source.active ? 'circle-check' : 'circle-xmark'}`} />
+                                    {source.active ? 'Active' : 'Inactive'}
+                                </SourceStatus>
+                            </SourceItem>
+                        );
+                    })
                 ) : (
                     <NoResultsMessage>
                         {debouncedSearch

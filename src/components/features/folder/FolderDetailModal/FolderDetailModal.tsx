@@ -10,52 +10,52 @@ import { formatDate } from '../../../../utils';
 import { folderService } from '../../../../services/folderService';
 
 const DetailSection = styled.div`
-  margin-bottom: 24px;
+    margin-bottom: 24px;
 `;
 
 const FolderHeader = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
 `;
 
 const ColorDot = styled.div<{ color: string }>`
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background-color: ${props => props.color};
-  margin-right: 8px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: ${props => props.color};
+    margin-right: 8px;
 `;
 
 const FolderName = styled.h3`
-  font-size: ${({ theme }) => theme.typography.fontSize.xl};
-  color: ${({ theme }) => theme.colors.text.primary};
-  margin: 0;
+    font-size: ${({ theme }) => theme.typography.fontSize.xl};
+    color: ${({ theme }) => theme.colors.text.primary};
+    margin: 0;
 `;
 
 const FolderMeta = styled.div`
-  display: flex;
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  color: ${({ theme }) => theme.colors.text.secondary};
-  margin-bottom: 16px;
+    display: flex;
+    font-size: ${({ theme }) => theme.typography.fontSize.sm};
+    color: ${({ theme }) => theme.colors.text.secondary};
+    margin-bottom: 16px;
 `;
 
 const MetaItem = styled.div`
-  display: flex;
-  align-items: center;
-  margin-right: 16px;
+    display: flex;
+    align-items: center;
+    margin-right: 16px;
 
-  i {
-    margin-right: 6px;
-    font-size: ${({ theme }) => theme.typography.fontSize.xs};
-  }
+    i {
+        margin-right: 6px;
+        font-size: ${({ theme }) => theme.typography.fontSize.xs};
+    }
 `;
 
 const SourcesHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
 `;
 
 const SectionTitle = styled.h4`
@@ -87,9 +87,40 @@ const SourceItem = styled.div`
 const SourceInfo = styled.div`
   flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: center;
 `;
 
-const SourceUrl = styled.div`
+const SourceImage = styled.div<{ hasImage: boolean }>`
+  width: 32px;
+  height: 32px;
+  border-radius: ${({ theme }) => theme.radii.md};
+  background-color: ${({ theme, hasImage }) => hasImage ? 'transparent' : `${theme.colors.primary.main}20`};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 12px;
+  overflow: hidden;
+
+  i {
+    font-size: 16px;
+    color: ${({ theme }) => theme.colors.primary.main};
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const SourceDetails = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const SourceName = styled.div`
   font-size: ${({ theme }) => theme.typography.fontSize.md};
   color: ${({ theme }) => theme.colors.text.primary};
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
@@ -98,10 +129,13 @@ const SourceUrl = styled.div`
   text-overflow: ellipsis;
 `;
 
-const SourceType = styled.div`
+const SourceUrl = styled.div`
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
   color: ${({ theme }) => theme.colors.text.secondary};
   margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const EmptyState = styled.div`
@@ -236,24 +270,42 @@ export const FolderDetailModal: React.FC<FolderDetailModalProps> = ({
 
                             {selectedFolderSources.length > 0 ? (
                                 <SourcesList>
-                                    {selectedFolderSources.map(source => (
-                                        <SourceItem key={source.id}>
-                                            <SourceInfo>
-                                                <SourceUrl title={source.url}>
-                                                    {getDomain(source.url)}
-                                                </SourceUrl>
-                                                <SourceType>{source.type}</SourceType>
-                                            </SourceInfo>
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => setShowConfirm({ sourceId: source.id, sourceName: getDomain(source.url) })}
-                                                title="Remove source from folder"
-                                            >
-                                                <i className="fas fa-trash" />
-                                            </Button>
-                                        </SourceItem>
-                                    ))}
+                                    {selectedFolderSources.map(source => {
+                                        const hasImage = !!source.image_url;
+
+                                        return (
+                                            <SourceItem key={source.id}>
+                                                <SourceInfo>
+                                                    <SourceImage hasImage={hasImage}>
+                                                        {hasImage ? (
+                                                            <img src={source.image_url} alt={source.name} />
+                                                        ) : (
+                                                            <i className="fas fa-rss" />
+                                                        )}
+                                                    </SourceImage>
+                                                    <SourceDetails>
+                                                        <SourceName title={source.name}>
+                                                            {source.name}
+                                                        </SourceName>
+                                                        <SourceUrl title={source.url}>
+                                                            {getDomain(source.url)}
+                                                        </SourceUrl>
+                                                    </SourceDetails>
+                                                </SourceInfo>
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={() => setShowConfirm({
+                                                        sourceId: source.id,
+                                                        sourceName: source.name
+                                                    })}
+                                                    title="Remove source from folder"
+                                                >
+                                                    <i className="fas fa-trash" />
+                                                </Button>
+                                            </SourceItem>
+                                        );
+                                    })}
                                 </SourcesList>
                             ) : (
                                 <EmptyState>
