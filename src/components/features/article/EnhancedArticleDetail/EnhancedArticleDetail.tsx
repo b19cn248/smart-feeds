@@ -1,5 +1,5 @@
 // src/components/features/article/EnhancedArticleDetail/EnhancedArticleDetail.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { Article } from '../../../../types';
 import { FolderArticle } from '../../../../types/folderArticles.types';
@@ -7,9 +7,8 @@ import { formatDate } from '../../../../utils';
 import { ArticleContentRenderer } from '../ArticleContentRenderer';
 import { ShareModal } from './ShareModal';
 import { SaveToBoardModal } from './SaveToBoardModal';
-import { SaveToTeamBoardModal } from './SaveToTeamBoardModal';
 import { useArticleImage } from '../../../../hooks/useArticleImage';
-import { HashtagList } from '../HashtagList'; // Thêm import HashtagList
+import { topStoriesService } from '../../../../services/topStoriesService'; // Thêm dòng này
 
 const DEFAULT_ARTICLE_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzY0NzQ4YiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlIEF2YWlsYWJsZTwvdGV4dD48L3N2Zz4=';
 
@@ -86,56 +85,16 @@ const ActionButton = styled.button`
     display: flex;
     align-items: center;
     gap: 8px;
-    position: relative;
 
     &:hover {
         background-color: ${({ theme }) => theme.colors.gray[100]};
         color: ${({ theme }) => theme.colors.text.primary};
     }
-    
+
     span {
         @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
             display: none;
         }
-    }
-`;
-
-// Thêm mới dropdown menu cho save options
-const SaveDropdown = styled.div<{ isOpen: boolean }>`
-    position: absolute;
-    top: 100%;
-    right: 0;
-    width: 200px;
-    background-color: ${({ theme }) => theme.colors.background.secondary};
-    border-radius: ${({ theme }) => theme.radii.md};
-    box-shadow: ${({ theme }) => theme.shadows.lg};
-    z-index: 1000;
-    overflow: hidden;
-    opacity: ${({ isOpen }) => (isOpen ? 1 : 0)};
-    visibility: ${({ isOpen }) => (isOpen ? 'visible' : 'hidden')};
-    transform: ${({ isOpen }) => (isOpen ? 'translateY(0)' : 'translateY(-10px)')};
-    transition: all 0.2s ease-in-out;
-`;
-
-const DropdownItem = styled.button`
-    width: 100%;
-    padding: 10px 16px;
-    background: none;
-    border: none;
-    text-align: left;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: ${({ theme }) => theme.colors.text.primary};
-    transition: background-color 0.2s;
-
-    &:hover {
-        background-color: ${({ theme }) => theme.colors.gray[100]};
-    }
-
-    i {
-        color: ${({ theme }) => theme.colors.primary.main};
     }
 `;
 
@@ -171,11 +130,6 @@ const MetaItem = styled.div`
     i {
         margin-right: 8px;
     }
-`;
-
-// Thêm styled component cho HashtagSection
-const HashtagSection = styled.div`
-    margin: 16px 0 24px 0;
 `;
 
 const ArticleImage = styled.img`
@@ -251,41 +205,29 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
                                                                             }) => {
     const [showShareModal, setShowShareModal] = useState(false);
     const [showSaveModal, setShowSaveModal] = useState(false);
-    const [showTeamSaveModal, setShowTeamSaveModal] = useState(false);
-    const [showSaveDropdown, setShowSaveDropdown] = useState(false);
     const { shouldShowFeaturedImage, imageSrc } = useArticleImage(article);
 
     // Ref để phát hiện nếu có ảnh trùng lặp trong nội dung sau khi render
     const contentRef = React.useRef<HTMLDivElement>(null);
     const [hasImageInContent, setHasImageInContent] = useState(false);
 
+    // Thêm useEffect để theo dõi lượt xem khi article detail mở
+    useEffect(() => {
+        if (isOpen && article) {
+            // Track article view
+            topStoriesService.trackArticleView(article.id)
+                .catch(error => console.error('Error tracking article view:', error));
+        }
+    }, [isOpen, article]);
+
     // Kiểm tra xem ảnh có trong nội dung không sau khi component được render
-    React.useEffect(() => {
+    useEffect(() => {
         if (contentRef.current && article?.image_url) {
             // Tìm ảnh có class đặc biệt 'featured-image-in-content'
             const duplicateImages = contentRef.current.querySelectorAll('.featured-image-in-content');
             setHasImageInContent(duplicateImages.length > 0);
         }
     }, [article, isOpen]);
-
-    // Đóng dropdown khi click ngoài
-    React.useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            const target = event.target as Node;
-            const dropdown = document.getElementById('save-dropdown');
-            const saveButton = document.getElementById('save-button');
-
-            if (dropdown && !dropdown.contains(target) &&
-                saveButton && !saveButton.contains(target)) {
-                setShowSaveDropdown(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
 
     if (!article) return null;
 
@@ -294,24 +236,6 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
         if (e.target === e.currentTarget) {
             onClose();
         }
-    };
-
-    // Toggle save dropdown
-    const toggleSaveDropdown = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setShowSaveDropdown(!showSaveDropdown);
-    };
-
-    // Handle save to board
-    const handleSaveToBoard = () => {
-        setShowSaveDropdown(false);
-        setShowSaveModal(true);
-    };
-
-    // Handle save to team board
-    const handleSaveToTeamBoard = () => {
-        setShowSaveDropdown(false);
-        setShowTeamSaveModal(true);
     };
 
     // Determine source text to display
@@ -332,26 +256,10 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
                     <DetailHeader>
                         <HeaderTitle>{article.title}</HeaderTitle>
                         <HeaderActions>
-                            <div style={{ position: 'relative' }}>
-                                <ActionButton
-                                    id="save-button"
-                                    onClick={toggleSaveDropdown}
-                                    title="Save options"
-                                >
-                                    <i className="fas fa-bookmark" />
-                                    <span>Save</span>
-                                </ActionButton>
-                                <SaveDropdown id="save-dropdown" isOpen={showSaveDropdown}>
-                                    <DropdownItem onClick={handleSaveToBoard}>
-                                        <i className="fas fa-clipboard" />
-                                        Save to Board
-                                    </DropdownItem>
-                                    <DropdownItem onClick={handleSaveToTeamBoard}>
-                                        <i className="fas fa-chalkboard" />
-                                        Save to Team Board
-                                    </DropdownItem>
-                                </SaveDropdown>
-                            </div>
+                            <ActionButton onClick={() => setShowSaveModal(true)} title="Save to board">
+                                <i className="fas fa-bookmark" />
+                                <span>Save</span>
+                            </ActionButton>
                             <ActionButton onClick={() => setShowShareModal(true)} title="Share article">
                                 <i className="fas fa-share-alt" />
                                 <span>Share</span>
@@ -386,13 +294,6 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
                             </MetaItem>
                         </ArticleMeta>
 
-                        {/* Thêm phần hiển thị hashtags */}
-                        {'hashtag' in article && article.hashtag && article.hashtag.length > 0 && (
-                            <HashtagSection>
-                                <HashtagList hashtags={article.hashtag} />
-                            </HashtagSection>
-                        )}
-
                         {/* Hiển thị featured image CHỈ khi ảnh KHÔNG xuất hiện trong nội dung */}
                         {!hasImageInContent && shouldShowFeaturedImage && imageSrc && (
                             <ArticleImage
@@ -426,19 +327,14 @@ export const EnhancedArticleDetail: React.FC<EnhancedArticleDetailProps> = ({
                 </DetailContainer>
             </Overlay>
 
-            {/* Share Modal */}
+            {/* Share Modal - tách thành component riêng */}
             {showShareModal && article && (
                 <ShareModal article={article} onClose={() => setShowShareModal(false)} />
             )}
 
-            {/* Save to Board Modal */}
+            {/* Save to Board Modal - tách thành component riêng */}
             {showSaveModal && article && (
                 <SaveToBoardModal article={article} onClose={() => setShowSaveModal(false)} />
-            )}
-
-            {/* Save to Team Board Modal */}
-            {showTeamSaveModal && article && (
-                <SaveToTeamBoardModal article={article} onClose={() => setShowTeamSaveModal(false)} />
             )}
         </>
     );
