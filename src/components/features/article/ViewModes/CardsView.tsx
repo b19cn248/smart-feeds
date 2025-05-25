@@ -28,11 +28,7 @@ const CardItem = styled.div`
     transform: translateY(-4px);
     box-shadow: ${({ theme }) => theme.shadows.lg};
   }
-
-  @media (prefers-color-scheme: dark) {
-    background-color: ${({ theme }) => theme.colors.gray[800]};
-    border: 1px solid ${({ theme }) => theme.colors.gray[700]};
-  }
+    
 `;
 
 const CardImage = styled.div<{ imageUrl: string }>`
@@ -76,10 +72,7 @@ const CardFooter = styled.div`
   border-top: 1px solid ${({ theme }) => theme.colors.gray[200]};
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
   color: ${({ theme }) => theme.colors.text.secondary};
-  
-  @media (prefers-color-scheme: dark) {
-    border-top-color: ${({ theme }) => theme.colors.gray[700]};
-  }
+    
 `;
 
 const SourceDate = styled.div`
@@ -105,12 +98,6 @@ const ActionButton = styled.button`
   &:hover {
     color: ${({ theme }) => theme.colors.primary.main};
     background-color: ${({ theme }) => theme.colors.gray[100]};
-  }
-  
-  @media (prefers-color-scheme: dark) {
-    &:hover {
-      background-color: ${({ theme }) => theme.colors.gray[700]};
-    }
   }
 `;
 

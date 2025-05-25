@@ -18,10 +18,13 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "baseUrl": "src",
+    "paths": {
+      "@mui/*": ["node_modules/@mui/*"]
+    }
   },
   "include": [
-    "src",
-    "src/styles/styled.d.ts"  // Make sure this is included
+    "src/**/*"
   ]
 }

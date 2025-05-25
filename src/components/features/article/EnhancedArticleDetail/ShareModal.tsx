@@ -23,10 +23,6 @@ const ModalContainer = styled.div`
   border-radius: ${({ theme }) => theme.radii.lg};
   padding: 24px;
   box-shadow: ${({ theme }) => theme.shadows.xl};
-  
-  @media (prefers-color-scheme: dark) {
-    background-color: ${({ theme }) => theme.colors.gray[800]};
-  }
 `;
 
 const ModalTitle = styled.h3`
@@ -72,14 +68,6 @@ const ShareOption = styled.button`
     font-size: ${({ theme }) => theme.typography.fontSize.sm};
     color: ${({ theme }) => theme.colors.text.primary};
   }
-
-  @media (prefers-color-scheme: dark) {
-    border-color: ${({ theme }) => theme.colors.gray[700]};
-
-    &:hover {
-      background-color: ${({ theme }) => theme.colors.gray[800]};
-    }
-  }
   
   @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
     width: calc(50% - 6px);
@@ -97,11 +85,6 @@ const ShareInput = styled.div`
     border-radius: ${({ theme }) => theme.radii.md};
     font-size: ${({ theme }) => theme.typography.fontSize.md};
     color: ${({ theme }) => theme.colors.text.primary};
-
-    @media (prefers-color-scheme: dark) {
-      border-color: ${({ theme }) => theme.colors.gray[600]};
-      background-color: ${({ theme }) => theme.colors.gray[800]};
-    }
   }
 
   button {
@@ -138,14 +121,6 @@ const CloseButton = styled.button`
   
   &:hover {
     background-color: ${({ theme }) => theme.colors.gray[200]};
-  }
-  
-  @media (prefers-color-scheme: dark) {
-    background-color: ${({ theme }) => theme.colors.gray[700]};
-    
-    &:hover {
-      background-color: ${({ theme }) => theme.colors.gray[600]};
-    }
   }
 `;
 

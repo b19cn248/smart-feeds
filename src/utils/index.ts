@@ -7,3 +7,4 @@ export * from './dom.utils';
 export * from './color.utils';
 export * from './storage.utils';
 export * from './api.utils';
+export * from './notification.utils';

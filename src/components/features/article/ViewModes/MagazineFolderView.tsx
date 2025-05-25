@@ -5,16 +5,13 @@ import styled from 'styled-components';
 import { FolderWithArticles, FolderArticle } from '../../../../types/folderArticles.types';
 import { formatDate, truncateText } from '../../../../utils';
 import { Button } from '../../../common/Button';
+import { HashtagList } from '../HashtagList';
 
 const SectionContainer = styled.div`
     margin-bottom: 32px;
     border: 1px solid ${({ theme }) => theme.colors.gray[200]};
     border-radius: ${({ theme }) => theme.radii.lg};
     overflow: hidden;
-
-    @media (prefers-color-scheme: dark) {
-        border-color: ${({ theme }) => theme.colors.gray[700]};
-    }
 `;
 
 const SectionHeader = styled.div`
@@ -29,12 +26,6 @@ const SectionHeader = styled.div`
 
     &:hover {
         background-color: ${({ theme }) => theme.colors.gray[100]};
-    }
-
-    @media (prefers-color-scheme: dark) {
-        &:hover {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-        }
     }
 `;
 
@@ -73,10 +64,6 @@ const ArticleCount = styled.span`
     padding: 2px 8px;
     border-radius: 12px;
     margin-left: 8px;
-
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-    }
 `;
 
 const HeaderActions = styled.div`
@@ -129,9 +116,6 @@ const MagazineItem = styled.div`
         flex-direction: column;
     }
 
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-    }
 `;
 
 const ArticleImage = styled.div<{ imageUrl: string }>`
@@ -181,6 +165,12 @@ const Excerpt = styled.p`
     -webkit-box-orient: vertical;
     overflow: hidden;
     line-height: 1.5;
+`;
+
+const HashtagContainer = styled.div`
+    margin-top: 12px;
+    margin-bottom: 8px;
+    flex-grow: 0;
 `;
 
 const Meta = styled.div`
@@ -240,12 +230,6 @@ const ActionButton = styled.button`
         color: ${({ theme }) => theme.colors.primary.main};
         background-color: ${({ theme }) => theme.colors.gray[100]};
     }
-
-    @media (prefers-color-scheme: dark) {
-        &:hover {
-            background-color: ${({ theme }) => theme.colors.gray[700]};
-        }
-    }
 `;
 
 const DEFAULT_ARTICLE_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTJlOGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzY0NzQ4YiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPk5vIEltYWdlIEF2YWlsYWJsZTwvdGV4dD48L3N2Zz4=';
@@ -286,12 +270,14 @@ interface MagazineFolderViewProps {
     folders: FolderWithArticles[];
     onArticleClick: (article: FolderArticle) => void;
     onSaveArticle?: (article: FolderArticle) => void;
+    onHashtagClick?: (hashtag: string) => void;
 }
 
 export const MagazineFolderView: React.FC<MagazineFolderViewProps> = ({
                                                                           folders,
                                                                           onArticleClick,
-                                                                          onSaveArticle
+    onSaveArticle,
+    onHashtagClick
                                                                       }) => {
     // Tạo một object state để theo dõi trạng thái mở/đóng của từng folder
     const [expandedState, setExpandedState] = useState<Record<number, boolean>>({});
@@ -329,9 +315,6 @@ export const MagazineFolderView: React.FC<MagazineFolderViewProps> = ({
         }));
     };
 
-    // src/components/features/article/ViewModes/MagazineFolderView.tsx
-// Sửa đổi hàm handleViewAllClick
-
     const handleViewAllClick = (e: React.MouseEvent, folderId: number) => {
         e.stopPropagation(); // Ngăn không cho sự kiện lan tỏa đến toggleExpand
 
@@ -356,6 +339,7 @@ export const MagazineFolderView: React.FC<MagazineFolderViewProps> = ({
                                 <i className="fas fa-folder" />
                             </FolderIcon>
                             <SectionTitle>{folder.name}</SectionTitle>
+                            <ArticleCount>{folder.articles.length}</ArticleCount>
                         </TitleContainer>
                         <HeaderActions>
                             <ViewAllButton
@@ -389,6 +373,22 @@ export const MagazineFolderView: React.FC<MagazineFolderViewProps> = ({
                                         <ArticleContent>
                                             <Title>{article.title}</Title>
                                             <Excerpt>{excerptText}</Excerpt>
+
+                                            {/* Hiển thị hashtags */}
+                                            {article.hashtag && article.hashtag.length > 0 && (
+                                                <HashtagContainer>
+                                                    <HashtagList
+                                                        hashtags={article.hashtag}
+                                                        limit={4}
+                                                        compact={true}
+                                                        onClick={(e, hashtag) => {
+                                                            e.stopPropagation();
+                                                            if (onHashtagClick) onHashtagClick(hashtag);
+                                                        }}
+                                                    />
+                                                </HashtagContainer>
+                                            )}
+
                                             <Meta>
                                                 <SourceInfo>
                                                     <SourceName>

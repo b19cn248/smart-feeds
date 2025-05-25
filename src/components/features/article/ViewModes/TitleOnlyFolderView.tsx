@@ -5,16 +5,14 @@ import styled from 'styled-components';
 import { FolderWithArticles, FolderArticle } from '../../../../types/folderArticles.types';
 import { formatDate } from '../../../../utils';
 import { Button } from '../../../common/Button';
+import { HashtagList } from '../HashtagList';
 
 const SectionContainer = styled.div`
     margin-bottom: 32px;
     border: 1px solid ${({ theme }) => theme.colors.gray[200]};
     border-radius: ${({ theme }) => theme.radii.lg};
     overflow: hidden;
-
-    @media (prefers-color-scheme: dark) {
-        border-color: ${({ theme }) => theme.colors.gray[700]};
-    }
+    
 `;
 
 const SectionHeader = styled.div`
@@ -29,12 +27,6 @@ const SectionHeader = styled.div`
 
     &:hover {
         background-color: ${({ theme }) => theme.colors.gray[100]};
-    }
-
-    @media (prefers-color-scheme: dark) {
-        &:hover {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-        }
     }
 `;
 
@@ -73,10 +65,7 @@ const ArticleCount = styled.span`
     padding: 2px 8px;
     border-radius: 12px;
     margin-left: 8px;
-
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-    }
+    
 `;
 
 const HeaderActions = styled.div`
@@ -109,10 +98,6 @@ const TitleList = styled.div`
     border-radius: ${({ theme }) => theme.radii.lg};
     overflow: hidden;
     box-shadow: ${({ theme }) => theme.shadows.sm};
-
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-    }
 `;
 
 const TitleItem = styled.div`
@@ -127,14 +112,6 @@ const TitleItem = styled.div`
 
     &:last-child {
         border-bottom: none;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        border-bottom-color: ${({ theme }) => theme.colors.gray[700]};
-
-        &:hover {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-        }
     }
 `;
 
@@ -202,12 +179,12 @@ const ActionButton = styled.button`
         color: ${({ theme }) => theme.colors.primary.main};
         background-color: ${({ theme }) => theme.colors.gray[100]};
     }
+`;
 
-    @media (prefers-color-scheme: dark) {
-        &:hover {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-        }
-    }
+const HashtagContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
 `;
 
 // Helper để lấy màu từ theme
@@ -235,13 +212,15 @@ interface TitleOnlyFolderViewProps {
     folders: FolderWithArticles[];
     onArticleClick: (article: FolderArticle) => void;
     onSaveArticle?: (article: FolderArticle) => void;
+    onHashtagClick?: (hashtag: string) => void;
 }
 
 export const TitleOnlyFolderView: React.FC<TitleOnlyFolderViewProps> = ({
-                                                                            folders,
-                                                                            onArticleClick,
-                                                                            onSaveArticle
-                                                                        }) => {
+    folders,
+    onArticleClick,
+    onSaveArticle,
+    onHashtagClick
+}) => {
     // Tạo một object state để theo dõi trạng thái mở/đóng của từng folder
     const [expandedState, setExpandedState] = useState<Record<number, boolean>>({});
     const containerRefs = useRef<Record<number, HTMLDivElement | null>>({});
@@ -305,11 +284,15 @@ export const TitleOnlyFolderView: React.FC<TitleOnlyFolderViewProps> = ({
                                 <i className="fas fa-folder" />
                             </FolderIcon>
                             <SectionTitle>{folder.name}</SectionTitle>
+                            <ArticleCount>{folder.articles.length}</ArticleCount>
                         </TitleContainer>
                         <HeaderActions>
                             <ViewAllButton
                                 variant="secondary"
-                                onClick={(e) => handleViewAllClick(e, folder.id)}
+                                onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                                    e.stopPropagation();
+                                    handleViewAllClick(e, folder.id);
+                                }}
                                 className="view-all-button"
                                 leftIcon="list"
                             >
@@ -341,28 +324,19 @@ export const TitleOnlyFolderView: React.FC<TitleOnlyFolderViewProps> = ({
                                                 {formatDate(new Date(article.publish_date))}
                                             </DateText>
                                         </SourceInfo>
-                                        <ActionButtons>
-                                            {onSaveArticle && (
-                                                <ActionButton
-                                                    onClick={(e) => {
+                                        {article.hashtag && article.hashtag.length > 0 && (
+                                            <HashtagContainer>
+                                                <HashtagList
+                                                    hashtags={article.hashtag}
+                                                    limit={4}
+                                                    compact={true}
+                                                    onClick={(e: React.MouseEvent<Element, MouseEvent>, hashtag: string) => {
                                                         e.stopPropagation();
-                                                        onSaveArticle(article);
+                                                        if (onHashtagClick) onHashtagClick(hashtag);
                                                     }}
-                                                    title="Save to board"
-                                                >
-                                                    <i className="fas fa-bookmark" />
-                                                </ActionButton>
-                                            )}
-                                            <ActionButton
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    window.open(article.url, '_blank');
-                                                }}
-                                                title="Open original"
-                                            >
-                                                <i className="fas fa-external-link-alt" />
-                                            </ActionButton>
-                                        </ActionButtons>
+                                                />
+                                            </HashtagContainer>
+                                        )}
                                     </Meta>
                                 </TitleItem>
                             ))}

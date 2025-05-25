@@ -19,11 +19,6 @@ const HeaderWrapper = styled.header`
     align-items: center;
     justify-content: space-between;
     padding: 0 16px;
-
-    @media (prefers-color-scheme: dark) {
-        background-color: ${({ theme }) => theme.colors.gray[800]};
-        border-bottom-color: ${({ theme }) => theme.colors.gray[700]};
-    }
 `;
 
 const LeftSection = styled.div`

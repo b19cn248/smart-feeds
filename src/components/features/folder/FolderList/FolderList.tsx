@@ -14,7 +14,7 @@ const FolderGrid = styled.div`
 interface FolderListProps {
     filters: FolderFilterOptions;
     onFolderClick?: (folderId: number) => void;
-    onFolderMenuClick?: (folderId: number, event: React.MouseEvent) => void;
+    onFolderMenuClick?: (folderId: number, event?: React.MouseEvent) => void;
     onCreateClick?: () => void;
 }
 
@@ -42,7 +42,7 @@ export const FolderList: React.FC<FolderListProps> = ({
                     key={folder.id}
                     folder={folder}
                     onClick={() => onFolderClick?.(folder.id)}
-                    onMenuClick={(e) => onFolderMenuClick?.(folder.id, e)}
+                    onEdit={() => onFolderMenuClick?.(folder.id, undefined)}
                 />
             ))}
         </FolderGrid>

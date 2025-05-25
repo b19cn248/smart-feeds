@@ -65,11 +65,19 @@ export interface TeamBoardNewsletter {
     title: string;
     recipients: string[];
     article_ids: number[];
-    schedule_type: 'DAILY' | 'WEEKLY' | 'MONTHLY';
+    schedule_type: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'IMMEDIATE';
     next_run_time: string;
     last_run_time: string | null;
     is_active: boolean;
     created_at: string;
+}
+
+// Thêm interface mới cho request tạo newsletter
+export interface TeamBoardNewsletterCreateRequest {
+    title: string;
+    recipients: string[];
+    article_ids: number[];
+    schedule_type: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'IMMEDIATE';
 }
 
 export interface TeamBoardCreateRequest {

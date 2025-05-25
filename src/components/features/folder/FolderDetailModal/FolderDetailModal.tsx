@@ -7,54 +7,55 @@ import { SourcePicker } from '../SourcePicker';
 import { useFolder } from '../../../../contexts/FolderContext';
 import { Folder } from '../../../../types';
 import { formatDate } from '../../../../utils';
+import { folderService } from '../../../../services/folderService';
 
 const DetailSection = styled.div`
-  margin-bottom: 24px;
+    margin-bottom: 24px;
 `;
 
 const FolderHeader = styled.div`
-  display: flex;
-  align-items: center;
-  margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
 `;
 
 const ColorDot = styled.div<{ color: string }>`
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background-color: ${props => props.color};
-  margin-right: 8px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: ${props => props.color};
+    margin-right: 8px;
 `;
 
 const FolderName = styled.h3`
-  font-size: ${({ theme }) => theme.typography.fontSize.xl};
-  color: ${({ theme }) => theme.colors.text.primary};
-  margin: 0;
+    font-size: ${({ theme }) => theme.typography.fontSize.xl};
+    color: ${({ theme }) => theme.colors.text.primary};
+    margin: 0;
 `;
 
 const FolderMeta = styled.div`
-  display: flex;
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  color: ${({ theme }) => theme.colors.text.secondary};
-  margin-bottom: 16px;
+    display: flex;
+    font-size: ${({ theme }) => theme.typography.fontSize.sm};
+    color: ${({ theme }) => theme.colors.text.secondary};
+    margin-bottom: 16px;
 `;
 
 const MetaItem = styled.div`
-  display: flex;
-  align-items: center;
-  margin-right: 16px;
+    display: flex;
+    align-items: center;
+    margin-right: 16px;
 
-  i {
-    margin-right: 6px;
-    font-size: ${({ theme }) => theme.typography.fontSize.xs};
-  }
+    i {
+        margin-right: 6px;
+        font-size: ${({ theme }) => theme.typography.fontSize.xs};
+    }
 `;
 
 const SourcesHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
 `;
 
 const SectionTitle = styled.h4`
@@ -69,10 +70,6 @@ const SourcesList = styled.div`
   border-radius: ${({ theme }) => theme.radii.md};
   max-height: 300px;
   overflow-y: auto;
-
-  @media (prefers-color-scheme: dark) {
-    border-color: ${({ theme }) => theme.colors.gray[700]};
-  }
 `;
 
 const SourceItem = styled.div`
@@ -85,18 +82,45 @@ const SourceItem = styled.div`
   &:last-child {
     border-bottom: none;
   }
-
-  @media (prefers-color-scheme: dark) {
-    border-bottom-color: ${({ theme }) => theme.colors.gray[700]};
-  }
 `;
 
 const SourceInfo = styled.div`
   flex: 1;
   min-width: 0;
+  display: flex;
+  align-items: center;
 `;
 
-const SourceUrl = styled.div`
+const SourceImage = styled.div<{ hasImage: boolean }>`
+  width: 32px;
+  height: 32px;
+  border-radius: ${({ theme }) => theme.radii.md};
+  background-color: ${({ theme, hasImage }) => hasImage ? 'transparent' : `${theme.colors.primary.main}20`};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 12px;
+  overflow: hidden;
+
+  i {
+    font-size: 16px;
+    color: ${({ theme }) => theme.colors.primary.main};
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const SourceDetails = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const SourceName = styled.div`
   font-size: ${({ theme }) => theme.typography.fontSize.md};
   color: ${({ theme }) => theme.colors.text.primary};
   font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
@@ -105,10 +129,13 @@ const SourceUrl = styled.div`
   text-overflow: ellipsis;
 `;
 
-const SourceType = styled.div`
+const SourceUrl = styled.div`
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
   color: ${({ theme }) => theme.colors.text.secondary};
   margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const EmptyState = styled.div`
@@ -138,6 +165,9 @@ export const FolderDetailModal: React.FC<FolderDetailModalProps> = ({
     const { getFolderById, selectedFolder, selectedFolderSources, isLoading, addSourceToFolder } = useFolder();
     const [showSourcePicker, setShowSourcePicker] = useState(false);
     const [addingSource, setAddingSource] = useState(false);
+    const [removingSourceId, setRemovingSourceId] = useState<number | null>(null);
+    const [isRemoving, setIsRemoving] = useState(false);
+    const [showConfirm, setShowConfirm] = useState<{ sourceId: number, sourceName: string } | null>(null);
 
     // Load folder details when the modal opens
     useEffect(() => {
@@ -146,18 +176,34 @@ export const FolderDetailModal: React.FC<FolderDetailModalProps> = ({
         }
     }, [isOpen, folderId, getFolderById]);
 
-    // Handle adding a source to the folder
-    const handleAddSource = async (sourceId: number) => {
+    // Handle adding sources to the folder (multi)
+    const handleAddSources = async (sourceIds: number[]) => {
         if (!folderId) return;
-
         setAddingSource(true);
         try {
-            await addSourceToFolder(folderId, sourceId);
+            await folderService.addSourceToFolder(folderId, sourceIds);
             setShowSourcePicker(false);
+            await getFolderById(folderId); // Refresh folder data
         } catch (error) {
-            console.error('Error adding source to folder:', error);
+            console.error('Error adding sources to folder:', error);
         } finally {
             setAddingSource(false);
+        }
+    };
+
+    // Handle remove source from folder
+    const handleRemoveSource = async (sourceId: number) => {
+        if (!folderId) return;
+        setIsRemoving(true);
+        try {
+            await folderService.removeSourceFromFolder(folderId, sourceId);
+            await getFolderById(folderId); // Refresh folder data
+            setShowConfirm(null);
+        } catch (error) {
+            // Có thể show toast ở đây nếu muốn
+            console.error('Error removing source from folder:', error);
+        } finally {
+            setIsRemoving(false);
         }
     };
 
@@ -203,7 +249,7 @@ export const FolderDetailModal: React.FC<FolderDetailModalProps> = ({
                 <DetailSection>
                     {showSourcePicker ? (
                         <SourcePicker
-                            onSelect={handleAddSource}
+                            onSelect={handleAddSources}
                             onCancel={() => setShowSourcePicker(false)}
                             excludeSourceIds={selectedFolderSources.map(source => source.id)}
                             isLoading={addingSource}
@@ -224,16 +270,42 @@ export const FolderDetailModal: React.FC<FolderDetailModalProps> = ({
 
                             {selectedFolderSources.length > 0 ? (
                                 <SourcesList>
-                                    {selectedFolderSources.map(source => (
-                                        <SourceItem key={source.id}>
-                                            <SourceInfo>
-                                                <SourceUrl title={source.url}>
-                                                    {getDomain(source.url)}
-                                                </SourceUrl>
-                                                <SourceType>{source.type}</SourceType>
-                                            </SourceInfo>
-                                        </SourceItem>
-                                    ))}
+                                    {selectedFolderSources.map(source => {
+                                        const hasImage = !!source.image_url;
+
+                                        return (
+                                            <SourceItem key={source.id}>
+                                                <SourceInfo>
+                                                    <SourceImage hasImage={hasImage}>
+                                                        {hasImage ? (
+                                                            <img src={source.image_url} alt={source.name} />
+                                                        ) : (
+                                                            <i className="fas fa-rss" />
+                                                        )}
+                                                    </SourceImage>
+                                                    <SourceDetails>
+                                                        <SourceName title={source.name}>
+                                                            {source.name}
+                                                        </SourceName>
+                                                        <SourceUrl title={source.url}>
+                                                            {getDomain(source.url)}
+                                                        </SourceUrl>
+                                                    </SourceDetails>
+                                                </SourceInfo>
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={() => setShowConfirm({
+                                                        sourceId: source.id,
+                                                        sourceName: source.name
+                                                    })}
+                                                    title="Remove source from folder"
+                                                >
+                                                    <i className="fas fa-trash" />
+                                                </Button>
+                                            </SourceItem>
+                                        );
+                                    })}
                                 </SourcesList>
                             ) : (
                                 <EmptyState>
@@ -259,6 +331,16 @@ export const FolderDetailModal: React.FC<FolderDetailModalProps> = ({
             size="md"
         >
             {renderContent()}
+            {/* Confirm Remove Source Modal */}
+            {showConfirm && (
+                <Modal isOpen={true} onClose={() => setShowConfirm(null)} title="Remove Source" size="sm">
+                    <p>Are you sure you want to remove <b>{showConfirm.sourceName}</b> from this folder?</p>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12 }}>
+                        <Button variant="ghost" onClick={() => setShowConfirm(null)} disabled={isRemoving}>Cancel</Button>
+                        <Button variant="secondary" onClick={() => handleRemoveSource(showConfirm.sourceId)} isLoading={isRemoving}>Remove</Button>
+                    </div>
+                </Modal>
+            )}
         </Modal>
     );
 };

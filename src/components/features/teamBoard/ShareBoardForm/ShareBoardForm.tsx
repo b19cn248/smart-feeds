@@ -29,12 +29,6 @@ const PermissionOption = styled.label`
     &:hover {
         background-color: ${({ theme }) => theme.colors.gray[100]};
     }
-
-    @media (prefers-color-scheme: dark) {
-        &:hover {
-            background-color: ${({ theme }) => theme.colors.gray[800]};
-        }
-    }
 `;
 
 const PermissionLabel = styled.div`
