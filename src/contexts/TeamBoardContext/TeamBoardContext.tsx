@@ -41,7 +41,7 @@ interface TeamBoardContextValue {
         scheduleType: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'IMMEDIATE'
     ) => Promise<boolean>;
     getArticleNotes: (boardId: number, articleId: number) => Promise<TeamBoardNotesResponse>;
-    addArticleNote: (boardId: number, articleId: number, content: string, mentionedUserIds: number[]) => Promise<boolean>;
+    addArticleNote: (boardId: number, articleId: number, content: string) => Promise<boolean>;
 }
 
 // Initial state
@@ -429,15 +429,15 @@ export const TeamBoardProvider: React.FC<{ children: ReactNode }> = ({ children 
         }
     }, [showToast]);
 
-    const addArticleNote = useCallback(async (boardId: number, articleId: number, content: string, mentionedUserIds: number[] = []) => {
-        console.log('TeamBoardContext: addArticleNote called', { boardId, articleId, content, mentionedUserIds });
+    const addArticleNote = useCallback(async (boardId: number, articleId: number, content: string) => {
+        console.log('TeamBoardContext: addArticleNote called', { boardId, articleId, content });
         
         dispatch({ type: 'SET_LOADING', payload: true });
         dispatch({ type: 'SET_ERROR', payload: null });
 
         try {
             console.log('TeamBoardContext: Calling teamBoardService.addArticleNote');
-            await teamBoardService.addArticleNote(boardId, articleId, content, mentionedUserIds);
+            await teamBoardService.addArticleNote(boardId, articleId, content);
             
             console.log('TeamBoardContext: Refreshing notes');
             const notes = await getArticleNotes(boardId, articleId);

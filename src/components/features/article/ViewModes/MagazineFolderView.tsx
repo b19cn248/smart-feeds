@@ -363,7 +363,7 @@ export const MagazineFolderView: React.FC<MagazineFolderViewProps> = ({
                     >
                         <MagazineList>
                             {folder.articles.map(article => {
-                                const excerptText = truncateText(extractTextFromHtml(article.content), 220);
+                                const excerptText = truncateText(extractTextFromHtml(article.content_snippet || article.content), 220);
 
                                 return (
                                     <MagazineItem key={article.id} onClick={() => onArticleClick(article)}>

@@ -137,7 +137,7 @@ export const TeamBoardArticleCard: React.FC<ArticleCardProps> = ({ article, onRe
                     </MetaItem>
                 </ArticleMeta>
                 <ArticleDescription>
-                    {article.content?.substring(0, 150)}...
+                    {article.content_snippet || article.content?.substring(0, 150)}...
                 </ArticleDescription>
             </ArticleContent>
             <ArticleActions>
