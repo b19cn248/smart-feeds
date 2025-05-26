@@ -560,6 +560,7 @@ export const ArticlesPage: React.FC = () => {
                 article={selectedArticle}
                 isOpen={isDetailOpen}
                 onClose={handleCloseDetail}
+                teamBoardId=""
             />
         </PageContainer>
     );

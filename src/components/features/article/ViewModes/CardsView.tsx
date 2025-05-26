@@ -126,7 +126,7 @@ export const CardsView: React.FC<CardsViewProps> = ({
     return (
         <CardsGrid>
             {articles.map(article => {
-                const excerptText = truncateText(extractTextFromHtml(article.content), 120);
+                const excerptText = truncateText(extractTextFromHtml(article.content_snippet || article.content), 120);
 
                 return (
                     <CardItem key={article.id} onClick={() => onArticleClick(article)}>

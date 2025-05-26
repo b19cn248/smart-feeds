@@ -330,6 +330,7 @@ export const BoardDetailPage: React.FC = () => {
                 article={viewingArticle}
                 isOpen={showArticleDetail}
                 onClose={() => setShowArticleDetail(false)}
+                teamBoardId=""
             />
 
             {/* Edit Board Modal */}

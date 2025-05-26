@@ -174,10 +174,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
     };
 
     // Sử dụng content_snippet nếu có, nếu không thì extract từ content
-    const content = 'content_snippet' in article && article.content_snippet
-        ? article.content_snippet
-        : article.content;
-
+    const content = article.content_snippet || article.content;
     const excerptText = extractTextFromHtml(content);
 
     // Xác định nguồn bài viết

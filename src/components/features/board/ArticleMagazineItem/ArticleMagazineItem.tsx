@@ -164,7 +164,7 @@ export const ArticleMagazineItem: React.FC<ArticleMagazineItemProps> = ({
             <ArticleContentWrapper>
                 <ArticleTitle>{article.title}</ArticleTitle>
                 <ArticleExcerpt>
-                    {extractTextFromHtml(article.content).substring(0, 220)}
+                    {extractTextFromHtml(article.content_snippet || article.content).substring(0, 220)}
                 </ArticleExcerpt>
                 <ArticleMeta>
                     <SourceInfo>

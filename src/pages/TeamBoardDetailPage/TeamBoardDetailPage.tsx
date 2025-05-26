@@ -258,6 +258,22 @@ export const TeamBoardDetailPage: React.FC = () => {
         setShowArticleDetailModal(true);
     };
 
+    // Handle close article detail
+    const handleCloseArticleDetail = () => {
+        setShowArticleDetailModal(false);
+        // Delay clearing selected article to allow animation to complete
+        setTimeout(() => {
+            setSelectedArticle(null);
+        }, 300);
+    };
+
+    // Handle article click
+    const handleArticleClick = (e: React.MouseEvent, article: Article) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleViewArticle(article);
+    };
+
     // Handle edit permission
     const handleEditPermission = (userId: number) => {
         if (!teamBoardDetail) return;
@@ -601,10 +617,8 @@ export const TeamBoardDetailPage: React.FC = () => {
                 <EnhancedArticleDetail
                     article={selectedArticle}
                     isOpen={showArticleDetailModal}
-                    onClose={() => {
-                        setShowArticleDetailModal(false);
-                        setSelectedArticle(null);
-                    }}
+                    onClose={handleCloseArticleDetail}
+                    teamBoardId={boardId || ''}
                 />
             )}
 

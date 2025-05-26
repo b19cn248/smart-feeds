@@ -516,6 +516,7 @@ export const SourceDetailPage: React.FC = () => {
                 article={selectedArticle}
                 isOpen={isDetailOpen}
                 onClose={handleCloseDetail}
+                teamBoardId=""
             />
 
             {/* Add to Folder Modal */}
