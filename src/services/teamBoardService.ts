@@ -8,9 +8,12 @@ import {
     TeamBoardShareRequest,
     TeamBoardNotesResponse,
     TeamBoardHighlightsResponse,
-    TeamBoardNewsletterCreateRequest
+    TeamBoardNewsletterCreateRequest,
+    TeamMembersResponse
 } from '../types';
 import { apiClient } from './apiClient';
+import axios from 'axios';
+import { getApiUrl } from '../config/env';
 
 export const teamBoardService = {
     /**
@@ -133,5 +136,15 @@ export const teamBoardService = {
      */
     createNewsletter: async (boardId: number, data: TeamBoardNewsletterCreateRequest): Promise<any> => {
         return apiClient.post(`/team-boards/${boardId}/newsletters`, data);
+    },
+
+    getTeamBoardMembers: async (boardId: number): Promise<TeamMembersResponse> => {
+        const response = await apiClient.get<TeamMembersResponse>(`/team-boards/${boardId}/members`);
+        return {
+            status: 200,
+            message: 'Success',
+            data: response.data || [],
+            timestamp: new Date().toISOString()
+        };
     },
 };

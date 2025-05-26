@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useTeamBoard } from '../../../../contexts/TeamBoardContext';
 import { TeamBoardNote } from '../../../../types';
+import { TeamMember } from '../../../../types/teamBoard';
 import { Button } from '../../../common/Button';
 import { Input } from '../../../common/Input';
 import { formatDate } from '../../../../utils';
 import { useToast } from '../../../../contexts/ToastContext';
+import { teamBoardService } from '../../../../services/teamBoardService';
 
 const NotesContainer = styled.div`
     display: flex;
@@ -110,20 +112,84 @@ const MentionSuggestions = styled.div`
     background-color: ${({ theme }) => theme.colors.background.primary};
     border: 1px solid ${({ theme }) => theme.colors.gray[200]};
     border-radius: ${({ theme }) => theme.radii.md};
-    box-shadow: ${({ theme }) => theme.shadows.md};
+    box-shadow: ${({ theme }) => theme.shadows.lg};
     z-index: 1000;
-    max-height: 200px;
+    max-height: 300px;
     overflow-y: auto;
+    margin-top: 4px;
 `;
 
 const MentionSuggestion = styled.div<{ selected?: boolean }>`
-    padding: 8px 12px;
+    padding: 12px 16px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s ease;
     background-color: ${({ selected, theme }) => selected ? theme.colors.gray[100] : 'transparent'};
 
     &:hover {
-        background-color: ${({ theme }) => theme.colors.gray[100]};
+        background-color: ${({ theme }) => theme.colors.gray[50]};
     }
+`;
+
+const UserAvatar = styled.div`
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: ${({ theme }) => theme.colors.primary.light};
+    color: ${({ theme }) => theme.colors.primary.main};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+`;
+
+const UserInfo = styled.div`
+    flex: 1;
+    min-width: 0;
+`;
+
+const UserName = styled.div`
+    font-weight: 500;
+    color: ${({ theme }) => theme.colors.text.primary};
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+`;
+
+const UserEmail = styled.div`
+    font-size: 12px;
+    color: ${({ theme }) => theme.colors.text.secondary};
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+`;
+
+const LoadingState = styled(MentionSuggestion)`
+    justify-content: center;
+    color: ${({ theme }) => theme.colors.text.secondary};
+    font-size: 14px;
+    cursor: default;
+    
+    i {
+        margin-right: 8px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+`;
+
+const EmptyState = styled(MentionSuggestion)`
+    justify-content: center;
+    color: ${({ theme }) => theme.colors.text.secondary};
+    font-size: 14px;
+    cursor: default;
 `;
 
 const NoteForm = styled.form`
@@ -150,18 +216,36 @@ export const ArticleNotes: React.FC<ArticleNotesProps> = ({ boardId, articleId }
     const [mentionSearch, setMentionSearch] = useState('');
     const [selectedMentionIndex, setSelectedMentionIndex] = useState(0);
     const [cursorPosition, setCursorPosition] = useState(0);
+    const [userSuggestions, setUserSuggestions] = useState<TeamMember[]>([]);
+    const [isLoadingMembers, setIsLoadingMembers] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-    // Mock data for user suggestions - replace with actual API call
-    const userSuggestions = [
-        { id: 1, name: 'Nguyen', email: 'nguyen@company.com' },
-        { id: 2, name: 'Minh', email: 'minh@company.com' },
-        { id: 3, name: 'Anh', email: 'anh@company.com' },
-    ];
 
     useEffect(() => {
         loadNotes();
     }, [boardId, articleId]);
+
+    const loadTeamMembers = async () => {
+        if (isLoadingMembers) return;
+        
+        console.log('Loading team members...');
+        setIsLoadingMembers(true);
+        try {
+            const response = await teamBoardService.getTeamBoardMembers(boardId);
+            console.log('Team members response:', response);
+            
+            if (response && response.data) {
+                setUserSuggestions(response.data);
+            } else {
+                throw new Error('Invalid response format');
+            }
+        } catch (error) {
+            console.error('Error loading team members:', error);
+            showToast('error', 'Error', 'Failed to load team members');
+            setUserSuggestions([]); // Reset suggestions on error
+        } finally {
+            setIsLoadingMembers(false);
+        }
+    };
 
     const loadNotes = async () => {
         try {
@@ -215,13 +299,23 @@ export const ArticleNotes: React.FC<ArticleNotesProps> = ({ boardId, articleId }
         // Handle @ mentions
         const cursorPos = e.target.selectionStart;
         const textBeforeCursor = value.substring(0, cursorPos);
-        const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+        console.log('Text before cursor:', textBeforeCursor);
         
-        if (mentionMatch) {
-            setShowMentions(true);
-            setMentionSearch(mentionMatch[1]);
-            setCursorPosition(cursorPos);
-            setSelectedMentionIndex(0);
+        // Check for @ symbol
+        const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+        if (lastAtIndex !== -1) {
+            const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1);
+            // Only show mentions if @ is the last character or followed by whitespace
+            if (textAfterAt === '' || textAfterAt.match(/^\s*$/)) {
+                console.log('@ detected, showing mentions');
+                setShowMentions(true);
+                setMentionSearch('');
+                setCursorPosition(cursorPos);
+                setSelectedMentionIndex(0);
+                loadTeamMembers();
+            } else {
+                setShowMentions(false);
+            }
         } else {
             setShowMentions(false);
         }
@@ -313,18 +407,32 @@ export const ArticleNotes: React.FC<ArticleNotesProps> = ({ boardId, articleId }
                     />
                     {showMentions && (
                         <MentionSuggestions>
-                            {filteredSuggestions.map((user, index) => (
-                                <MentionSuggestion
-                                    key={user.id}
-                                    selected={index === selectedMentionIndex}
-                                    onClick={() => handleMentionSelect(user)}
-                                >
-                                    <div>{user.name}</div>
-                                    <div style={{ fontSize: '0.8em', color: '#666' }}>
-                                        {user.email}
-                                    </div>
-                                </MentionSuggestion>
-                            ))}
+                            {isLoadingMembers ? (
+                                <LoadingState>
+                                    <i className="fas fa-spinner" />
+                                    Loading members...
+                                </LoadingState>
+                            ) : filteredSuggestions.length > 0 ? (
+                                filteredSuggestions.map((user, index) => (
+                                    <MentionSuggestion
+                                        key={user.id}
+                                        selected={index === selectedMentionIndex}
+                                        onClick={() => handleMentionSelect(user)}
+                                    >
+                                        <UserAvatar>
+                                            {user.name.charAt(0).toUpperCase()}
+                                        </UserAvatar>
+                                        <UserInfo>
+                                            <UserName>{user.name}</UserName>
+                                            <UserEmail>{user.email}</UserEmail>
+                                        </UserInfo>
+                                    </MentionSuggestion>
+                                ))
+                            ) : (
+                                <EmptyState>
+                                    No members found
+                                </EmptyState>
+                            )}
                         </MentionSuggestions>
                     )}
                     <ButtonGroup>
