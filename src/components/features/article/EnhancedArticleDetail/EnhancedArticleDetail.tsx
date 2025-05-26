@@ -93,7 +93,7 @@ const ActionButton = styled.button`
         background-color: ${({ theme }) => theme.colors.gray[100]};
         color: ${({ theme }) => theme.colors.text.primary};
     }
-    
+
     span {
         @media (max-width: ${({ theme }) => theme.breakpoints.md}) {
             display: none;
