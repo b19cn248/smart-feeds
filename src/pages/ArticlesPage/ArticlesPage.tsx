@@ -1,21 +1,22 @@
 // src/pages/ArticlesPage/ArticlesPage.tsx
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import {FolderArticle, FolderWithArticles} from '../../types/folderArticles.types';
-import {folderArticlesService} from '../../services/folderArticlesService';
-import {Input} from '../../components/common/Input';
-import {Button} from '../../components/common/Button';
-import {LoadingScreen} from '../../components/common/LoadingScreen';
-import {useDebounce} from '../../hooks';
-import {useLocalStorage} from '../../hooks/useLocalStorage';
-import {ViewMode, ViewSelector} from '../../components/features/article/ViewSelector';
-import {EnhancedArticleDetail} from '../../components/features/article/EnhancedArticleDetail';
-import {useBoard} from '../../contexts/BoardContext';
-import {useToast} from '../../contexts/ToastContext';
-import {FolderArticlesSection} from '../../components/features/article/FolderArticlesSection';
-import { MagazineFolderView, TitleOnlyFolderView, CardsFolderView } from '../../components/features/article/ViewModes';
-
-
+import { FolderArticle, FolderWithArticles } from '../../types/folderArticles.types';
+import { folderArticlesService } from '../../services/folderArticlesService';
+import { Input } from '../../components/common/Input';
+import { Button } from '../../components/common/Button';
+import { LoadingScreen } from '../../components/common/LoadingScreen';
+import { useDebounce } from '../../hooks';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { ViewMode, ViewSelector } from '../../components/features/article/ViewSelector';
+import { EnhancedArticleDetail } from '../../components/features/article/EnhancedArticleDetail';
+import { useBoard } from '../../contexts/BoardContext';
+import { useToast } from '../../contexts/ToastContext';
+import { CardsFolderView, MagazineFolderView, TitleOnlyFolderView } from '../../components/features/article/ViewModes';
+import { TopStoriesSection } from '../../components/features/article/TopStoriesSection'; // Thêm dòng này
+import { TrendingArticlesSection } from '../../components/features/article/TrendingArticlesSection'; // Thêm dòng này
+import { ExploreCollectionsSection } from '../../components/features/article/ExploreCollectionsSection'; // Thêm dòng này
+import { Article } from '../../types'; // Thêm dòng này
 
 const PageContainer = styled.div`
     display: flex;
@@ -158,11 +159,11 @@ const PageButton = styled.button<{ isActive?: boolean }>`
     height: 36px;
     border-radius: ${({theme}) => theme.radii.md};
     border: 1px solid ${({isActive, theme}) =>
-            isActive ? theme.colors.primary.main : theme.colors.gray[300]};
+    isActive ? theme.colors.primary.main : theme.colors.gray[300]};
     background-color: ${({isActive, theme}) =>
-            isActive ? theme.colors.primary.light : 'transparent'};
+    isActive ? theme.colors.primary.light : 'transparent'};
     color: ${({isActive, theme}) =>
-            isActive ? theme.colors.primary.main : theme.colors.text.primary};
+    isActive ? theme.colors.primary.main : theme.colors.text.primary};
     display: flex;
     align-items: center;
     justify-content: center;
@@ -185,6 +186,48 @@ const PageButton = styled.button<{ isActive?: boolean }>`
     }
 `;
 
+// Thêm tab navigation cho các phần chức năng mới
+const TabsContainer = styled.div`
+    display: flex;
+    border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
+    margin-bottom: 24px;
+    overflow-x: auto;
+    
+    &::-webkit-scrollbar {
+        height: 0;
+        display: none;
+    }
+    
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+`;
+
+const Tab = styled.button<{ isActive: boolean }>`
+    padding: 12px 20px;
+    font-size: ${({ theme }) => theme.typography.fontSize.md};
+    font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+    color: ${({ isActive, theme }) =>
+    isActive ? theme.colors.primary.main : theme.colors.text.secondary};
+    background: none;
+    border: none;
+    border-bottom: 2px solid ${({ isActive, theme }) =>
+    isActive ? theme.colors.primary.main : 'transparent'};
+    cursor: pointer;
+    transition: ${({ theme }) => theme.transitions.default};
+    white-space: nowrap;
+    
+    &:hover {
+        color: ${({ theme }) => theme.colors.primary.main};
+    }
+    
+    i {
+        margin-right: 8px;
+    }
+`;
+
+// Define the tabs
+type TabType = 'home' | 'trending' | 'explore';
+
 export const ArticlesPage: React.FC = () => {
     // State
     const [folders, setFolders] = useState<FolderWithArticles[]>([]);
@@ -199,6 +242,7 @@ export const ArticlesPage: React.FC = () => {
     const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
     const [currentPage, setCurrentPage] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
+    const [activeTab, setActiveTab] = useState<TabType>('home'); // Thêm state cho tab
 
     // Hooks
     const debouncedSearch = useDebounce(searchQuery, 300);
@@ -207,20 +251,21 @@ export const ArticlesPage: React.FC = () => {
 
     // Fetch folders with articles
     useEffect(() => {
-        fetchFoldersWithArticles();
-    }, [currentPage, debouncedSearch]);
+        if (activeTab === 'home') {
+            fetchFoldersWithArticles();
+        }
+    }, [currentPage, activeTab]);
 
     const fetchFoldersWithArticles = async () => {
         try {
             setIsLoading(true);
             setError(null);
-            // Add search query to API call
+            // Sử dụng các thông số API đúng theo tài liệu
             const response = await folderArticlesService.getFoldersWithArticles(
                 currentPage,     // page
                 10,              // size
                 'createdAt,DESC', // sort
-                6,              // article_size
-                debouncedSearch  // keyword for search
+                6             // article_size
             );
             setFolders(response.data.content);
             setFilteredFolders(response.data.content);
@@ -232,6 +277,33 @@ export const ArticlesPage: React.FC = () => {
             setIsLoading(false);
         }
     };
+
+    // Filter folders based on search query
+    useEffect(() => {
+        if (debouncedSearch.trim() === '') {
+            setFilteredFolders(folders);
+            return;
+        }
+
+        const lowerCaseQuery = debouncedSearch.toLowerCase();
+        const filtered = folders.filter(folder => {
+            // Search in folder name
+            if (folder.name.toLowerCase().includes(lowerCaseQuery)) {
+                return true;
+            }
+
+            // Search in articles
+            return folder.articles.some(
+                article =>
+                    article.title?.toLowerCase().includes(lowerCaseQuery) ||
+                    article.content?.toLowerCase().includes(lowerCaseQuery) ||
+                    article.source?.toString().toLowerCase().includes(lowerCaseQuery) ||
+                    article.author?.toLowerCase().includes(lowerCaseQuery)
+            );
+        });
+
+        setFilteredFolders(filtered);
+    }, [debouncedSearch, folders]);
 
     // Flatten articles from all folders and sort them
     useEffect(() => {
@@ -252,8 +324,8 @@ export const ArticlesPage: React.FC = () => {
     }, [filteredFolders, sortOrder]);
 
     // Handlers
-    const handleArticleClick = (article: FolderArticle) => {
-        setSelectedArticle(article);
+    const handleArticleClick = (article: Article | FolderArticle) => {
+        setSelectedArticle(article as FolderArticle);
         setIsDetailOpen(true);
     };
 
@@ -265,7 +337,7 @@ export const ArticlesPage: React.FC = () => {
         }, 300);
     };
 
-    const handleSaveArticle = async (article: FolderArticle) => {
+    const handleSaveArticle = async (article: Article | FolderArticle) => {
         if (boards.length === 0) {
             showToast('warning', 'No Boards Available', 'Create a board first to save articles');
             return;
@@ -278,7 +350,7 @@ export const ArticlesPage: React.FC = () => {
                 showToast('success', 'Article Saved', `Article saved to ${boards[0].name}`);
             } else {
                 // Otherwise, open article detail with save dialog
-                setSelectedArticle(article);
+                setSelectedArticle(article as FolderArticle);
                 setIsDetailOpen(true);
             }
         } catch (error) {
@@ -292,34 +364,21 @@ export const ArticlesPage: React.FC = () => {
         window.scrollTo({top: 0, behavior: 'smooth'});
     };
 
-    // Add hashtag click handler
-    const handleHashtagClick = (hashtag: string) => {
-        // Set search query to the clicked hashtag
-        setSearchQuery(hashtag);
-        // Reset to first page when searching
+    // Handle tab change
+    const handleTabChange = (tab: TabType) => {
+        setActiveTab(tab);
+        // Reset page and search when changing tabs
         setCurrentPage(0);
+        setSearchQuery('');
     };
+
+    // Check if we have any folders
+    const hasFolders = filteredFolders.length > 0;
 
     // Loading state
     if (isLoading && folders.length === 0) {
         return <LoadingScreen/>;
     }
-
-    // Error state
-    if (error) {
-        return (
-            <EmptyState>
-                <EmptyStateIcon>
-                    <i className="fas fa-exclamation-triangle"/>
-                </EmptyStateIcon>
-                <EmptyStateText>{error}</EmptyStateText>
-                <Button onClick={fetchFoldersWithArticles}>Retry</Button>
-            </EmptyState>
-        );
-    }
-
-    // Check if we have any folders
-    const hasFolders = filteredFolders.length > 0;
 
     // Render
     return (
@@ -340,108 +399,160 @@ export const ArticlesPage: React.FC = () => {
                             leftIcon="search"
                         />
                     </SearchWrapper>
-                    <Button leftIcon="sync" onClick={fetchFoldersWithArticles}>
+                    <Button leftIcon="sync" onClick={activeTab === 'home' ? fetchFoldersWithArticles : () => {}}>
                         Refresh
                     </Button>
                 </Actions>
             </PageHeader>
 
-            {hasFolders && (
+            {/* Add tabs navigation */}
+            <TabsContainer>
+                <Tab
+                    isActive={activeTab === 'home'}
+                    onClick={() => handleTabChange('home')}
+                >
+                    <i className="fas fa-home"/>
+                    My Feeds
+                </Tab>
+                <Tab
+                    isActive={activeTab === 'trending'}
+                    onClick={() => handleTabChange('trending')}
+                >
+                    <i className="fas fa-chart-line"/>
+                    Trending
+                </Tab>
+                <Tab
+                    isActive={activeTab === 'explore'}
+                    onClick={() => handleTabChange('explore')}
+                >
+                    <i className="fas fa-compass"/>
+                    Explore
+                </Tab>
+            </TabsContainer>
+
+            {/* Render content based on active tab */}
+            {activeTab === 'home' && (
                 <>
-                    <FilterBar>
-                        <ViewSelector activeView={viewMode} onChange={setViewMode}/>
+                    {/* Home tab content - Existing functionality */}
+                    {hasFolders && (
+                        <>
+                            <FilterBar>
+                                <ViewSelector activeView={viewMode} onChange={setViewMode}/>
 
-                        <FilterActions>
-                            <SortSelect
-                                value={sortOrder}
-                                onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
-                            >
-                                <option value="newest">Newest First</option>
-                                <option value="oldest">Oldest First</option>
-                            </SortSelect>
-                        </FilterActions>
-                    </FilterBar>
+                                <FilterActions>
+                                    <SortSelect
+                                        value={sortOrder}
+                                        onChange={(e) => setSortOrder(e.target.value as 'newest' | 'oldest')}
+                                    >
+                                        <option value="newest">Newest First</option>
+                                        <option value="oldest">Oldest First</option>
+                                    </SortSelect>
+                                </FilterActions>
+                            </FilterBar>
 
-                    <ArticlesContainer view={viewMode}>
-                        {viewMode === 'cards' && (
-                            <CardsFolderView
-                                folders={filteredFolders}
-                                onArticleClick={handleArticleClick}
-                                onSaveArticle={handleSaveArticle}
-                                onHashtagClick={handleHashtagClick}
-                            />
-                        )}
+                            <ArticlesContainer view={viewMode}>
+                                {viewMode === 'cards' && (
+                                    <CardsFolderView
+                                        folders={filteredFolders}
+                                        onArticleClick={handleArticleClick}
+                                        onSaveArticle={handleSaveArticle}
+                                    />
+                                )}
 
-                        {viewMode === 'magazine' && (
-                            <MagazineFolderView
-                                folders={filteredFolders}
-                                onArticleClick={handleArticleClick}
-                                onSaveArticle={handleSaveArticle}
-                                onHashtagClick={handleHashtagClick}
-                            />
-                        )}
+                                {viewMode === 'magazine' && (
+                                    <MagazineFolderView
+                                        folders={filteredFolders}
+                                        onArticleClick={handleArticleClick}
+                                        onSaveArticle={handleSaveArticle}
+                                    />
+                                )}
 
-                        {viewMode === 'title-only' && (
-                            <TitleOnlyFolderView
-                                folders={filteredFolders}
-                                onArticleClick={handleArticleClick}
-                                onSaveArticle={handleSaveArticle}
-                                onHashtagClick={handleHashtagClick}
-                            />
-                        )}
-                    </ArticlesContainer>
+                                {viewMode === 'title-only' && (
+                                    <TitleOnlyFolderView
+                                        folders={filteredFolders}
+                                        onArticleClick={handleArticleClick}
+                                        onSaveArticle={handleSaveArticle}
+                                    />
+                                )}
+                            </ArticlesContainer>
 
-                    {/* Pagination */}
-                    {totalPages > 1 && (
-                        <Pagination>
-                            <PageButton
-                                onClick={() => handlePageChange(currentPage - 1)}
-                                disabled={currentPage === 0}
-                                aria-label="Previous page"
-                            >
-                                <i className="fas fa-chevron-left"/>
-                            </PageButton>
+                            {/* Pagination */}
+                            {totalPages > 1 && (
+                                <Pagination>
+                                    <PageButton
+                                        onClick={() => handlePageChange(currentPage - 1)}
+                                        disabled={currentPage === 0}
+                                        aria-label="Previous page"
+                                    >
+                                        <i className="fas fa-chevron-left"/>
+                                    </PageButton>
 
-                            {Array.from({length: totalPages}, (_, i) => (
-                                <PageButton
-                                    key={i}
-                                    isActive={i === currentPage}
-                                    onClick={() => handlePageChange(i)}
-                                    aria-label={`Page ${i + 1}`}
-                                >
-                                    {i + 1}
-                                </PageButton>
-                            ))}
+                                    {Array.from({length: totalPages}, (_, i) => (
+                                        <PageButton
+                                            key={i}
+                                            isActive={i === currentPage}
+                                            onClick={() => handlePageChange(i)}
+                                            aria-label={`Page ${i + 1}`}
+                                        >
+                                            {i + 1}
+                                        </PageButton>
+                                    ))}
 
-                            <PageButton
-                                onClick={() => handlePageChange(currentPage + 1)}
-                                disabled={currentPage === totalPages - 1}
-                                aria-label="Next page"
-                            >
-                                <i className="fas fa-chevron-right"/>
-                            </PageButton>
-                        </Pagination>
+                                    <PageButton
+                                        onClick={() => handlePageChange(currentPage + 1)}
+                                        disabled={currentPage === totalPages - 1}
+                                        aria-label="Next page"
+                                    >
+                                        <i className="fas fa-chevron-right"/>
+                                    </PageButton>
+                                </Pagination>
+                            )}
+                        </>
+                    )}
+
+                    {/* Empty state */}
+                    {!hasFolders && (
+                        <EmptyState>
+                            <EmptyStateIcon>
+                                <i className="fas fa-newspaper"/>
+                            </EmptyStateIcon>
+                            <EmptyStateText>
+                                {debouncedSearch
+                                    ? 'No articles found. Try a different search query.'
+                                    : 'No articles available at the moment.'}
+                            </EmptyStateText>
+                            {!debouncedSearch && (
+                                <Button leftIcon="plus" onClick={() => window.location.href = '/sources'}>
+                                    Add Sources
+                                </Button>
+                            )}
+                        </EmptyState>
                     )}
                 </>
             )}
 
-            {/* Empty state */}
-            {!hasFolders && (
-                <EmptyState>
-                    <EmptyStateIcon>
-                        <i className="fas fa-newspaper"/>
-                    </EmptyStateIcon>
-                    <EmptyStateText>
-                        {debouncedSearch
-                            ? 'No articles found. Try a different search query.'
-                            : 'No articles available at the moment.'}
-                    </EmptyStateText>
-                    {!debouncedSearch && (
-                        <Button leftIcon="plus" onClick={() => window.location.href = '/sources'}>
-                            Add Sources
-                        </Button>
-                    )}
-                </EmptyState>
+            {activeTab === 'trending' && (
+                <>
+                    {/* Trending tab content */}
+                    <TopStoriesSection
+                        onArticleClick={handleArticleClick}
+                        onSaveArticle={handleSaveArticle}
+                    />
+                    <TrendingArticlesSection
+                        onArticleClick={handleArticleClick}
+                        onSaveArticle={handleSaveArticle}
+                    />
+                </>
+            )}
+
+            {activeTab === 'explore' && (
+                <>
+                    {/* Explore tab content */}
+                    <ExploreCollectionsSection
+                        onArticleClick={handleArticleClick}
+                        onSaveArticle={handleSaveArticle}
+                    />
+                </>
             )}
 
             {/* Article Detail */}
