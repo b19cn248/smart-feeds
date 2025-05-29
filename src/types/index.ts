@@ -7,4 +7,5 @@ export * from './source.types';
 export * from './board.types';
 export * from './folderArticles.types';
 export * from './team.types'; // Add this line
-export * from './teamBoard.types'; // Thêm dòng này
+export * from './teamBoard.types';
+export * from './category.types';
