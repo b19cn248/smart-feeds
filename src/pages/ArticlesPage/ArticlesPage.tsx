@@ -15,8 +15,8 @@ import { useToast } from '../../contexts/ToastContext';
 import { CardsFolderView, MagazineFolderView, TitleOnlyFolderView } from '../../components/features/article/ViewModes';
 import { TopStoriesSection } from '../../components/features/article/TopStoriesSection'; // Thêm dòng này
 import { TrendingArticlesSection } from '../../components/features/article/TrendingArticlesSection'; // Thêm dòng này
-import { ExploreCollectionsSection } from '../../components/features/article/ExploreCollectionsSection'; // Thêm dòng này
 import { Article } from '../../types'; // Thêm dòng này
+import { CategoryExploreSection } from '../../components/features/article/CategoryExploreSection';
 
 const PageContainer = styled.div`
     display: flex;
@@ -547,8 +547,8 @@ export const ArticlesPage: React.FC = () => {
 
             {activeTab === 'explore' && (
                 <>
-                    {/* Explore tab content */}
-                    <ExploreCollectionsSection
+                    {/* Thay thế ExploreCollectionsSection bằng CategoryExploreSection */}
+                    <CategoryExploreSection
                         onArticleClick={handleArticleClick}
                         onSaveArticle={handleSaveArticle}
                     />

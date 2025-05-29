@@ -1,19 +1,17 @@
 // src/services/teamBoardService.ts
 import {
-    TeamBoardsResponse,
-    TeamBoardDetailResponse,
-    TeamBoardResponse,
     TeamBoardCreateRequest,
-    TeamBoardUpdateRequest,
-    TeamBoardShareRequest,
-    TeamBoardNotesResponse,
+    TeamBoardDetailResponse,
     TeamBoardHighlightsResponse,
     TeamBoardNewsletterCreateRequest,
+    TeamBoardNotesResponse,
+    TeamBoardResponse,
+    TeamBoardShareRequest,
+    TeamBoardsResponse,
+    TeamBoardUpdateRequest,
     TeamMembersResponse
 } from '../types';
-import { apiClient } from './apiClient';
-import axios from 'axios';
-import { getApiUrl } from '../config/env';
+import {apiClient} from './apiClient';
 
 export const teamBoardService = {
     /**
@@ -83,7 +81,7 @@ export const teamBoardService = {
      * Thêm bài viết vào Team Board
      */
     addArticleToTeamBoard: async (boardId: number, articleId: number): Promise<any> => {
-        return apiClient.post(`/team-boards/${boardId}/articles`, { article_id: articleId });
+        return apiClient.post(`/team-boards/${boardId}/articles`, {article_id: articleId});
     },
 
     /**
@@ -104,7 +102,7 @@ export const teamBoardService = {
      * Thêm ghi chú cho bài viết
      */
     addArticleNote: async (boardId: number, articleId: number, content: string): Promise<any> => {
-        console.log('teamBoardService: addArticleNote called', { boardId, articleId, content });
+        console.log('teamBoardService: addArticleNote called', {boardId, articleId, content});
         const response = await apiClient.post(`/team-boards/${boardId}/notes`, {
             article_id: articleId,
             content: content
