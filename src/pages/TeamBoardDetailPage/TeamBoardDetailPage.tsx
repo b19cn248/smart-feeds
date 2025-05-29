@@ -18,7 +18,7 @@ import {
 import { TeamBoardUser } from '../../types';
 import { TeamBoardArticleCard } from '../../components/features/teamBoard/ArticleCard';
 import { AddArticleModal } from '../../components/features/teamBoard/AddArticleModal';
-import { EnhancedArticleDetail } from '../../components/features/article/EnhancedArticleDetail';
+import { TeamBoardArticleDetail } from '../../components/features/article/TeamBoardArticleDetail';
 import { CreateNewsletterModal, ScheduleType } from '../../components/features/teamBoard/CreateNewsletterModal';
 
 const PageHeader = styled.div`
@@ -614,7 +614,7 @@ export const TeamBoardDetailPage: React.FC = () => {
 
             {/* Article Detail Modal */}
             {selectedArticle && (
-                <EnhancedArticleDetail
+                <TeamBoardArticleDetail
                     article={selectedArticle}
                     isOpen={showArticleDetailModal}
                     onClose={handleCloseArticleDetail}

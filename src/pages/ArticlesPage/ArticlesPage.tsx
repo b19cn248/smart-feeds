@@ -9,7 +9,7 @@ import { LoadingScreen } from '../../components/common/LoadingScreen';
 import { useDebounce } from '../../hooks';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { ViewMode, ViewSelector } from '../../components/features/article/ViewSelector';
-import { EnhancedArticleDetail } from '../../components/features/article/EnhancedArticleDetail';
+import { HomeArticleDetail } from '../../components/features/article/HomeArticleDetail';
 import { useBoard } from '../../contexts/BoardContext';
 import { useToast } from '../../contexts/ToastContext';
 import { CardsFolderView, MagazineFolderView, TitleOnlyFolderView } from '../../components/features/article/ViewModes';
@@ -556,11 +556,10 @@ export const ArticlesPage: React.FC = () => {
             )}
 
             {/* Article Detail */}
-            <EnhancedArticleDetail
+            <HomeArticleDetail
                 article={selectedArticle}
                 isOpen={isDetailOpen}
                 onClose={handleCloseDetail}
-                teamBoardId=""
             />
         </PageContainer>
     );
