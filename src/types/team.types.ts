@@ -66,3 +66,20 @@ export interface TeamMembersResponse {
     data: TeamMember[]; // API trả về mảng thành viên thay vì pagination
     timestamp: string;
 }
+
+// Context value interface
+export interface TeamContextValue {
+    teams: Team[];
+    selectedTeam: Team | null;
+    teamMembers: TeamMember[];
+    isLoading: boolean;
+    error: string | null;
+    totalPages: number;
+    currentPage: number;
+    fetchTeams: (page?: number) => Promise<void>;
+    selectTeam: (team: Team) => void;
+    createTeam: (data: TeamCreateRequest) => Promise<Team>;
+    addTeamMember: (teamId: number, data: AddTeamMemberRequest) => Promise<void>;
+    fetchTeamMembers: (teamId: number) => Promise<void>;
+    removeTeamMember: (teamId: number, memberId: number) => Promise<void>; // Thêm function xóa thành viên
+}

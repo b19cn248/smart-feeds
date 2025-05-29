@@ -5,62 +5,63 @@ import { TeamList } from '../../components/features/team/TeamList';
 import { TeamForm } from '../../components/features/team/TeamForm';
 import { AddMemberForm } from '../../components/features/team/AddMemberForm';
 import { TeamMemberList } from '../../components/features/team/TeamMemberList';
+import { RemoveMemberConfirmationModal } from '../../components/features/team/RemoveMemberConfirmationModal';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { useTeam } from '../../contexts/TeamContext';
 import { useToast } from '../../contexts/ToastContext';
-import { Team, TeamCreateRequest, AddTeamMemberRequest } from '../../types/team.types';
+import { Team, TeamCreateRequest, AddTeamMemberRequest, TeamMember } from '../../types/team.types';
 import { useDebounce } from '../../hooks';
 import { LoadingScreen } from '../../components/common/LoadingScreen';
 
 const PageHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-  flex-wrap: wrap;
-  gap: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    gap: 16px;
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
-    flex-direction: column;
-    align-items: stretch;
-  }
+    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+        flex-direction: column;
+        align-items: stretch;
+    }
 `;
 
 const PageTitle = styled.h1`
-  font-size: ${({ theme }) => theme.typography.fontSize['3xl']};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
-  color: ${({ theme }) => theme.colors.text.primary};
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0;
+    font-size: ${({ theme }) => theme.typography.fontSize['3xl']};
+    font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
+    color: ${({ theme }) => theme.colors.text.primary};
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
 
-  i {
-    color: ${({ theme }) => theme.colors.primary.main};
-  }
+    i {
+        color: ${({ theme }) => theme.colors.primary.main};
+    }
 `;
 
 const Actions = styled.div`
-  display: flex;
-  gap: 12px;
-  align-items: center;
+    display: flex;
+    gap: 12px;
+    align-items: center;
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
-    width: 100%;
-    justify-content: space-between;
-  }
+    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+        width: 100%;
+        justify-content: space-between;
+    }
 `;
 
 const SearchWrapper = styled.div`
-  position: relative;
-  max-width: 240px;
-  width: 100%;
+    position: relative;
+    max-width: 240px;
+    width: 100%;
 
-  @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
-    max-width: 100%;
-  }
+    @media (max-width: ${({ theme }) => theme.breakpoints.sm}) {
+        max-width: 100%;
+    }
 `;
 
 export const TeamsPage: React.FC = () => {
@@ -72,6 +73,7 @@ export const TeamsPage: React.FC = () => {
         fetchTeams,
         createTeam,
         addTeamMember,
+        removeTeamMember,
         teamMembers,
         fetchTeamMembers
     } = useTeam();
@@ -82,7 +84,9 @@ export const TeamsPage: React.FC = () => {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showMembersModal, setShowMembersModal] = useState(false);
     const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+    const [showRemoveMemberModal, setShowRemoveMemberModal] = useState(false);
     const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
+    const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
 
     // Debounced search
     const debouncedSearch = useDebounce(searchQuery, 300);
@@ -141,6 +145,30 @@ export const TeamsPage: React.FC = () => {
             }
         } catch (error) {
             showToast('error', 'Error', 'Failed to add team member');
+        }
+    };
+
+    // Handle remove team member
+    const handleRemoveMember = (member: TeamMember) => {
+        setSelectedMember(member);
+        setShowRemoveMemberModal(true);
+    };
+
+    // Confirm remove team member
+    const confirmRemoveMember = async () => {
+        if (!selectedTeam || !selectedMember) return;
+
+        try {
+            await removeTeamMember(selectedTeam.id, selectedMember.user_id);
+            showToast('success', 'Success', 'Team member removed successfully');
+            setShowRemoveMemberModal(false);
+
+            // Refresh team members list
+            if (selectedTeam) {
+                fetchTeamMembers(selectedTeam.id);
+            }
+        } catch (error) {
+            showToast('error', 'Error', 'Failed to remove team member');
         }
     };
 
@@ -223,7 +251,11 @@ export const TeamsPage: React.FC = () => {
                 title={selectedTeam ? `${selectedTeam.name} Members` : 'Team Members'}
                 size="sm"
             >
-                <TeamMemberList members={teamMembers} />
+                <TeamMemberList
+                    members={teamMembers}
+                    onRemoveMember={handleRemoveMember}
+                    teamId={selectedTeam?.id}
+                />
             </Modal>
 
             {/* Add Member Modal */}
@@ -242,6 +274,15 @@ export const TeamsPage: React.FC = () => {
                     />
                 )}
             </Modal>
+
+            {/* Remove Member Confirmation Modal */}
+            <RemoveMemberConfirmationModal
+                isOpen={showRemoveMemberModal}
+                onClose={() => setShowRemoveMemberModal(false)}
+                onConfirm={confirmRemoveMember}
+                member={selectedMember}
+                isLoading={isLoading}
+            />
         </>
     );
 };
