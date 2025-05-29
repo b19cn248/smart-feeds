@@ -1,6 +1,6 @@
 // src/contexts/TeamContext/TeamContext.tsx
 import React, { createContext, useReducer, useCallback, ReactNode, useEffect } from 'react';
-import { Team, TeamCreateRequest, AddTeamMemberRequest, TeamMember } from '../../types/team.types';
+import { Team, TeamCreateRequest, AddTeamMemberRequest, TeamMember, TeamContextValue } from '../../types/team.types';
 import { teamService } from '../../services/teamService';
 
 // Action types
@@ -12,24 +12,9 @@ type TeamAction =
     | { type: 'SET_TEAM_MEMBERS'; payload: TeamMember[] }
     | { type: 'ADD_TEAM'; payload: Team }
     | { type: 'ADD_TEAM_MEMBER'; payload: TeamMember }
+    | { type: 'REMOVE_TEAM_MEMBER'; payload: { memberId: number } }
     | { type: 'SET_LOADING'; payload: boolean }
     | { type: 'SET_ERROR'; payload: string | null };
-
-// Context value interface
-interface TeamContextValue {
-    teams: Team[];
-    selectedTeam: Team | null;
-    teamMembers: TeamMember[];
-    isLoading: boolean;
-    error: string | null;
-    totalPages: number;
-    currentPage: number;
-    fetchTeams: (page?: number) => Promise<void>;
-    selectTeam: (team: Team) => void;
-    createTeam: (data: TeamCreateRequest) => Promise<Team>;
-    addTeamMember: (teamId: number, data: AddTeamMemberRequest) => Promise<void>;
-    fetchTeamMembers: (teamId: number) => Promise<void>; // Thêm function mới
-}
 
 // Initial state
 interface TeamState {
@@ -90,6 +75,11 @@ const teamReducer = (state: TeamState, action: TeamAction): TeamState => {
                 ...state,
                 teamMembers: [...state.teamMembers, action.payload]
             };
+        case 'REMOVE_TEAM_MEMBER':
+            return {
+                ...state,
+                teamMembers: state.teamMembers.filter(member => member.user_id !== action.payload.memberId)
+            };
         case 'SET_LOADING':
             return {
                 ...state,
@@ -130,7 +120,7 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }, []);
 
-    // New function to fetch team members
+    // Fetch team members
     const fetchTeamMembers = useCallback(async (teamId: number) => {
         dispatch({ type: 'SET_LOADING', payload: true });
         dispatch({ type: 'SET_ERROR', payload: null });
@@ -192,6 +182,23 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }, [fetchTeamMembers]);
 
+    // Remove team member
+    const removeTeamMember = useCallback(async (teamId: number, memberId: number): Promise<void> => {
+        dispatch({ type: 'SET_LOADING', payload: true });
+        dispatch({ type: 'SET_ERROR', payload: null });
+
+        try {
+            await teamService.removeTeamMember(teamId, memberId);
+            dispatch({ type: 'REMOVE_TEAM_MEMBER', payload: { memberId } });
+        } catch (error) {
+            console.error('Error removing team member:', error);
+            dispatch({ type: 'SET_ERROR', payload: 'Failed to remove team member. Please try again.' });
+            throw error;
+        } finally {
+            dispatch({ type: 'SET_LOADING', payload: false });
+        }
+    }, []);
+
     // Load teams on mount
     useEffect(() => {
         fetchTeams();
@@ -209,7 +216,8 @@ export const TeamProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         selectTeam,
         createTeam,
         addTeamMember,
-        fetchTeamMembers
+        fetchTeamMembers,
+        removeTeamMember
     };
 
     return (

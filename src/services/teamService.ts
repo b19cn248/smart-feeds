@@ -45,4 +45,13 @@ export const teamService = {
     getTeamMembers: async (teamId: number): Promise<TeamMembersResponse> => {
         return apiClient.get<TeamMembersResponse>(`/teams/${teamId}/members`);
     },
+
+    /**
+     * Xóa thành viên khỏi team
+     * @param teamId ID của team
+     * @param memberId ID của user cần xóa (user_id)
+     */
+    removeTeamMember: async (teamId: number, memberId: number): Promise<any> => {
+        return apiClient.delete<any>(`/teams/${teamId}/members/${memberId}`);
+    },
 };
