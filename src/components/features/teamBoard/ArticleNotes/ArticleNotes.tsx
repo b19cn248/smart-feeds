@@ -202,9 +202,10 @@ const NoteForm = styled.form`
 interface ArticleNotesProps {
     boardId: number;
     articleId: number;
+    recipientId?: number; // Optional recipient ID for direct notifications
 }
 
-export const ArticleNotes: React.FC<ArticleNotesProps> = ({ boardId, articleId }) => {
+export const ArticleNotes: React.FC<ArticleNotesProps> = ({ boardId, articleId, recipientId }) => {
     const { getArticleNotes, addArticleNote } = useTeamBoard();
     const { showToast } = useToast();
     const [notes, setNotes] = useState<TeamBoardNote[]>([]);
@@ -264,7 +265,7 @@ export const ArticleNotes: React.FC<ArticleNotesProps> = ({ boardId, articleId }
         e.preventDefault();
         e.stopPropagation();
         
-        console.log('Form submitted', { boardId, articleId, newNote });
+        console.log('Form submitted', { boardId, articleId, newNote, mentionedUserIds, recipientId });
         
         if (!newNote.trim()) {
             console.log('Note is empty, returning');
@@ -273,11 +274,28 @@ export const ArticleNotes: React.FC<ArticleNotesProps> = ({ boardId, articleId }
 
         setIsSubmitting(true);
         try {
-            console.log('Calling addArticleNote with params:', { boardId, articleId, content: newNote });
-            const success = await addArticleNote(boardId, articleId, newNote);
-            console.log('addArticleNote result:', success);
+            // Build query parameters - only include recipientId if provided
+            const queryString = recipientId ? `recipientId=${recipientId}` : '';
+
+            console.log('Calling addArticleNote with params:', { 
+                boardId, 
+                articleId,
+                content: newNote,
+                mentionedUserIds,
+                recipientId,
+                queryString
+            });
+
+            // Call the API with the correct format
+            const response = await teamBoardService.addArticleNote(
+                boardId,
+                articleId,
+                newNote,
+                mentionedUserIds,
+                queryString
+            );
             
-            if (success) {
+            if (response) {
                 setNewNote('');
                 setMentionedUserIds([]);
                 setIsAddingNote(false);
@@ -321,13 +339,16 @@ export const ArticleNotes: React.FC<ArticleNotesProps> = ({ boardId, articleId }
         }
     };
 
-    const handleMentionSelect = (user: { id: number; name: string; email: string }) => {
+    const handleMentionSelect = (user: TeamMember) => {
         const beforeMention = newNote.substring(0, cursorPosition - mentionSearch.length - 1);
         const afterMention = newNote.substring(cursorPosition);
         const newText = `${beforeMention}@${user.name} ${afterMention}`;
         
         setNewNote(newText);
-        setMentionedUserIds([...mentionedUserIds, user.id]);
+        // Add user ID to mentionedUserIds if not already present
+        if (!mentionedUserIds.includes(user.id)) {
+            setMentionedUserIds([...mentionedUserIds, user.id]);
+        }
         setShowMentions(false);
         
         // Focus back on textarea and set cursor position

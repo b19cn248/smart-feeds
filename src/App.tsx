@@ -29,202 +29,204 @@ import HistoryPage from './pages/HistoryPage';
 import NotificationsPage from './pages/NotificationsPage';
 import { TeamBoardsPage } from './pages/TeamBoardsPage';
 import { TeamBoardDetailPage } from './pages/TeamBoardDetailPage';
+import { NotificationProvider } from './contexts/NotificationContext/NotificationContext';
 
 const App: React.FC = () => {
     return (
         <ThemeProvider>
-            <GlobalStyles />
-            <BrowserRouter>
-                <AuthProvider>
-                    <ToastProvider>
-                        <FolderProvider>
-                            <SourceProvider>
-                                <BoardProvider>
-                                    <TeamProvider>
-                                        <TeamBoardProvider>
-                                            <Routes>
-                                                {/* Protected Routes */}
-                                                <Route
-                                                    path="/"
-                                                    element={
-                                                        <ProtectedRoute>
-                                                            <MainLayout headerTitle="Home">
-                                                                <ArticlesPage />
+            <ToastProvider>
+                <NotificationProvider>
+                    <GlobalStyles />
+                    <BrowserRouter>
+                        <AuthProvider>
+                            <FolderProvider>
+                                <SourceProvider>
+                                    <BoardProvider>
+                                        <TeamProvider>
+                                            <TeamBoardProvider>
+                                                <Routes>
+                                                    {/* Protected Routes */}
+                                                    <Route
+                                                        path="/"
+                                                        element={
+                                                            <ProtectedRoute>
+                                                                <MainLayout headerTitle="Home">
+                                                                    <ArticlesPage />
+                                                                </MainLayout>
+                                                            </ProtectedRoute>
+                                                        }
+                                                    />
+
+                                                    {/* My Feeds Route */}
+                                                    <Route
+                                                        path="/feeds"
+                                                        element={
+                                                            <ProtectedRoute>
+                                                                <MainLayout headerTitle="My Feeds">
+                                                                    <FoldersPage />
+                                                                </MainLayout>
+                                                            </ProtectedRoute>
+                                                        }
+                                                    />
+
+                                                    {/* Sources Route */}
+                                                    <Route
+                                                        path="/sources"
+                                                        element={
+                                                            <ProtectedRoute>
+                                                                <MainLayout headerTitle="Sources">
+                                                                    <SourcesPage />
+                                                                </MainLayout>
+                                                            </ProtectedRoute>
+                                                        }
+                                                    />
+
+                                                    {/* Source Detail Route - Thêm mới */}
+                                                    <Route
+                                                        path="/sources/:sourceId"
+                                                        element={
+                                                            <ProtectedRoute>
+                                                                <MainLayout headerTitle="Source Details">
+                                                                    <SourceDetailPage />
+                                                                </MainLayout>
+                                                            </ProtectedRoute>
+                                                        }
+                                                    />
+
+                                                    {/* Folder Detail Route */}
+                                                    <Route
+                                                        path="/folder/:folderId"
+                                                        element={
+                                                            <ProtectedRoute>
+                                                                <MainLayout headerTitle="Folder Articles">
+                                                                    <FolderDetailPage />
+                                                                </MainLayout>
+                                                            </ProtectedRoute>
+                                                        }
+                                                    />
+
+                                                    {/* Boards Routes */}
+                                                    <Route
+                                                        path="/boards"
+                                                        element={
+                                                            <ProtectedRoute>
+                                                                <MainLayout headerTitle="Boards">
+                                                                    <BoardsPage />
+                                                                </MainLayout>
+                                                            </ProtectedRoute>
+                                                        }
+                                                    />
+                                                    <Route
+                                                        path="/boards/:boardId"
+                                                        element={
+                                                            <ProtectedRoute>
+                                                                <MainLayout headerTitle="Board Detail">
+                                                                    <BoardDetailPage />
+                                                                </MainLayout>
+                                                            </ProtectedRoute>
+                                                        }
+                                                    />
+
+                                                    {/* Teams Route */}
+                                                    <Route
+                                                        path="/teams"
+                                                        element={
+                                                            <ProtectedRoute>
+                                                                <MainLayout headerTitle="Teams">
+                                                                    <TeamsPage />
+                                                                </MainLayout>
+                                                            </ProtectedRoute>
+                                                        }
+                                                    />
+
+                                                    {/* Team Boards Routes */}
+                                                    <Route
+                                                        path="/team-boards"
+                                                        element={
+                                                            <ProtectedRoute>
+                                                                <MainLayout headerTitle="Team Boards">
+                                                                    <TeamBoardsPage />
+                                                                </MainLayout>
+                                                            </ProtectedRoute>
+                                                        }
+                                                    />
+                                                    <Route
+                                                        path="/team-boards/:boardId"
+                                                        element={
+                                                            <ProtectedRoute>
+                                                                <MainLayout headerTitle="Team Board Detail">
+                                                                    <TeamBoardDetailPage />
+                                                                </MainLayout>
+                                                            </ProtectedRoute>
+                                                        }
+                                                    />
+
+                                                    {/* Discover Route */}
+                                                    <Route
+                                                        path="/discover"
+                                                        element={
+                                                            <MainLayout headerTitle="Discover">
+                                                                <DiscoverPage />
                                                             </MainLayout>
-                                                        </ProtectedRoute>
-                                                    }
-                                                />
+                                                        }
+                                                    />
 
-                                                {/* My Feeds Route */}
-                                                <Route
-                                                    path="/feeds"
-                                                    element={
-                                                        <ProtectedRoute>
-                                                            <MainLayout headerTitle="My Feeds">
-                                                                <FoldersPage />
+                                                    {/* Saved Route */}
+                                                    <Route
+                                                        path="/saved"
+                                                        element={
+                                                            <MainLayout headerTitle="Saved">
+                                                                <SavedPage />
                                                             </MainLayout>
-                                                        </ProtectedRoute>
-                                                    }
-                                                />
+                                                        }
+                                                    />
 
-                                                {/* Sources Route */}
-                                                <Route
-                                                    path="/sources"
-                                                    element={
-                                                        <ProtectedRoute>
-                                                            <MainLayout headerTitle="Sources">
-                                                                <SourcesPage />
+                                                    {/* Favorites Route */}
+                                                    <Route
+                                                        path="/favorites"
+                                                        element={
+                                                            <MainLayout headerTitle="Favorites">
+                                                                <FavoritesPage />
                                                             </MainLayout>
-                                                        </ProtectedRoute>
-                                                    }
-                                                />
+                                                        }
+                                                    />
 
-                                                {/* Source Detail Route - Thêm mới */}
-                                                <Route
-                                                    path="/sources/:sourceId"
-                                                    element={
-                                                        <ProtectedRoute>
-                                                            <MainLayout headerTitle="Source Details">
-                                                                <SourceDetailPage />
+                                                    {/* History Route */}
+                                                    <Route
+                                                        path="/history"
+                                                        element={
+                                                            <MainLayout headerTitle="History">
+                                                                <HistoryPage />
                                                             </MainLayout>
-                                                        </ProtectedRoute>
-                                                    }
-                                                />
+                                                        }
+                                                    />
 
-                                                {/* Folder Detail Route */}
-                                                <Route
-                                                    path="/folder/:folderId"
-                                                    element={
-                                                        <ProtectedRoute>
-                                                            <MainLayout headerTitle="Folder Articles">
-                                                                <FolderDetailPage />
+                                                    {/* Notifications Route */}
+                                                    <Route
+                                                        path="/notifications"
+                                                        element={
+                                                            <MainLayout headerTitle="Notifications">
+                                                                <NotificationsPage />
                                                             </MainLayout>
-                                                        </ProtectedRoute>
-                                                    }
-                                                />
+                                                        }
+                                                    />
 
-                                                {/* Boards Routes */}
-                                                <Route
-                                                    path="/boards"
-                                                    element={
-                                                        <ProtectedRoute>
-                                                            <MainLayout headerTitle="Boards">
-                                                                <BoardsPage />
-                                                            </MainLayout>
-                                                        </ProtectedRoute>
-                                                    }
-                                                />
-                                                <Route
-                                                    path="/boards/:boardId"
-                                                    element={
-                                                        <ProtectedRoute>
-                                                            <MainLayout headerTitle="Board Detail">
-                                                                <BoardDetailPage />
-                                                            </MainLayout>
-                                                        </ProtectedRoute>
-                                                    }
-                                                />
+                                                    {/* Unauthorized page */}
+                                                    <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
-                                                {/* Teams Route */}
-                                                <Route
-                                                    path="/teams"
-                                                    element={
-                                                        <ProtectedRoute>
-                                                            <MainLayout headerTitle="Teams">
-                                                                <TeamsPage />
-                                                            </MainLayout>
-                                                        </ProtectedRoute>
-                                                    }
-                                                />
-
-                                                {/* Team Boards Routes */}
-                                                <Route
-                                                    path="/team-boards"
-                                                    element={
-                                                        <ProtectedRoute>
-                                                            <MainLayout headerTitle="Team Boards">
-                                                                <TeamBoardsPage />
-                                                            </MainLayout>
-                                                        </ProtectedRoute>
-                                                    }
-                                                />
-                                                <Route
-                                                    path="/team-boards/:boardId"
-                                                    element={
-                                                        <ProtectedRoute>
-                                                            <MainLayout headerTitle="Team Board Detail">
-                                                                <TeamBoardDetailPage />
-                                                            </MainLayout>
-                                                        </ProtectedRoute>
-                                                    }
-                                                />
-
-                                                {/* Discover Route */}
-                                                <Route
-                                                    path="/discover"
-                                                    element={
-                                                        <MainLayout headerTitle="Discover">
-                                                            <DiscoverPage />
-                                                        </MainLayout>
-                                                    }
-                                                />
-
-                                                {/* Saved Route */}
-                                                <Route
-                                                    path="/saved"
-                                                    element={
-                                                        <MainLayout headerTitle="Saved">
-                                                            <SavedPage />
-                                                        </MainLayout>
-                                                    }
-                                                />
-
-                                                {/* Favorites Route */}
-                                                <Route
-                                                    path="/favorites"
-                                                    element={
-                                                        <MainLayout headerTitle="Favorites">
-                                                            <FavoritesPage />
-                                                        </MainLayout>
-                                                    }
-                                                />
-
-                                                {/* History Route */}
-                                                <Route
-                                                    path="/history"
-                                                    element={
-                                                        <MainLayout headerTitle="History">
-                                                            <HistoryPage />
-                                                        </MainLayout>
-                                                    }
-                                                />
-
-                                                {/* Notifications Route */}
-                                                <Route
-                                                    path="/notifications"
-                                                    element={
-                                                        <MainLayout headerTitle="Notifications">
-                                                            <NotificationsPage />
-                                                        </MainLayout>
-                                                    }
-                                                />
-
-                                                {/* Unauthorized page */}
-                                                <Route path="/unauthorized" element={<UnauthorizedPage />} />
-
-                                                {/* Catch all route */}
-                                                <Route path="*" element={<Navigate to="/" replace />} />
-                                            </Routes>
-
-                                            <ToastContainer />
-                                        </TeamBoardProvider>
-                                    </TeamProvider>
-                                </BoardProvider>
-                            </SourceProvider>
-                        </FolderProvider>
-                    </ToastProvider>
-                </AuthProvider>
-            </BrowserRouter>
+                                                    {/* Catch all route */}
+                                                    <Route path="*" element={<Navigate to="/" replace />} />
+                                                </Routes>
+                                                <ToastContainer />
+                                            </TeamBoardProvider>
+                                        </TeamProvider>
+                                    </BoardProvider>
+                                </SourceProvider>
+                            </FolderProvider>
+                        </AuthProvider>
+                    </BrowserRouter>
+                </NotificationProvider>
+            </ToastProvider>
         </ThemeProvider>
     );
 };
