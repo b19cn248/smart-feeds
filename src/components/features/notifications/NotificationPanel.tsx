@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useNotification } from '../../../contexts/NotificationContext/NotificationContext';
 import { formatTime } from '../../../utils/dateUtils';
@@ -90,8 +90,34 @@ export const NotificationPanel: React.FC = () => {
         notifications,
         isNotificationPanelOpen,
         markAsRead,
-        markAllAsRead
+        markAllAsRead,
+        loadNotifications,
+        toggleNotificationPanel
     } = useNotification();
+
+    const panelRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
+                toggleNotificationPanel();
+            }
+        };
+
+        if (isNotificationPanelOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isNotificationPanelOpen, toggleNotificationPanel]);
+
+    useEffect(() => {
+        if (isNotificationPanelOpen) {
+            loadNotifications();
+        }
+    }, [isNotificationPanelOpen, loadNotifications]);
 
     const handleMarkAllRead = () => {
         markAllAsRead();
@@ -102,7 +128,7 @@ export const NotificationPanel: React.FC = () => {
     };
 
     return (
-        <NotificationPanelContainer isOpen={isNotificationPanelOpen}>
+        <NotificationPanelContainer isOpen={isNotificationPanelOpen} ref={panelRef}>
             <NotificationHeader>
                 <PanelTitle>Notifications</PanelTitle>
                 {notifications.length > 0 && (

@@ -141,8 +141,13 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         console.log('NotificationProvider mounted, loading notifications...');
         loadNotifications();
         // Set up polling for unread count
-        const interval = setInterval(loadUnreadCount, 30000); // Poll every 30 seconds
-        return () => clearInterval(interval);
+        const interval = setInterval(() => {
+            loadNotifications();
+        }, 30000); // Poll every 30 seconds
+        return () => {
+            console.log('Cleaning up notification interval');
+            clearInterval(interval);
+        };
     }, []);
 
     console.log('Current notifications state:', {
