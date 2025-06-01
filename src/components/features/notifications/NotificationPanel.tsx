@@ -53,25 +53,26 @@ const NotificationList = styled.div`
 const NotificationItem = styled.div<{ read: boolean }>`
     padding: 15px;
     border-bottom: 1px solid ${({ theme }) => theme.colors.gray[200]};
-    background: ${({ read, theme }) => (read ? 'transparent' : theme.colors.gray[50])};
+    background: ${({ read, theme }) => (read ? 'transparent' : theme.colors.gray[200])};
     cursor: pointer;
     transition: background-color 0.2s;
 
     &:hover {
-        background: ${({ theme }) => theme.colors.gray[100]};
+        background: ${({ theme }) => theme.colors.gray[300]};
     }
 `;
 
-const NotificationTitle = styled.div`
-    font-weight: 600;
+const NotificationTitle = styled.div<{ read: boolean }>`
+    font-weight: ${({ read }) => (read ? 'normal' : '600')};
     margin-bottom: 5px;
-    color: ${({ theme }) => theme.colors.text.primary};
+    color: ${({ theme, read }) => (read ? theme.colors.text.secondary : theme.colors.text.primary)};
 `;
 
-const NotificationMessage = styled.div`
+const NotificationMessage = styled.div<{ read: boolean }>`
     font-size: 14px;
-    color: ${({ theme }) => theme.colors.text.secondary};
+    color: ${({ theme, read }) => (read ? theme.colors.text.secondary : theme.colors.text.primary)};
     margin-bottom: 5px;
+    font-weight: ${({ read }) => (read ? 'normal' : '500')};
 `;
 
 const NotificationTime = styled.div`
@@ -92,6 +93,7 @@ export const NotificationPanel: React.FC = () => {
         markAsRead,
         markAllAsRead,
         loadNotifications,
+        loadUnreadCount,
         toggleNotificationPanel
     } = useNotification();
 
@@ -123,8 +125,9 @@ export const NotificationPanel: React.FC = () => {
         markAllAsRead();
     };
 
-    const handleNotificationClick = (id: number) => {
-        markAsRead(id);
+    const handleNotificationClick = async (id: number) => {
+        await markAsRead(id);
+        await loadUnreadCount();
     };
 
     return (
@@ -147,8 +150,8 @@ export const NotificationPanel: React.FC = () => {
                             read={notification.read}
                             onClick={() => handleNotificationClick(notification.id)}
                         >
-                            <NotificationTitle>{notification.title}</NotificationTitle>
-                            <NotificationMessage>{notification.content}</NotificationMessage>
+                            <NotificationTitle read={notification.read}>{notification.title}</NotificationTitle>
+                            <NotificationMessage read={notification.read}>{notification.content}</NotificationMessage>
                             <NotificationTime>
                                 {formatTime(notification.timestamp)}
                             </NotificationTime>

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '../ToastContext';
 import { notificationService, NotificationResponse } from '../../services/notificationService';
 import { PageResponse } from '../../types/common';
+import keycloak from '../../config/keycloak';
 
 export type NotificationType = 'info' | 'success' | 'warning' | 'error';
 
@@ -20,6 +21,7 @@ interface NotificationContextValue {
     unreadCount: number;
     loading: boolean;
     loadNotifications: () => Promise<void>;
+    loadUnreadCount: () => Promise<void>;
     markAsRead: (id: number) => Promise<void>;
     markAllAsRead: () => Promise<void>;
     toggleNotificationPanel: () => void;
@@ -50,12 +52,22 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     const loadUnreadCount = async () => {
         try {
+            // Ensure keycloak is initialized and token is valid
+            if (!keycloak.token) {
+                console.log('No keycloak token available, skipping unread count');
+                return;
+            }
+            console.log('Loading unread count...');
             const response = await notificationService.countUnreadNotifications();
-            if (response && response.data) {
-                setUnreadCount(response.data);
+            console.log('Unread count response:', response);
+            if (response && response.data !== undefined) {
+                const count = response.data;
+                console.log('Setting unread count to:', count);
+                setUnreadCount(count);
             }
         } catch (error) {
             console.error('Error loading unread count:', error);
+            showToast('error', 'Error', 'Failed to load unread count');
         }
     };
 
@@ -80,8 +92,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 
                 console.log('Mapped notifications:', mappedNotifications);
                 setNotifications(mappedNotifications);
-                // Update unread count after loading notifications
-                await loadUnreadCount();
             } else {
                 console.error('Invalid response format:', response);
                 showToast('error', 'Error', 'Invalid notification data format');
@@ -128,26 +138,44 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
     };
 
-    const toggleNotificationPanel = () => {
+    const toggleNotificationPanel = async () => {
         console.log('Toggling notification panel, current state:', isNotificationPanelOpen);
         setIsNotificationPanelOpen(prev => !prev);
+        // Always update unread count when clicking the bell
+        await loadUnreadCount();
         if (!isNotificationPanelOpen) {
             console.log('Panel will open, loading notifications...');
-            loadNotifications();
+            await loadNotifications();
         }
     };
 
     useEffect(() => {
-        console.log('NotificationProvider mounted, loading notifications...');
-        loadNotifications();
-        // Set up polling for unread count
-        const interval = setInterval(() => {
-            loadNotifications();
-        }, 30000); // Poll every 30 seconds
-        return () => {
-            console.log('Cleaning up notification interval');
-            clearInterval(interval);
+        console.log('NotificationProvider mounted, loading initial data...');
+        const loadInitialData = async () => {
+            try {
+                // Wait for keycloak to be initialized
+                if (!keycloak.token) {
+                    console.log('Waiting for keycloak initialization...');
+                    await new Promise(resolve => {
+                        const checkToken = () => {
+                            if (keycloak.token) {
+                                resolve(true);
+                            } else {
+                                setTimeout(checkToken, 100);
+                            }
+                        };
+                        checkToken();
+                    });
+                }
+                console.log('Starting initial data load...');
+                await loadUnreadCount();
+                await loadNotifications();
+                console.log('Initial data load completed');
+            } catch (error) {
+                console.error('Error loading initial data:', error);
+            }
         };
+        loadInitialData();
     }, []);
 
     console.log('Current notifications state:', {
@@ -161,6 +189,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         unreadCount,
         loading,
         loadNotifications,
+        loadUnreadCount,
         markAsRead,
         markAllAsRead,
         toggleNotificationPanel,
