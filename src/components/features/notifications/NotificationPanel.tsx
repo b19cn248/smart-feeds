@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
 import { useNotification } from '../../../contexts/NotificationContext/NotificationContext';
 import { formatTime } from '../../../utils/dateUtils';
 
@@ -87,6 +88,7 @@ const EmptyState = styled.div`
 `;
 
 export const NotificationPanel: React.FC = () => {
+    const navigate = useNavigate();
     const {
         notifications,
         isNotificationPanelOpen,
@@ -98,7 +100,9 @@ export const NotificationPanel: React.FC = () => {
     } = useNotification();
 
     const panelRef = useRef<HTMLDivElement>(null);
+    const hasLoadedRef = useRef(false);
 
+    // Handle click outside to close panel
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
@@ -115,20 +119,29 @@ export const NotificationPanel: React.FC = () => {
         };
     }, [isNotificationPanelOpen, toggleNotificationPanel]);
 
+    // Load notifications only once when panel is opened
     useEffect(() => {
-        if (isNotificationPanelOpen) {
+        if (isNotificationPanelOpen && !hasLoadedRef.current) {
             loadNotifications();
+            hasLoadedRef.current = true;
+        } else if (!isNotificationPanelOpen) {
+            hasLoadedRef.current = false;
         }
     }, [isNotificationPanelOpen, loadNotifications]);
 
-    const handleMarkAllRead = () => {
+    const handleMarkAllRead = useCallback(() => {
         markAllAsRead();
-    };
+    }, [markAllAsRead]);
 
-    const handleNotificationClick = async (id: number) => {
-        await markAsRead(id);
+    const handleNotificationClick = useCallback(async (notification: any) => {
+        await markAsRead(notification.id);
         await loadUnreadCount();
-    };
+        
+        if (notification.url) {
+            navigate(notification.url);
+            toggleNotificationPanel();
+        }
+    }, [markAsRead, loadUnreadCount, navigate, toggleNotificationPanel]);
 
     return (
         <NotificationPanelContainer isOpen={isNotificationPanelOpen} ref={panelRef}>
@@ -148,7 +161,7 @@ export const NotificationPanel: React.FC = () => {
                         <NotificationItem
                             key={notification.id}
                             read={notification.read}
-                            onClick={() => handleNotificationClick(notification.id)}
+                            onClick={() => handleNotificationClick(notification)}
                         >
                             <NotificationTitle read={notification.read}>{notification.title}</NotificationTitle>
                             <NotificationMessage read={notification.read}>{notification.content}</NotificationMessage>

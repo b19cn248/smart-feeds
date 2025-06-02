@@ -160,6 +160,16 @@ const App: React.FC = () => {
                                                             </ProtectedRoute>
                                                         }
                                                     />
+                                                    <Route
+                                                        path="/team-boards/:boardId/articles/:articleId"
+                                                        element={
+                                                            <ProtectedRoute>
+                                                                <MainLayout headerTitle="Team Board Article">
+                                                                    <TeamBoardDetailPage />
+                                                                </MainLayout>
+                                                            </ProtectedRoute>
+                                                        }
+                                                    />
 
                                                     {/* Discover Route */}
                                                     <Route

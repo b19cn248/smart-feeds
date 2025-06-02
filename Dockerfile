@@ -13,6 +13,9 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
+# Build the React application for production
+RUN npm run build
+
 # Expose port 3000 for the React development server
 EXPOSE 3000
 

@@ -153,7 +153,7 @@ const ButtonGroup = styled.div`
 type TabType = 'articles' | 'members';
 
 export const TeamBoardDetailPage: React.FC = () => {
-    const {boardId} = useParams<{ boardId: string }>();
+    const {boardId, articleId} = useParams<{ boardId: string; articleId?: string }>();
     const navigate = useNavigate();
     const {user} = useAuth();
     const {
@@ -192,6 +192,17 @@ export const TeamBoardDetailPage: React.FC = () => {
             fetchTeamBoardDetail(parseInt(boardId));
         }
     }, [boardId, fetchTeamBoardDetail]);
+
+    // Handle article ID from URL
+    useEffect(() => {
+        if (articleId && teamBoardDetail) {
+            const article = teamBoardDetail.articles.content.find(a => a.id === parseInt(articleId));
+            if (article) {
+                setSelectedArticle(article);
+                setShowArticleDetailModal(true);
+            }
+        }
+    }, [articleId, teamBoardDetail]);
 
     // Handle board update
     const handleUpdateBoard = async (name: string, description: string, teamId: number) => {
@@ -252,6 +263,13 @@ export const TeamBoardDetailPage: React.FC = () => {
         return success;
     };
 
+    // Handle article click
+    const handleArticleClick = (e: React.MouseEvent, article: Article) => {
+        e.preventDefault();
+        e.stopPropagation();
+        navigate(`/team-boards/${boardId}/articles/${article.id}`);
+    };
+
     // Handle view article
     const handleViewArticle = (article: Article) => {
         setSelectedArticle(article);
@@ -261,17 +279,12 @@ export const TeamBoardDetailPage: React.FC = () => {
     // Handle close article detail
     const handleCloseArticleDetail = () => {
         setShowArticleDetailModal(false);
+        // Navigate back to team board detail
+        navigate(`/team-boards/${boardId}`);
         // Delay clearing selected article to allow animation to complete
         setTimeout(() => {
             setSelectedArticle(null);
         }, 300);
-    };
-
-    // Handle article click
-    const handleArticleClick = (e: React.MouseEvent, article: Article) => {
-        e.preventDefault();
-        e.stopPropagation();
-        handleViewArticle(article);
     };
 
     // Handle edit permission
