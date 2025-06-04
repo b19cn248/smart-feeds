@@ -31,7 +31,7 @@ interface SourceListProps {
     onSourceClick?: (sourceId: number) => void;
     onEditClick?: (sourceId: number) => void;
     onDeleteClick?: (sourceId: number) => void;
-    onAddToFolderClick?: (sourceId: number) => void; // Thêm prop mới
+    onAddToFolderClick?: (sourceId: number) => void;
     searchQuery?: string;
 }
 
@@ -40,14 +40,34 @@ export const SourceList: React.FC<SourceListProps> = ({
                                                           onSourceClick,
                                                           onEditClick,
                                                           onDeleteClick,
-                                                          onAddToFolderClick, // Thêm prop mới
+                                                          onAddToFolderClick,
                                                           searchQuery = ''
                                                       }) => {
+    // Lọc bỏ các sources null/undefined và filter theo search query
+    const validSources = sources.filter((source): source is Source => {
+        // Kiểm tra source không null/undefined và có id
+        if (!source || typeof source !== 'object' || !source.id) {
+            console.warn('Invalid source found in array:', source);
+            return false;
+        }
+        return true;
+    });
+
     // Filter sources by search query
     const filteredSources = searchQuery
-        ? sources.filter(source =>
-            source.url.toLowerCase().includes(searchQuery.toLowerCase()))
-        : sources;
+        ? validSources.filter(source =>
+            source.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            source.url?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+        : validSources;
+
+    // Log để debug nếu cần
+    if (process.env.NODE_ENV === 'development') {
+        const invalidCount = sources.length - validSources.length;
+        if (invalidCount > 0) {
+            console.warn(`Found ${invalidCount} invalid sources in array`);
+        }
+    }
 
     if (filteredSources.length === 0) {
         return (
@@ -58,7 +78,9 @@ export const SourceList: React.FC<SourceListProps> = ({
                 <EmptyStateText>
                     {searchQuery
                         ? 'No sources found. Try a different search query.'
-                        : 'No sources available. Add your first source!'}
+                        : validSources.length === 0
+                            ? 'No sources available. Add your first source!'
+                            : 'No sources match your search criteria.'}
                 </EmptyStateText>
             </EmptyState>
         );
@@ -66,16 +88,24 @@ export const SourceList: React.FC<SourceListProps> = ({
 
     return (
         <SourceGrid>
-            {filteredSources.map(source => (
-                <SourceCard
-                    key={source.id}
-                    source={source}
-                    onClick={() => onSourceClick?.(source.id)}
-                    onEditClick={() => onEditClick?.(source.id)}
-                    onDeleteClick={() => onDeleteClick?.(source.id)}
-                    onAddToFolderClick={() => onAddToFolderClick?.(source.id)} // Thêm prop mới
-                />
-            ))}
+            {filteredSources.map(source => {
+                // Double-check tại đây để đảm bảo an toàn
+                if (!source || !source.id) {
+                    console.error('Invalid source passed to SourceCard:', source);
+                    return null;
+                }
+
+                return (
+                    <SourceCard
+                        key={source.id}
+                        source={source}
+                        onClick={() => onSourceClick?.(source.id)}
+                        onEditClick={() => onEditClick?.(source.id)}
+                        onDeleteClick={() => onDeleteClick?.(source.id)}
+                        onAddToFolderClick={() => onAddToFolderClick?.(source.id)}
+                    />
+                );
+            })}
         </SourceGrid>
     );
 };
