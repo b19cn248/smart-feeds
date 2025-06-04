@@ -2,7 +2,13 @@
 import React, { createContext, useReducer, useCallback, ReactNode, useEffect } from 'react';
 import { Source, CreateSourceRequest, UpdateSourceRequest } from '../../types';
 import { sourceService } from '../../services';
-import { debugApiResponse, validateSourceObject, debugArrayOperation, safeArrayFilter } from '../../utils/debugHelpers';
+import {
+    debugApiResponse,
+    validateSourceObject,
+    debugArrayOperation,
+    safeArrayFilter,
+    debugSourceEditFlow
+} from '../../utils/debugHelpers';
 
 // Action types
 type SourceAction =
@@ -19,6 +25,7 @@ interface SourceContextValue {
     isLoading: boolean;
     error: string | null;
     fetchSources: () => Promise<void>;
+    getSourceById: (id: number) => Promise<Source | null>; // ✅ Ensure this is included
     addSource: (source: CreateSourceRequest) => Promise<void>;
     updateSource: (id: number, source: UpdateSourceRequest) => Promise<void>;
     deleteSource: (id: number) => Promise<void>;
@@ -147,13 +154,67 @@ export const SourceProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         }
     }, []);
 
-    // Add new source - Sửa validation để xử lý response với data: null
+    // ✅ FIX: Enhanced getSourceById với debugging
+    const getSourceById = useCallback(async (id: number): Promise<Source | null> => {
+        try {
+            if (!id || typeof id !== 'number') {
+                throw new Error('Invalid source ID provided');
+            }
+
+            console.log(`🔍 Fetching source detail by ID: ${id}`);
+            const response = await sourceService.getSourceById(id);
+
+            // Debug API response
+            debugApiResponse(`GET /sources/${id}`, response);
+
+            // Enhanced validation với debug info
+            if (!response) {
+                throw new Error('No response received from API');
+            }
+
+            if (response.status < 200 || response.status >= 300) {
+                throw new Error(`API returned error status: ${response.status} - ${response.message}`);
+            }
+
+            // Check if data exists
+            if (!response.data) {
+                console.warn(`⚠️ Source ${id} not found (data is null)`);
+                return null;
+            }
+
+            // Validate source data
+            if (!validateSourceObject(response.data, `getSourceById(${id})`)) {
+                throw new Error('Invalid source data received from API');
+            }
+
+            console.log(`✅ Successfully fetched source ${id}:`, response.data);
+
+            // ✅ FIX: Log categories info for debugging
+            if (response.data.categories_ids) {
+                console.log(`📂 Source ${id} has ${response.data.categories_ids.length} categories:`, response.data.categories_ids);
+            } else {
+                console.warn(`⚠️ Source ${id} has no categories_ids field`);
+            }
+
+            return response.data;
+        } catch (error) {
+            console.error(`❌ Error fetching source ${id}:`, error);
+            throw error;
+        }
+    }, []);
+
+    // Add new source - Cập nhật để xử lý category_ids
     const addSource = useCallback(async (newSource: CreateSourceRequest) => {
         dispatch({ type: 'SET_LOADING', payload: true });
         dispatch({ type: 'SET_ERROR', payload: null });
 
         try {
-            console.log('🚀 Creating source:', newSource);
+            // Validate input data
+            if (!newSource.category_ids || !Array.isArray(newSource.category_ids) || newSource.category_ids.length === 0) {
+                throw new Error('At least one category must be selected');
+            }
+
+            console.log('🚀 Creating source with categories:', newSource);
 
             // Gọi API để tạo source mới
             const response = await sourceService.createSource(newSource);
@@ -161,12 +222,12 @@ export const SourceProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             // Debug API response
             debugApiResponse('POST /sources', response);
 
-            // Sửa validation để xử lý response có data: null
+            // Validate response
             if (!response || typeof response.status !== 'number') {
                 throw new Error('Invalid response from create source API');
             }
 
-            // Check status thay vì validate data (vì API trả về data: null)
+            // Check status
             if (response.status === 201 || (response.status >= 200 && response.status < 300)) {
                 console.log('✅ Source created successfully with status:', response.status);
 
@@ -180,13 +241,13 @@ export const SourceProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             console.error('❌ Error adding source:', error);
             const errorMessage = error instanceof Error ? error.message : 'Failed to add source';
             dispatch({ type: 'SET_ERROR', payload: errorMessage });
-            throw error; // Re-throw để component có thể handle
+            throw error;
         } finally {
             dispatch({ type: 'SET_LOADING', payload: false });
         }
     }, [fetchSources]);
 
-    // Update existing source - Cũng sửa validation tương tự
+    // Update existing source - Enhanced debugging
     const updateSource = useCallback(async (id: number, updatedSource: UpdateSourceRequest) => {
         dispatch({ type: 'SET_LOADING', payload: true });
         dispatch({ type: 'SET_ERROR', payload: null });
@@ -197,7 +258,12 @@ export const SourceProvider: React.FC<{ children: ReactNode }> = ({ children }) 
                 throw new Error('Invalid parameters for update source');
             }
 
-            console.log('🔄 Updating source:', id, updatedSource);
+            // Validate categories
+            if (!updatedSource.category_ids || !Array.isArray(updatedSource.category_ids) || updatedSource.category_ids.length === 0) {
+                throw new Error('At least one category must be selected');
+            }
+
+            console.log('🔄 Updating source with categories:', id, updatedSource);
 
             // Gọi API để cập nhật source
             const response = await sourceService.updateSource(id, updatedSource);
@@ -205,12 +271,12 @@ export const SourceProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             // Debug API response
             debugApiResponse('PUT /sources', response);
 
-            // Sửa validation để linh hoạt hơn với response format
+            // Validate response
             if (!response || typeof response.status !== 'number') {
                 throw new Error('Invalid response from update source API');
             }
 
-            // Check status thay vì validate data structure
+            // Check status
             if (response.status >= 200 && response.status < 300) {
                 console.log('✅ Source updated successfully with status:', response.status);
 
@@ -224,13 +290,13 @@ export const SourceProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             console.error('❌ Error updating source:', error);
             const errorMessage = error instanceof Error ? error.message : 'Failed to update source';
             dispatch({ type: 'SET_ERROR', payload: errorMessage });
-            throw error; // Re-throw để component có thể handle
+            throw error;
         } finally {
             dispatch({ type: 'SET_LOADING', payload: false });
         }
     }, [fetchSources]);
 
-    // Delete source - Cũng sửa validation
+    // Delete source
     const deleteSource = useCallback(async (id: number) => {
         dispatch({ type: 'SET_LOADING', payload: true });
         dispatch({ type: 'SET_ERROR', payload: null });
@@ -255,7 +321,7 @@ export const SourceProvider: React.FC<{ children: ReactNode }> = ({ children }) 
             console.error('❌ Error deleting source:', error);
             const errorMessage = error instanceof Error ? error.message : 'Failed to delete source';
             dispatch({ type: 'SET_ERROR', payload: errorMessage });
-            throw error; // Re-throw để component có thể handle
+            throw error;
         } finally {
             dispatch({ type: 'SET_LOADING', payload: false });
         }
@@ -283,6 +349,7 @@ export const SourceProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         isLoading: state.isLoading,
         error: state.error,
         fetchSources,
+        getSourceById, // ✅ Ensure this is exported
         addSource,
         updateSource,
         deleteSource

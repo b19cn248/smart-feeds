@@ -11,24 +11,25 @@ export interface Source {
     account_id: string | null;
     hashtag: string | null;
     category: string | null;
-    category_id?: number; // Thêm trường category_id
+    category_id?: number; // Deprecated - giữ lại để backward compatibility
+    categories_ids: number[]; // Mới - mảng category IDs
     user_id: number;
     active: boolean;
     created_at: string;
 }
 
-// Thêm interface cho request tạo source mới
+// Request tạo source mới - cập nhật để hỗ trợ nhiều categories
 export interface CreateSourceRequest {
     name: string;
     url: string;
-    category_id: number;
+    category_ids: number[]; // Thay đổi từ category_id thành category_ids (mảng)
 }
 
-// Thêm interface cho request cập nhật source
+// Request cập nhật source - cập nhật để hỗ trợ nhiều categories
 export interface UpdateSourceRequest {
     name: string;
     url: string;
-    category_id: number;
+    category_ids: number[]; // Thay đổi từ category_id thành category_ids (mảng)
     active: boolean;
     type: string;
 }
@@ -66,7 +67,7 @@ export interface SourceOperationResponse {
     timestamp: string;
 }
 
-// Thêm interface cho api response lấy articles của source
+// API response lấy articles của source
 export interface SourceArticlesResponse {
     status: number;
     message: string;

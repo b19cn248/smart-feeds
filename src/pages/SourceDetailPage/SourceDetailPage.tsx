@@ -10,9 +10,10 @@ import { Input } from '../../components/common/Input';
 import { LoadingScreen } from '../../components/common/LoadingScreen';
 import { useToast } from '../../contexts/ToastContext';
 import { useBoard } from '../../contexts/BoardContext';
+import { useCategories } from '../../hooks'; // Thêm import
 import { Source, Article } from '../../types';
 import { useDebounce } from '../../hooks';
-import { SourceToFolderModal } from '../../components/features/source/SourceToFolderModal'; // Thêm import này
+import { SourceToFolderModal } from '../../components/features/source/SourceToFolderModal';
 
 const PageContainer = styled.div`
     display: flex;
@@ -93,9 +94,34 @@ const SourceStatus = styled.div<{ active: boolean }>`
     padding: 2px 8px;
     border-radius: 12px;
     background-color: ${({ active, theme }) =>
-            active ? `${theme.colors.success}20` : `${theme.colors.error}20`};
+    active ? `${theme.colors.success}20` : `${theme.colors.error}20`};
     color: ${({ active, theme }) =>
-            active ? theme.colors.success : theme.colors.error};
+    active ? theme.colors.success : theme.colors.error};
+
+    i {
+        margin-right: 6px;
+        font-size: ${({ theme }) => theme.typography.fontSize.xs};
+    }
+`;
+
+// Thêm styled components cho categories
+const CategoriesContainer = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+`;
+
+const CategoryTag = styled.div`
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    background-color: ${({ theme }) => `${theme.colors.primary.main}15`};
+    color: ${({ theme }) => theme.colors.primary.main};
+    border-radius: ${({ theme }) => theme.radii.full};
+    font-size: ${({ theme }) => theme.typography.fontSize.sm};
+    font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+    border: 1px solid ${({ theme }) => `${theme.colors.primary.main}30`};
 
     i {
         margin-right: 6px;
@@ -224,9 +250,24 @@ export const SourceDetailPage: React.FC = () => {
     // Hooks
     const debouncedSearch = useDebounce(searchQuery, 300);
     const { boards, addArticleToBoard } = useBoard();
+    const { categories } = useCategories(); // Thêm hook để lấy categories
     const { showToast } = useToast();
 
-    // Fetch source details and articles
+    // Helper để lấy tên categories từ IDs
+    const getCategoryNames = useCallback((categoryIds: number[]): string[] => {
+        if (!categoryIds || !Array.isArray(categoryIds)) {
+            return [];
+        }
+
+        return categoryIds
+            .map(id => {
+                const category = categories.find(cat => cat.id === id);
+                return category ? category.name : null;
+            })
+            .filter((name): name is string => name !== null);
+    }, [categories]);
+
+    // Fetch source details and articles - Cập nhật để sử dụng API mới
     useEffect(() => {
         if (!sourceId) return;
 
@@ -234,11 +275,22 @@ export const SourceDetailPage: React.FC = () => {
             try {
                 setIsLoading(true);
                 setError(null);
-                const response = await sourceService.getSourceArticles(parseInt(sourceId));
-                setSource(response.data.source);
 
-                // Sort articles by date if needed
-                const sortedArticles = [...response.data.articles].sort((a, b) => {
+                // Sử dụng API mới để lấy source details và articles
+                const [sourceResponse, articlesResponse] = await Promise.all([
+                    sourceService.getSourceById(parseInt(sourceId)),
+                    sourceService.getSourceArticles(parseInt(sourceId))
+                ]);
+
+                // Xử lý source data
+                if (sourceResponse.data) {
+                    setSource(sourceResponse.data);
+                } else {
+                    throw new Error('Source not found');
+                }
+
+                // Xử lý articles data
+                const sortedArticles = [...articlesResponse.data.articles].sort((a, b) => {
                     const dateA = new Date(a.publish_date).getTime();
                     const dateB = new Date(b.publish_date).getTime();
                     return dateB - dateA; // Default: newest first
@@ -408,6 +460,9 @@ export const SourceDetailPage: React.FC = () => {
     // Source exists but has no articles
     const hasArticles = filteredArticles.length > 0;
 
+    // Lấy danh sách categories của source
+    const sourceCategories = getCategoryNames(source.categories_ids || []);
+
     return (
         <PageContainer>
             <PageHeader>
@@ -451,10 +506,11 @@ export const SourceDetailPage: React.FC = () => {
                         Add to Folder
                     </Button>
                 </SourceHeader>
+
                 <SourceMeta>
                     <MetaItem>
                         <i className="fas fa-link" />
-                        {source.url}
+                        {getDomain(source.url)}
                     </MetaItem>
                     <MetaItem>
                         <i className="fas fa-tag" />
@@ -465,6 +521,18 @@ export const SourceDetailPage: React.FC = () => {
                         {source.active ? 'Active' : 'Inactive'}
                     </SourceStatus>
                 </SourceMeta>
+
+                {/* Hiển thị categories nếu có */}
+                {sourceCategories.length > 0 && (
+                    <CategoriesContainer>
+                        {sourceCategories.map((categoryName, index) => (
+                            <CategoryTag key={index} title={categoryName}>
+                                <i className="fas fa-folder" />
+                                {categoryName}
+                            </CategoryTag>
+                        ))}
+                    </CategoriesContainer>
+                )}
             </SourceInfo>
 
             {hasArticles ? (

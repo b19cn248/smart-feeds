@@ -33,6 +33,14 @@ export const debugApiResponse = (endpoint: string, response: any) => {
                             console.warn('⚠️ Found null/invalid items:', nullItems);
                         }
                     }
+                } else if (response.data.id) {
+                    // Single source object
+                    console.log('Single source object:', response.data);
+                    if (response.data.categories_ids) {
+                        console.log('✅ Categories found:', response.data.categories_ids);
+                    } else {
+                        console.warn('⚠️ No categories_ids found in source');
+                    }
                 }
             }
         }
@@ -41,7 +49,7 @@ export const debugApiResponse = (endpoint: string, response: any) => {
 };
 
 /**
- * Debug helper để validate source object
+ * Debug helper để validate source object - Cập nhật để support categories_ids
  */
 export const validateSourceObject = (source: any, context: string = 'Unknown') => {
     if (process.env.NODE_ENV === 'development') {
@@ -67,7 +75,23 @@ export const validateSourceObject = (source: any, context: string = 'Unknown') =
             console.warn(`⚠️ ${context}: Source missing fields:`, missingFields, source);
         }
 
-        console.log(`✅ ${context}: Source is valid`, source);
+        // ✅ FIX: Kiểm tra categories_ids field
+        if (source.categories_ids) {
+            if (Array.isArray(source.categories_ids)) {
+                console.log(`✅ ${context}: Source has categories_ids array:`, source.categories_ids);
+            } else {
+                console.warn(`⚠️ ${context}: categories_ids is not an array:`, source.categories_ids);
+            }
+        } else {
+            console.log(`ℹ️ ${context}: Source missing categories_ids (may be from list API):`, source);
+        }
+
+        // Backward compatibility check
+        if (source.category_id && typeof source.category_id === 'number') {
+            console.log(`ℹ️ ${context}: Source has legacy category_id:`, source.category_id);
+        }
+
+        console.log(`✅ ${context}: Source basic validation passed`, source);
         return true;
     }
 
@@ -154,6 +178,11 @@ export const validateOperationResponse = (response: any, operation: string = 'Un
                 console.log(`ℹ️ ${operation}: Data is null (expected for operations)`);
             } else if (response.data) {
                 console.log(`ℹ️ ${operation}: Data provided:`, response.data);
+
+                // ✅ FIX: Special handling for source detail response
+                if (response.data.categories_ids) {
+                    console.log(`✅ ${operation}: Source includes categories_ids:`, response.data.categories_ids);
+                }
             }
 
             console.groupEnd();
@@ -170,4 +199,34 @@ export const validateOperationResponse = (response: any, operation: string = 'Un
         typeof response.status === 'number' &&
         response.status >= 200 &&
         response.status < 300;
+};
+
+/**
+ * ✅ NEW: Debug helper specific cho source editing flow
+ */
+export const debugSourceEditFlow = (sourceId: number, sourceDetail: any, categories: any[]) => {
+    if (process.env.NODE_ENV === 'development') {
+        console.group(`🔍 Source Edit Flow Debug: ${sourceId}`);
+
+        console.log('Source Detail Response:', sourceDetail);
+
+        if (sourceDetail && sourceDetail.categories_ids) {
+            console.log('✅ Found categories_ids:', sourceDetail.categories_ids);
+
+            // Match categories with names
+            const categoryNames = sourceDetail.categories_ids
+                .map((id: number) => {
+                    const category = categories.find(cat => cat.id === id);
+                    return category ? category.name : `Unknown(${id})`;
+                });
+
+            console.log('✅ Category names:', categoryNames);
+        } else {
+            console.warn('⚠️ No categories_ids found in source detail');
+        }
+
+        console.log('Available categories:', categories.map(c => ({ id: c.id, name: c.name })));
+
+        console.groupEnd();
+    }
 };

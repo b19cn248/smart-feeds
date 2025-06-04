@@ -39,7 +39,7 @@ export const sourceService = {
     },
 
     /**
-     * Get single source by ID
+     * Get single source by ID - Sử dụng API mới
      * @param id - Source ID
      */
     async getSourceById(id: number): Promise<SingleSourceResponse> {
@@ -51,7 +51,7 @@ export const sourceService = {
             console.log(`📡 Fetching source by ID: ${id}`);
             const response = await apiClient.get<SingleSourceResponse>(`/sources/${id}`);
 
-            // Validate response - chấp nhận data có thể null
+            // Validate response
             if (!response || typeof response.status !== 'number') {
                 throw new Error('Source API returned invalid response');
             }
@@ -70,8 +70,8 @@ export const sourceService = {
     },
 
     /**
-     * Create new source
-     * @param data - Source data (name, url, category_id)
+     * Create new source - Cập nhật để hỗ trợ nhiều categories
+     * @param data - Source data (name, url, category_ids)
      */
     async createSource(data: CreateSourceRequest): Promise<SourceOperationResponse> {
         try {
@@ -88,8 +88,13 @@ export const sourceService = {
                 throw new Error('Source URL is required');
             }
 
-            if (!data.category_id || typeof data.category_id !== 'number') {
-                throw new Error('Valid category ID is required');
+            if (!data.category_ids || !Array.isArray(data.category_ids) || data.category_ids.length === 0) {
+                throw new Error('At least one category is required');
+            }
+
+            // Validate category IDs are numbers
+            if (!data.category_ids.every(id => typeof id === 'number' && id > 0)) {
+                throw new Error('All category IDs must be valid positive numbers');
             }
 
             // Validate URL format
@@ -104,7 +109,7 @@ export const sourceService = {
             const response = await apiClient.post<SourceOperationResponse>('/sources', {
                 name: data.name.trim(),
                 url: data.url.trim(),
-                category_id: data.category_id
+                category_ids: data.category_ids // Sử dụng category_ids thay vì category_id
             });
 
             // Validate response - chấp nhận data: null
@@ -138,7 +143,7 @@ export const sourceService = {
     },
 
     /**
-     * Update existing source
+     * Update existing source - Cập nhật để hỗ trợ nhiều categories
      * @param id - Source ID
      * @param data - Updated source data
      */
@@ -162,8 +167,13 @@ export const sourceService = {
                 throw new Error('Source URL is required');
             }
 
-            if (!data.category_id || typeof data.category_id !== 'number') {
-                throw new Error('Valid category ID is required');
+            if (!data.category_ids || !Array.isArray(data.category_ids) || data.category_ids.length === 0) {
+                throw new Error('At least one category is required');
+            }
+
+            // Validate category IDs are numbers
+            if (!data.category_ids.every(id => typeof id === 'number' && id > 0)) {
+                throw new Error('All category IDs must be valid positive numbers');
             }
 
             // Validate URL format
@@ -178,7 +188,7 @@ export const sourceService = {
             const updatePayload = {
                 name: data.name.trim(),
                 url: data.url.trim(),
-                category_id: data.category_id,
+                category_ids: data.category_ids, // Sử dụng category_ids thay vì category_id
                 type: data.type || 'RSS',
                 active: data.active ?? true
             };
@@ -216,7 +226,7 @@ export const sourceService = {
     },
 
     /**
-     * Delete source
+     * Delete source - API đã được bổ sung
      * @param id - Source ID
      */
     async deleteSource(id: number): Promise<SourceOperationResponse> {

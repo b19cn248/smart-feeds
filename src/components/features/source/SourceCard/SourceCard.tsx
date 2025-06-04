@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Source } from '../../../../types';
 import { formatDate } from '../../../../utils';
 import { Card } from '../../../common/Card';
+import { useCategories } from '../../../../hooks';
 
 const SourceContent = styled.div`
     padding: 20px;
@@ -76,6 +77,47 @@ const SourceType = styled.div`
     margin-top: 4px;
 `;
 
+// Styled components cho categories
+const CategoriesContainer = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+    min-height: 20px; /* Reserve space even when empty */
+`;
+
+const CategoryTag = styled.div`
+    display: inline-block;
+    padding: 2px 8px;
+    background-color: ${({ theme }) => `${theme.colors.success}15`};
+    color: ${({ theme }) => theme.colors.success};
+    border-radius: ${({ theme }) => theme.radii.full};
+    font-size: ${({ theme }) => theme.typography.fontSize.xs};
+    font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+    border: 1px solid ${({ theme }) => `${theme.colors.success}30`};
+`;
+
+// ✅ ADD: Loading placeholder cho categories
+const CategoryPlaceholder = styled.div`
+    display: inline-block;
+    padding: 2px 8px;
+    background-color: ${({ theme }) => theme.colors.gray[200]};
+    color: ${({ theme }) => theme.colors.gray[500]};
+    border-radius: ${({ theme }) => theme.radii.full};
+    font-size: ${({ theme }) => theme.typography.fontSize.xs};
+    font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+    animation: pulse 1.5s ease-in-out infinite alternate;
+
+    @keyframes pulse {
+        0% {
+            opacity: 0.6;
+        }
+        100% {
+            opacity: 1;
+        }
+    }
+`;
+
 const SourceMeta = styled.div`
     display: flex;
     justify-content: space-between;
@@ -135,6 +177,7 @@ export const SourceCard: React.FC<SourceCardProps> = ({
                                                           onAddToFolderClick
                                                       }) => {
     const navigate = useNavigate();
+    const { categories, isLoading: categoriesLoading } = useCategories();
 
     // Helper để lấy domain từ URL
     const getDomain = (url: string): string => {
@@ -146,8 +189,36 @@ export const SourceCard: React.FC<SourceCardProps> = ({
         }
     };
 
+    // ✅ FIX: Helper để lấy tên categories từ IDs với robust error handling
+    const getCategoryNames = (categoryIds: number[]): string[] => {
+        if (!categoryIds || !Array.isArray(categoryIds)) {
+            console.log('📝 No categories_ids found for source:', source.id);
+            return [];
+        }
+
+        if (categoriesLoading) {
+            console.log('⏳ Categories still loading...');
+            return [];
+        }
+
+        const categoryNames = categoryIds
+            .map(id => {
+                const category = categories.find(cat => cat.id === id);
+                if (!category) {
+                    console.warn(`⚠️ Category with ID ${id} not found`);
+                    return null;
+                }
+                return category.name;
+            })
+            .filter((name): name is string => name !== null);
+
+        console.log(`✅ Found ${categoryNames.length} category names for source ${source.id}:`, categoryNames);
+        return categoryNames;
+    };
+
     const handleEditClick = (e: React.MouseEvent) => {
         e.stopPropagation();
+        console.log('🔄 Edit button clicked for source:', source.id);
         if (onEditClick) onEditClick(e);
     };
 
@@ -167,6 +238,30 @@ export const SourceCard: React.FC<SourceCardProps> = ({
 
     const hasImage = !!source.image_url;
 
+    // ✅ FIX: Lấy danh sách categories với robust handling
+    const sourceCategories = getCategoryNames(source.categories_ids || []);
+
+    // ✅ FIX: Fallback to legacy category_id if categories_ids not available
+    const legacyCategoryId = source.category_id;
+    const hasLegacyCategory = legacyCategoryId && typeof legacyCategoryId === 'number';
+
+    // Nếu không có categories_ids nhưng có legacy category_id
+    const legacyCategory = hasLegacyCategory
+        ? categories.find(cat => cat.id === legacyCategoryId)?.name
+        : null;
+
+    const displayCategories = sourceCategories.length > 0
+        ? sourceCategories
+        : (legacyCategory ? [legacyCategory] : []);
+
+    console.log('🔍 Source card rendering:', {
+        sourceId: source.id,
+        categories_ids: source.categories_ids,
+        category_id: source.category_id,
+        displayCategories,
+        categoriesLoading
+    });
+
     return (
         <Card onClick={handleCardClick}>
             <SourceContent>
@@ -179,13 +274,37 @@ export const SourceCard: React.FC<SourceCardProps> = ({
                         )}
                     </SourceImage>
                     <SourceInfo>
-                        {/* Hiển thị tên nguồn thay vì URL */}
                         <SourceName title={source.name}>{source.name}</SourceName>
-                        {/* Hiển thị URL như thông tin phụ */}
                         <SourceUrl title={source.url}>{getDomain(source.url)}</SourceUrl>
                         <SourceType>{source.type}</SourceType>
                     </SourceInfo>
                 </SourceHeader>
+
+                {/* ✅ FIX: Hiển thị categories với better handling */}
+                <CategoriesContainer>
+                    {categoriesLoading ? (
+                        // Show loading placeholders
+                        <>
+                            <CategoryPlaceholder>Loading...</CategoryPlaceholder>
+                        </>
+                    ) : displayCategories.length > 0 ? (
+                        // Show actual categories
+                        displayCategories.map((categoryName, index) => (
+                            <CategoryTag key={index} title={categoryName}>
+                                {categoryName}
+                            </CategoryTag>
+                        ))
+                    ) : (
+                        // Show fallback if no categories
+                        <CategoryTag style={{
+                            backgroundColor: '#f3f4f6',
+                            color: '#6b7280',
+                            border: '1px solid #d1d5db'
+                        }}>
+                            No categories
+                        </CategoryTag>
+                    )}
+                </CategoriesContainer>
 
                 <SourceMeta>
                     <SourceStatus active={source.active}>

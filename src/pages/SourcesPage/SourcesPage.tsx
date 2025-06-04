@@ -5,7 +5,7 @@ import { SourceList } from '../../components/features/source/SourceList';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
-import { ErrorBoundary } from '../../components/common/ErrorBoundary'; // Import ErrorBoundary
+import { ErrorBoundary } from '../../components/common/ErrorBoundary';
 import { useSource } from '../../contexts/SourceContext';
 import { useToast } from '../../contexts/ToastContext';
 import { useCategories } from '../../hooks';
@@ -75,25 +75,59 @@ const FormGroup = styled.div`
     gap: 8px;
 `;
 
-const CategorySelect = styled.select`
-    padding: 12px 16px;
+// Styled components cho multi-select categories
+const CategoriesFieldset = styled.fieldset`
     border: 1px solid ${({ theme }) => theme.colors.gray[300]};
     border-radius: ${({ theme }) => theme.radii.md};
-    background-color: ${({ theme }) => theme.colors.background.secondary};
-    color: ${({ theme }) => theme.colors.text.primary};
-    font-size: ${({ theme }) => theme.typography.fontSize.md};
+    padding: 16px;
+    margin: 0;
+
+    legend {
+        padding: 0 8px;
+        font-size: ${({ theme }) => theme.typography.fontSize.sm};
+        font-weight: ${({ theme }) => theme.typography.fontWeight.medium};
+        color: ${({ theme }) => theme.colors.text.primary};
+    }
+`;
+
+const CategoriesGrid = styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 8px 0;
+`;
+
+const CategoryCheckbox = styled.label`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: ${({ theme }) => theme.radii.md};
     transition: ${({ theme }) => theme.transitions.default};
 
-    &:focus {
-        border-color: ${({ theme }) => theme.colors.primary.main};
-        outline: none;
-        box-shadow: 0 0 0 3px ${({ theme }) => theme.colors.primary.main}20;
+    &:hover {
+        background-color: ${({ theme }) => theme.colors.gray[100]};
     }
 
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
+    input[type="checkbox"] {
+        margin: 0;
+        cursor: pointer;
     }
+
+    span {
+        font-size: ${({ theme }) => theme.typography.fontSize.sm};
+        color: ${({ theme }) => theme.colors.text.primary};
+        line-height: 1.4;
+    }
+`;
+
+const SelectedCategoriesInfo = styled.div`
+    margin-top: 8px;
+    font-size: ${({ theme }) => theme.typography.fontSize.xs};
+    color: ${({ theme }) => theme.colors.text.secondary};
 `;
 
 const Label = styled.label`
@@ -136,6 +170,47 @@ const LoadingIndicator = styled.div`
     color: ${({ theme }) => theme.colors.text.secondary};
 `;
 
+// Thêm loading overlay cho modal
+const ModalLoadingOverlay = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    border-radius: ${({ theme }) => theme.radii.lg};
+`;
+
+const LoadingSpinner = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    
+    .spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid ${({ theme }) => theme.colors.gray[200]};
+        border-top: 3px solid ${({ theme }) => theme.colors.primary.main};
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    span {
+        font-size: ${({ theme }) => theme.typography.fontSize.sm};
+        color: ${({ theme }) => theme.colors.text.secondary};
+    }
+`;
+
 // Error fallback component cho SourceList
 const SourceListErrorFallback = styled.div`
     padding: 32px;
@@ -147,7 +222,7 @@ const SourceListErrorFallback = styled.div`
 
 export const SourcesPage: React.FC = () => {
     // Contexts và hooks
-    const { sources, isLoading, error, fetchSources, addSource, updateSource, deleteSource } = useSource();
+    const { sources, isLoading, error, fetchSources, getSourceById, addSource, updateSource, deleteSource } = useSource();
     const { categories, isLoading: categoriesLoading, error: categoriesError } = useCategories();
     const { showToast } = useToast();
 
@@ -162,16 +237,19 @@ export const SourcesPage: React.FC = () => {
     // Form state
     const [sourceUrl, setSourceUrl] = useState('');
     const [sourceName, setSourceName] = useState('');
-    const [categoryId, setCategoryId] = useState<number | ''>('');
+    const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
     const [sourceType, setSourceType] = useState('RSS');
     const [sourceActive, setSourceActive] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Thêm loading state cho việc fetch source detail
+    const [isLoadingSourceDetail, setIsLoadingSourceDetail] = useState(false);
 
     // Validation errors
     const [formErrors, setFormErrors] = useState({
         name: '',
         url: '',
-        category: ''
+        categories: ''
     });
 
     // Debounced search
@@ -188,7 +266,7 @@ export const SourcesPage: React.FC = () => {
         const errors = {
             name: '',
             url: '',
-            category: ''
+            categories: ''
         };
 
         if (!sourceName.trim()) {
@@ -205,12 +283,23 @@ export const SourcesPage: React.FC = () => {
             }
         }
 
-        if (!categoryId) {
-            errors.category = 'Please select a category';
+        if (selectedCategoryIds.length === 0) {
+            errors.categories = 'Please select at least one category';
         }
 
         setFormErrors(errors);
         return !Object.values(errors).some(error => error);
+    };
+
+    // Helper function để xử lý category selection
+    const handleCategoryToggle = (categoryId: number) => {
+        setSelectedCategoryIds(prev => {
+            if (prev.includes(categoryId)) {
+                return prev.filter(id => id !== categoryId);
+            } else {
+                return [...prev, categoryId];
+            }
+        });
     };
 
     // Handle source click
@@ -218,24 +307,54 @@ export const SourcesPage: React.FC = () => {
         // Đã được xử lý trong SourceCard để điều hướng trực tiếp đến trang chi tiết
     };
 
-    // Open edit modal
-    const handleEditClick = (sourceId: number) => {
-        const source = sources.find(s => s && s.id === sourceId); // Thêm null check
-        if (source) {
-            setSelectedSource(source);
-            setSourceUrl(source.url || '');
-            setSourceName(source.name || '');
-            setCategoryId(source.category_id || '');
-            setSourceType(source.type || 'RSS');
-            setSourceActive(source.active ?? true);
+    // ✅ FIX: Open edit modal - Cập nhật để fetch source detail từ API
+    const handleEditClick = async (sourceId: number) => {
+        try {
+            console.log('🔄 Opening edit modal for source:', sourceId);
+
+            // Reset form trước
+            resetForm();
+            setFormErrors({ name: '', url: '', categories: '' });
+
+            // Mở modal với loading state
             setShowEditModal(true);
-            setFormErrors({ name: '', url: '', category: '' });
+            setIsLoadingSourceDetail(true);
+
+            // Gọi API để lấy source detail đầy đủ
+            console.log('📡 Fetching source detail from API...');
+            const sourceDetail = await getSourceById(sourceId);
+
+            if (!sourceDetail) {
+                throw new Error('Source not found');
+            }
+
+            console.log('✅ Source detail fetched successfully:', sourceDetail);
+
+            // Set source detail vào form
+            setSelectedSource(sourceDetail);
+            setSourceUrl(sourceDetail.url || '');
+            setSourceName(sourceDetail.name || '');
+            setSelectedCategoryIds(sourceDetail.categories_ids || []); // Đây là thông tin đầy đủ từ API detail
+            setSourceType(sourceDetail.type || 'RSS');
+            setSourceActive(sourceDetail.active ?? true);
+
+            console.log('📝 Form populated with categories:', sourceDetail.categories_ids);
+
+        } catch (error) {
+            console.error('❌ Error fetching source detail:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to load source details';
+            showToast('error', 'Error', errorMessage);
+
+            // Đóng modal nếu có lỗi
+            setShowEditModal(false);
+        } finally {
+            setIsLoadingSourceDetail(false);
         }
     };
 
     // Open delete modal
     const handleDeleteClick = (sourceId: number) => {
-        const source = sources.find(s => s && s.id === sourceId); // Thêm null check
+        const source = sources.find(s => s && s.id === sourceId);
         if (source) {
             setSelectedSource(source);
             setShowDeleteModal(true);
@@ -244,7 +363,7 @@ export const SourcesPage: React.FC = () => {
 
     // Handle add to folder
     const handleAddToFolderClick = (sourceId: number) => {
-        const source = sources.find(s => s && s.id === sourceId); // Thêm null check
+        const source = sources.find(s => s && s.id === sourceId);
         if (source) {
             setSelectedSource(source);
             setShowAddToFolderModal(true);
@@ -265,7 +384,7 @@ export const SourcesPage: React.FC = () => {
             const newSource: CreateSourceRequest = {
                 name: sourceName.trim(),
                 url: sourceUrl.trim(),
-                category_id: categoryId as number
+                category_ids: selectedCategoryIds
             };
 
             await addSource(newSource);
@@ -295,10 +414,12 @@ export const SourcesPage: React.FC = () => {
             const updatedSource: UpdateSourceRequest = {
                 name: sourceName.trim(),
                 url: sourceUrl.trim(),
-                category_id: categoryId as number,
+                category_ids: selectedCategoryIds,
                 type: sourceType,
                 active: sourceActive
             };
+
+            console.log('🔄 Updating source with categories:', selectedCategoryIds);
 
             await updateSource(selectedSource.id, updatedSource);
             showToast('success', 'Success', 'Source updated successfully');
@@ -337,11 +458,11 @@ export const SourcesPage: React.FC = () => {
     const resetForm = () => {
         setSourceUrl('');
         setSourceName('');
-        setCategoryId('');
+        setSelectedCategoryIds([]);
         setSourceType('RSS');
         setSourceActive(true);
         setSelectedSource(null);
-        setFormErrors({ name: '', url: '', category: '' });
+        setFormErrors({ name: '', url: '', categories: '' });
     };
 
     // Handle refresh
@@ -461,26 +582,35 @@ export const SourcesPage: React.FC = () => {
                         />
                     </FormGroup>
 
+                    {/* Categories Multi-Select */}
                     <FormGroup>
-                        <Label>Category</Label>
-                        <CategorySelect
-                            value={categoryId}
-                            onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : '')}
-                            disabled={categoriesLoading || isSubmitting}
-                            required
-                        >
-                            <option value="">Select a category...</option>
-                            {categories.map((category) => (
-                                <option key={category.id} value={category.id}>
-                                    {category.name}
-                                </option>
-                            ))}
-                        </CategorySelect>
-                        {formErrors.category && (
-                            <ErrorMessage>{formErrors.category}</ErrorMessage>
-                        )}
-                        {categoriesLoading && (
-                            <LoadingIndicator>Loading categories...</LoadingIndicator>
+                        <CategoriesFieldset disabled={categoriesLoading || isSubmitting}>
+                            <legend>Categories *</legend>
+                            {categoriesLoading ? (
+                                <LoadingIndicator>Loading categories...</LoadingIndicator>
+                            ) : (
+                                <>
+                                    <CategoriesGrid>
+                                        {categories.map((category) => (
+                                            <CategoryCheckbox key={category.id}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedCategoryIds.includes(category.id)}
+                                                    onChange={() => handleCategoryToggle(category.id)}
+                                                    disabled={isSubmitting}
+                                                />
+                                                <span>{category.name}</span>
+                                            </CategoryCheckbox>
+                                        ))}
+                                    </CategoriesGrid>
+                                    <SelectedCategoriesInfo>
+                                        {selectedCategoryIds.length} categor{selectedCategoryIds.length === 1 ? 'y' : 'ies'} selected
+                                    </SelectedCategoriesInfo>
+                                </>
+                            )}
+                        </CategoriesFieldset>
+                        {formErrors.categories && (
+                            <ErrorMessage>{formErrors.categories}</ErrorMessage>
                         )}
                     </FormGroup>
 
@@ -504,13 +634,23 @@ export const SourcesPage: React.FC = () => {
                 </Form>
             </Modal>
 
-            {/* Edit Source Modal */}
+            {/* ✅ FIX: Edit Source Modal - Thêm loading overlay */}
             <Modal
                 isOpen={showEditModal}
                 onClose={handleCloseModal}
                 title="Edit Source"
                 size="md"
             >
+                {/* Loading overlay khi đang fetch source detail */}
+                {isLoadingSourceDetail && (
+                    <ModalLoadingOverlay>
+                        <LoadingSpinner>
+                            <div className="spinner"></div>
+                            <span>Loading source details...</span>
+                        </LoadingSpinner>
+                    </ModalLoadingOverlay>
+                )}
+
                 <Form onSubmit={handleUpdateSource}>
                     <FormGroup>
                         <Input
@@ -521,7 +661,7 @@ export const SourcesPage: React.FC = () => {
                             leftIcon="tag"
                             error={formErrors.name}
                             required
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || isLoadingSourceDetail}
                         />
                     </FormGroup>
 
@@ -534,27 +674,39 @@ export const SourcesPage: React.FC = () => {
                             leftIcon="link"
                             error={formErrors.url}
                             required
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || isLoadingSourceDetail}
                         />
                     </FormGroup>
 
+                    {/* Categories Multi-Select */}
                     <FormGroup>
-                        <Label>Category</Label>
-                        <CategorySelect
-                            value={categoryId}
-                            onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : '')}
-                            disabled={categoriesLoading || isSubmitting}
-                            required
-                        >
-                            <option value="">Select a category...</option>
-                            {categories.map((category) => (
-                                <option key={category.id} value={category.id}>
-                                    {category.name}
-                                </option>
-                            ))}
-                        </CategorySelect>
-                        {formErrors.category && (
-                            <ErrorMessage>{formErrors.category}</ErrorMessage>
+                        <CategoriesFieldset disabled={categoriesLoading || isSubmitting || isLoadingSourceDetail}>
+                            <legend>Categories *</legend>
+                            {categoriesLoading ? (
+                                <LoadingIndicator>Loading categories...</LoadingIndicator>
+                            ) : (
+                                <>
+                                    <CategoriesGrid>
+                                        {categories.map((category) => (
+                                            <CategoryCheckbox key={category.id}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedCategoryIds.includes(category.id)}
+                                                    onChange={() => handleCategoryToggle(category.id)}
+                                                    disabled={isSubmitting || isLoadingSourceDetail}
+                                                />
+                                                <span>{category.name}</span>
+                                            </CategoryCheckbox>
+                                        ))}
+                                    </CategoriesGrid>
+                                    <SelectedCategoriesInfo>
+                                        {selectedCategoryIds.length} categor{selectedCategoryIds.length === 1 ? 'y' : 'ies'} selected
+                                    </SelectedCategoriesInfo>
+                                </>
+                            )}
+                        </CategoriesFieldset>
+                        {formErrors.categories && (
+                            <ErrorMessage>{formErrors.categories}</ErrorMessage>
                         )}
                     </FormGroup>
 
@@ -568,7 +720,7 @@ export const SourcesPage: React.FC = () => {
                                     value="RSS"
                                     checked={sourceType === 'RSS'}
                                     onChange={() => setSourceType('RSS')}
-                                    disabled={isSubmitting}
+                                    disabled={isSubmitting || isLoadingSourceDetail}
                                 />
                                 RSS
                             </RadioLabel>
@@ -579,6 +731,7 @@ export const SourcesPage: React.FC = () => {
                                     value="API"
                                     checked={sourceType === 'API'}
                                     onChange={() => setSourceType('API')}
+                                    disabled={isSubmitting || isLoadingSourceDetail}
                                 />
                                 API
                             </RadioLabel>
@@ -595,7 +748,7 @@ export const SourcesPage: React.FC = () => {
                                     value="active"
                                     checked={sourceActive}
                                     onChange={() => setSourceActive(true)}
-                                    disabled={isSubmitting}
+                                    disabled={isSubmitting || isLoadingSourceDetail}
                                 />
                                 Active
                             </RadioLabel>
@@ -606,7 +759,7 @@ export const SourcesPage: React.FC = () => {
                                     value="inactive"
                                     checked={!sourceActive}
                                     onChange={() => setSourceActive(false)}
-                                    disabled={isSubmitting}
+                                    disabled={isSubmitting || isLoadingSourceDetail}
                                 />
                                 Inactive
                             </RadioLabel>
@@ -618,14 +771,14 @@ export const SourcesPage: React.FC = () => {
                             type="button"
                             variant="ghost"
                             onClick={handleCloseModal}
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || isLoadingSourceDetail}
                         >
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             isLoading={isSubmitting}
-                            disabled={categoriesLoading}
+                            disabled={categoriesLoading || isLoadingSourceDetail}
                         >
                             Save Changes
                         </Button>
