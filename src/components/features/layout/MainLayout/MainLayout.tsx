@@ -6,6 +6,7 @@ import { Header } from '../Header';
 import { useMediaQuery } from '../../../../hooks';
 import { theme } from '../../../../styles/theme';
 import { useLocation } from 'react-router-dom';
+import { NotificationPanel } from '../../notifications/NotificationPanel';
 
 const LayoutWrapper = styled.div`
     display: flex;
@@ -112,6 +113,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             <MainContent hasPadding={!noPadding}>
                 {children}
             </MainContent>
+            <NotificationPanel />
         </LayoutWrapper>
     );
 };

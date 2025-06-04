@@ -4,7 +4,8 @@ import styled from 'styled-components';
 import { Button } from '../../../common/Button';
 import { iconButton } from '../../../../styles/mixins';
 import { UserProfile } from '../Sidebar/UserProfile';
-import {ThemeToggle} from "../../../../contexts/ThemeToggle"; // Import UserProfile component
+import { ThemeToggle } from "../../../../contexts/ThemeToggle";
+import { useNotification } from '../../../../contexts/NotificationContext/NotificationContext';
 
 const HeaderWrapper = styled.header`
     position: fixed;
@@ -53,6 +54,28 @@ const HeaderActions = styled.div`
     gap: 16px;
 `;
 
+const NotificationButton = styled.button`
+    ${iconButton}
+    position: relative;
+`;
+
+const NotificationBadge = styled.span`
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    background-color: ${({ theme }) => theme.colors.error};
+    color: white;
+    font-size: 10px;
+    font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
+    min-width: 16px;
+    height: 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+`;
+
 interface HeaderProps {
     title: string;
     onMenuClick: () => void;
@@ -60,10 +83,12 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({
-                                                  title,
-                                                  onMenuClick,
-                                                  rightActions
-                                              }) => {
+    title,
+    onMenuClick,
+    rightActions
+}) => {
+    const { unreadCount, toggleNotificationPanel } = useNotification();
+
     return (
         <HeaderWrapper>
             <LeftSection>
@@ -75,7 +100,13 @@ export const Header: React.FC<HeaderProps> = ({
             </LeftSection>
 
             <HeaderActions>
-                <ThemeToggle /> {/* Thêm ThemeToggle vào đây */}
+                <ThemeToggle />
+                <NotificationButton onClick={toggleNotificationPanel} aria-label="Notifications">
+                    <i className="fas fa-bell" />
+                    {unreadCount > 0 && (
+                        <NotificationBadge>{unreadCount}</NotificationBadge>
+                    )}
+                </NotificationButton>
                 {rightActions}
                 <UserProfile />
             </HeaderActions>
